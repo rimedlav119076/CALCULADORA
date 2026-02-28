@@ -129,7 +129,7 @@ export default function App() {
 
   // State - Sale Markup
   const [icmsSaleRate, setIcmsSaleRate] = useState(0); // %
-  const [saleExpensesRate, setSaleExpensesRate] = useState(0); // %
+  const [saleExpensesValue, setSaleExpensesValue] = useState(0); // R$ (Fixed Value)
   const [commissionRate, setCommissionRate] = useState(0); // %
   const [profitMargin, setProfitMargin] = useState(0); // %
 
@@ -157,47 +157,85 @@ export default function App() {
     setRealCost(rCost);
 
     // 4. Calculate Sales Price (Markup)
-    // Formula: Price = Cost / (1 - (Tax + Exp + Comm + Margin))
-    const totalDeductionsPercent = icmsSaleRate + saleExpensesRate + commissionRate + profitMargin;
+    // Formula: Price = (RealCost + FixedExpenses) / (1 - (Tax% + Comm% + Margin%))
+    // Note: SaleExpensesValue is now a fixed cost added to the base, not a rate deducted from price.
     
-    if (totalDeductionsPercent >= 100) {
-      setSalesPrice(0); // Avoid division by zero or negative price
+    const percentageDeductions = icmsSaleRate + commissionRate + profitMargin;
+    const divisor = 1 - (percentageDeductions / 100);
+    
+    const totalBaseCost = rCost + saleExpensesValue;
+
+    if (divisor <= 0) {
+      setSalesPrice(0); 
       setMarkupMultiplier(0);
     } else {
-      const divisor = 1 - (totalDeductionsPercent / 100);
-      const price = rCost / divisor;
+      const price = totalBaseCost / divisor;
       setSalesPrice(price);
       
-      // Markup Multiplier (how much we multiply real cost to get price)
-      // Price = RealCost * Markup
+      // Markup Multiplier
       setMarkupMultiplier(price / (rCost || 1));
     }
 
   }, [
     purchasePrice, freight, otherExpenses, 
     icmsPurchaseRate, icmsFreightRate,
-    icmsSaleRate, saleExpensesRate, commissionRate, profitMargin
+    icmsSaleRate, saleExpensesValue, commissionRate, profitMargin
   ]);
 
-  const handleSaleExpensesValueChange = (val: number) => {
-    // Calculate what percentage this value represents of the final price
-    // Formula derivation:
-    // Price = RealCost / (1 - (OtherRates + NewExpRate))
-    // Price = RealCost / (1 - OtherRates - (Val / Price))
-    // Price * (1 - OtherRates) - Val = RealCost
-    // Price = (RealCost + Val) / (1 - OtherRates)
-    
-    const otherRates = icmsSaleRate + commissionRate + profitMargin;
-    const divisor = 1 - (otherRates / 100);
-    
-    if (divisor <= 0) return; // Impossible margin
+  const handleSaleExpensesRateChange = (newRate: number) => {
+    // User wants to set expenses as a % of the FINAL price.
+    // But we store it as a fixed value.
+    // We need to find 'V' (saleExpensesValue) such that:
+    // V / Price = newRate / 100
+    // Where Price = (RealCost + V) / (1 - OtherRates)
+    // Let k = 1 - OtherRates
+    // V / [ (RealCost + V) / k ] = rate
+    // V * k / (RealCost + V) = rate
+    // Vk = rate * RealCost + rate * V
+    // V(k - rate) = rate * RealCost
+    // V = (rate * RealCost) / (k - rate)
 
-    const projectedPrice = (realCost + val) / divisor;
-    
-    if (projectedPrice > 0) {
-      const newRate = (val / projectedPrice) * 100;
-      setSaleExpensesRate(newRate);
+    const otherRates = icmsSaleRate + commissionRate + profitMargin;
+    const k = 1 - (otherRates / 100);
+    const r = newRate / 100;
+
+    if (k - r <= 0.0001) {
+      // Avoid division by zero or negative results (impossible math)
+      return;
     }
+
+    const newValue = (r * realCost) / (k - r);
+    setSaleExpensesValue(newValue);
+  };
+
+  const handleSaleExpensesValueChange = (val: number) => {
+    setSaleExpensesValue(val);
+  };
+
+  const handleProfitMarginValueChange = (val: number) => {
+    // Calculate what percentage this value represents of the final price
+    // Price = (RealCost + SaleExpensesValue) / (1 - (ICMS + Comm + Margin))
+    // We want MarginValue = Price * Margin% = val
+    // This is tricky because Price depends on Margin%.
+    
+    // Easier approach:
+    // Price = Cost / (1 - Rates - Margin%)
+    // Profit = Price * Margin%
+    // Profit = [Cost / (1 - Rates - Margin%)] * Margin%
+    // Let P = Profit (val), C = Cost (RealCost + SaleExpensesValue), R = Rates (ICMS + Comm)
+    // P = [C / (1 - R - m)] * m
+    // P(1 - R - m) = Cm
+    // P(1 - R) - Pm = Cm
+    // P(1 - R) = m(C + P)
+    // m = P(1 - R) / (C + P)
+
+    const cost = realCost + saleExpensesValue;
+    const otherRates = (icmsSaleRate + commissionRate) / 100;
+    
+    if (cost + val === 0) return;
+
+    const newMarginDecimal = (val * (1 - otherRates)) / (cost + val);
+    setProfitMargin(newMarginDecimal * 100);
   };
 
   const handleReset = () => {
@@ -208,7 +246,7 @@ export default function App() {
     setIcmsPurchaseRate(0);
     setIcmsFreightRate(0);
     setIcmsSaleRate(0);
-    setSaleExpensesRate(0);
+    setSaleExpensesValue(0);
     setCommissionRate(0);
     setProfitMargin(0);
 
@@ -234,7 +272,7 @@ export default function App() {
     const tableData = [
       ['Preço de Venda', formatCurrency(salesPrice)],
       ['(-) Custo Real', `-${formatCurrency(realCost)}`],
-      ['(-) Impostos/Comissões', `-${formatCurrency(salesPrice * ((icmsSaleRate + saleExpensesRate + commissionRate) / 100))}`],
+      ['(-) Impostos/Comissões', `-${formatCurrency(salesPrice * ((icmsSaleRate + commissionRate) / 100) + saleExpensesValue)}`],
       ['(=) Lucro Líquido', formatCurrency(salesPrice * (profitMargin / 100))],
     ];
 
@@ -313,11 +351,9 @@ export default function App() {
           {/* LEFT COLUMN: COMPRA (Zinc/Grey Theme) */}
           <div className="p-6 bg-zinc-50 border-r border-zinc-200 relative">
             {/* Vertical Label Strip */}
-            <div className="absolute left-0 top-0 bottom-0 w-8 bg-zinc-700 flex items-center justify-center rounded-tl-none">
-              <span className="text-white font-bold tracking-widest text-sm -rotate-90 whitespace-nowrap">COMPRA / CUSTOS</span>
-            </div>
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-zinc-700 rounded-tl-none"></div>
 
-            <div className="pl-8 space-y-6">
+            <div className="pl-4 space-y-6">
               <div className="space-y-4">
                 <h2 className="text-zinc-800 font-bold text-lg border-b border-zinc-300 pb-2 flex items-center gap-2">
                   <BRLIcon className="w-6 h-6 text-zinc-600" />
@@ -345,7 +381,7 @@ export default function App() {
 
                 <div className="pt-2">
                   <NumberInput 
-                    label="(=) Custo Total (Nota)" 
+                    label="(=) CUSTO TOTAL DO PRODUTO" 
                     value={totalCost} 
                     disabled 
                     className="opacity-100"
@@ -403,7 +439,7 @@ export default function App() {
             <div className="pr-0 lg:pr-8 space-y-6">
               <div className="space-y-4">
                 <h2 className="text-amber-900 font-bold text-lg border-b border-amber-200 pb-2 flex items-center gap-2">
-                  <RefreshCw className="w-5 h-5 text-amber-700" />
+                  <BRLIcon className="w-5 h-5 text-amber-700" />
                   Preço Venda (Markup)
                 </h2>
 
@@ -416,8 +452,8 @@ export default function App() {
                   />
                   <PercentInputRow 
                     label="Outras Despesas (%)" 
-                    percent={saleExpensesRate} 
-                    onChange={setSaleExpensesRate} 
+                    percent={salesPrice > 0 ? (saleExpensesValue / salesPrice) * 100 : 0} 
+                    onChange={handleSaleExpensesRateChange} 
                     baseValue={salesPrice}
                     onValueChange={handleSaleExpensesValueChange}
                   />
@@ -432,21 +468,22 @@ export default function App() {
                     percent={profitMargin} 
                     onChange={setProfitMargin} 
                     baseValue={salesPrice}
+                    onValueChange={handleProfitMarginValueChange}
                   />
                 </div>
 
                 <div className="bg-amber-50 p-4 rounded-lg border border-amber-100 space-y-2">
                   <div className="flex justify-between items-center text-sm text-amber-900">
                     <span>Soma das Deduções:</span>
-                    <span className="font-mono font-bold">{(icmsSaleRate + saleExpensesRate + commissionRate + profitMargin).toFixed(2)}%</span>
+                    <span className="font-mono font-bold">{(icmsSaleRate + ((salesPrice > 0 ? (saleExpensesValue / salesPrice) * 100 : 0)) + commissionRate + profitMargin).toFixed(2)}%</span>
                   </div>
                   <div className="w-full bg-amber-200 h-2 rounded-full overflow-hidden">
                     <div 
-                      className={`h-full ${icmsSaleRate + saleExpensesRate + commissionRate + profitMargin > 100 ? 'bg-red-500' : 'bg-amber-500'}`}
-                      style={{ width: `${Math.min(icmsSaleRate + saleExpensesRate + commissionRate + profitMargin, 100)}%` }}
+                      className={`h-full ${icmsSaleRate + ((salesPrice > 0 ? (saleExpensesValue / salesPrice) * 100 : 0)) + commissionRate + profitMargin > 100 ? 'bg-red-500' : 'bg-amber-500'}`}
+                      style={{ width: `${Math.min(icmsSaleRate + ((salesPrice > 0 ? (saleExpensesValue / salesPrice) * 100 : 0)) + commissionRate + profitMargin, 100)}%` }}
                     ></div>
                   </div>
-                  {(icmsSaleRate + saleExpensesRate + commissionRate + profitMargin) >= 100 && (
+                  {(icmsSaleRate + ((salesPrice > 0 ? (saleExpensesValue / salesPrice) * 100 : 0)) + commissionRate + profitMargin) >= 100 && (
                     <div className="text-xs text-red-600 font-bold flex items-center gap-1">
                       <Info className="w-3 h-3" />
                       Margem impossível (maior que 100%)
@@ -463,7 +500,7 @@ export default function App() {
                       </span>
                     </div>
                     <div className="text-4xl font-mono font-bold tracking-tight text-white">
-                      {(icmsSaleRate + saleExpensesRate + commissionRate + profitMargin) >= 100 ? "Erro" : formatCurrency(salesPrice)}
+                      {(icmsSaleRate + ((salesPrice > 0 ? (saleExpensesValue / salesPrice) * 100 : 0)) + commissionRate + profitMargin) >= 100 ? "Erro" : formatCurrency(salesPrice)}
                     </div>
                     <div className="mt-4 pt-4 border-t border-amber-500/50 grid grid-cols-2 gap-4 text-sm opacity-90">
                       <div>
@@ -472,7 +509,7 @@ export default function App() {
                       </div>
                       <div className="text-right">
                         <span className="block text-xs opacity-80 text-amber-100">Impostos/Desp. (R$)</span>
-                        <span className="font-mono font-bold">{formatCurrency(salesPrice * ((icmsSaleRate + saleExpensesRate + commissionRate) / 100))}</span>
+                        <span className="font-mono font-bold">{formatCurrency(salesPrice * ((icmsSaleRate + commissionRate) / 100) + saleExpensesValue)}</span>
                       </div>
                     </div>
                   </div>
@@ -493,7 +530,7 @@ export default function App() {
                   </div>
                   <div className="flex justify-between border-b border-zinc-100 pb-1 text-red-600">
                     <span>(-) Impostos/Comissões</span>
-                    <span className="font-mono">{(salesPrice * ((icmsSaleRate + saleExpensesRate + commissionRate) / 100)) > 0 ? '-' : ''}{formatCurrency(salesPrice * ((icmsSaleRate + saleExpensesRate + commissionRate) / 100))}</span>
+                    <span className="font-mono">{(salesPrice * ((icmsSaleRate + commissionRate) / 100) + saleExpensesValue) > 0 ? '-' : ''}{formatCurrency(salesPrice * ((icmsSaleRate + commissionRate) / 100) + saleExpensesValue)}</span>
                   </div>
                   <div className="flex justify-between pt-1 text-green-600 font-bold">
                     <span>(=) Lucro Líquido</span>
