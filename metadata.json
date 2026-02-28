@@ -1,0 +1,5 @@
+{
+  "name": "NIVOR Calculadora",
+  "description": "Calculadora para formação de preço de venda (markup) e custo de aquisição com impostos (ICMS).",
+  "requestFramePermissions": []
+}
