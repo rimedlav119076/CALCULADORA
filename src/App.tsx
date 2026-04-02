@@ -189,23 +189,27 @@ export default function App() {
   const suggestedPurchasePrice = useMemo(() => {
     if (targetSalesPrice <= 0) return 0;
 
-    const fRate = purchasePrice > 0 ? (freight / purchasePrice) : 0;
-    const oeAcqRate = purchasePrice > 0 ? (otherExpenses / purchasePrice) : 0;
-    const seRate = salesPrice > 0 ? (saleExpensesValue / salesPrice) : 0;
-
     const ip = icmsPurchaseRate / 100;
     const ifr = icmsFreightRate / 100;
     const is1 = icmsSaleRate / 100;
     const c = commissionRate / 100;
     const m = profitMargin / 100;
 
-    const af = (1 + fRate + oeAcqRate) - (ip + fRate * ifr);
-    const sdf = 1 - (is1 + c + m + seRate);
+    // Formula: P = [S(1 - (is1 + c + m)) - SE - F(1 - ifr) - OE] / (1 - ip)
+    // Where:
+    // S = targetSalesPrice
+    // SE = saleExpensesValue (fixed)
+    // F = freight (fixed)
+    // OE = otherExpenses (fixed)
+    
+    const numerator = targetSalesPrice * (1 - (is1 + c + m)) - saleExpensesValue - freight * (1 - ifr) - otherExpenses;
+    const denominator = 1 - ip;
 
-    if (af <= 0 || sdf <= 0) return 0;
+    if (denominator <= 0) return 0;
 
-    return (targetSalesPrice * sdf) / af;
-  }, [targetSalesPrice, purchasePrice, freight, otherExpenses, salesPrice, saleExpensesValue, icmsPurchaseRate, icmsFreightRate, icmsSaleRate, commissionRate, profitMargin]);
+    const result = numerator / denominator;
+    return result > 0 ? result : 0;
+  }, [targetSalesPrice, freight, otherExpenses, saleExpensesValue, icmsPurchaseRate, icmsFreightRate, icmsSaleRate, commissionRate, profitMargin]);
 
   const handleSaleExpensesRateChange = useCallback((newRate: number) => {
     const otherRates = icmsSaleRate + commissionRate + profitMargin;
@@ -242,6 +246,7 @@ export default function App() {
     setSaleExpensesValue(0);
     setCommissionRate(0);
     setProfitMargin(0);
+    setTargetSalesPrice(0);
   }, []);
 
   const handleExportPDF = useCallback(() => {
