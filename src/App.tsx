@@ -299,42 +299,14 @@ export default function App() {
   }, [salesPrice, realCost, icmsSaleRate, commissionRate, saleExpensesValue, profitMargin, purchasePrice, freight, otherExpenses, icmsCreditValue, markupMultiplier]);
 
   const handleApplyNegotiation = useCallback(() => {
-    if (targetSalesPrice <= 0) return;
+    if (targetSalesPrice <= 0 || suggestedPurchasePrice <= 0) return;
 
-    // 1. Calculate current percentage rates for fixed values to avoid distortion
-    // We treat everything as a % of its respective base during this transition
-    const fRate = purchasePrice > 0 ? (freight / purchasePrice) : 0;
-    const oeAcqRate = purchasePrice > 0 ? (otherExpenses / purchasePrice) : 0;
-    const seRate = salesPrice > 0 ? (saleExpensesValue / salesPrice) : 0;
-
-    // 2. Math for Target Purchase Price (P)
-    // S = Target Sales Price
-    // AF (Acquisition Factor) = (1 - icmsPurchase%) + (fRate * (1 - icmsFreight%)) + oeAcqRate
-    // SDF (Sales Deduction Factor) = 1 - (icmsSale% + commission% + profitMargin% + seRate%)
-    // P = (S * SDF) / AF
-
-    const ip = icmsPurchaseRate / 100;
-    const ifr = icmsFreightRate / 100;
-    const is1 = icmsSaleRate / 100;
-    const c = commissionRate / 100;
-    const m = profitMargin / 100;
-
-    const af = (1 + fRate + oeAcqRate) - (ip + fRate * ifr);
-    const sdf = 1 - (is1 + c + m + seRate);
-
-    if (af <= 0 || sdf <= 0) return;
-
-    const targetP = (targetSalesPrice * sdf) / af;
-
-    // 3. Update all values to maintain the proportional integrity
-    setPurchasePrice(targetP);
-    setFreight(targetP * fRate);
-    setOtherExpenses(targetP * oeAcqRate);
-    setSaleExpensesValue(targetSalesPrice * seRate);
+    // Apply the suggested purchase price
+    setPurchasePrice(suggestedPurchasePrice);
     
     // Clear target input after applying
     setTargetSalesPrice(0);
-  }, [targetSalesPrice, purchasePrice, freight, otherExpenses, salesPrice, saleExpensesValue, icmsPurchaseRate, icmsFreightRate, icmsSaleRate, commissionRate, profitMargin]);
+  }, [targetSalesPrice, suggestedPurchasePrice]);
 
   return (
     <div className="min-h-screen bg-zinc-100 p-4 md:p-8 flex items-center justify-center font-sans">
