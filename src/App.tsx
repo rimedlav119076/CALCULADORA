@@ -185,9 +185,9 @@ export default function App() {
     [saleExpensesValue, salesPrice]
   );
 
-  // Suggested Purchase Price for Negotiation
-  const suggestedPurchasePrice = useMemo(() => {
-    if (targetSalesPrice <= 0) return 0;
+  // Suggested Values for Negotiation
+  const negotiationResults = useMemo(() => {
+    if (targetSalesPrice <= 0) return null;
 
     const ip = icmsPurchaseRate / 100;
     const ifr = icmsFreightRate / 100;
@@ -195,21 +195,37 @@ export default function App() {
     const c = commissionRate / 100;
     const m = profitMargin / 100;
 
-    // Formula: P = [S(1 - (is1 + c + m)) - SE - F(1 - ifr) - OE] / (1 - ip)
-    // Where:
-    // S = targetSalesPrice
-    // SE = saleExpensesValue (fixed)
-    // F = freight (fixed)
-    // OE = otherExpenses (fixed)
+    // Case 1: Target Price is LOWER or EQUAL to current calculated price
+    // Focus: Negotiation with supplier (Calculate Ideal Purchase Price)
+    if (targetSalesPrice <= salesPrice) {
+      const numerator = targetSalesPrice * (1 - (is1 + c + m)) - saleExpensesValue - freight * (1 - ifr) - otherExpenses;
+      const denominator = 1 - ip;
+      const result = denominator > 0 ? Math.max(0, numerator / denominator) : 0;
+      
+      return {
+        type: 'purchase',
+        label: 'Preço de Compra Ideal',
+        value: result
+      };
+    } 
     
-    const numerator = targetSalesPrice * (1 - (is1 + c + m)) - saleExpensesValue - freight * (1 - ifr) - otherExpenses;
-    const denominator = 1 - ip;
+    // Case 2: Target Price is GREATER than current calculated price
+    // Focus: Profit Optimization (Calculate Suggested Profit Margin)
+    else {
+      const totalBaseCost = realCost + saleExpensesValue;
+      const otherSalesRates = (icmsSaleRate + commissionRate) / 100;
+      
+      // Formula: m = 1 - OtherRates - (Cost / TargetPrice)
+      const newMarginDecimal = 1 - otherSalesRates - (totalBaseCost / targetSalesPrice);
+      const newMarginPercent = Math.max(0, newMarginDecimal * 100);
 
-    if (denominator <= 0) return 0;
-
-    const result = numerator / denominator;
-    return result > 0 ? result : 0;
-  }, [targetSalesPrice, freight, otherExpenses, saleExpensesValue, icmsPurchaseRate, icmsFreightRate, icmsSaleRate, commissionRate, profitMargin]);
+      return {
+        type: 'margin',
+        label: 'Margem de Lucro Sugerida',
+        value: newMarginPercent
+      };
+    }
+  }, [targetSalesPrice, salesPrice, realCost, freight, otherExpenses, saleExpensesValue, icmsPurchaseRate, icmsFreightRate, icmsSaleRate, commissionRate, profitMargin]);
 
   const handleSaleExpensesRateChange = useCallback((newRate: number) => {
     const otherRates = icmsSaleRate + commissionRate + profitMargin;
@@ -299,14 +315,17 @@ export default function App() {
   }, [salesPrice, realCost, icmsSaleRate, commissionRate, saleExpensesValue, profitMargin, purchasePrice, freight, otherExpenses, icmsCreditValue, markupMultiplier]);
 
   const handleApplyNegotiation = useCallback(() => {
-    if (targetSalesPrice <= 0 || suggestedPurchasePrice <= 0) return;
+    if (!negotiationResults || targetSalesPrice <= 0) return;
 
-    // Apply the suggested purchase price
-    setPurchasePrice(suggestedPurchasePrice);
+    if (negotiationResults.type === 'purchase') {
+      setPurchasePrice(negotiationResults.value);
+    } else {
+      setProfitMargin(negotiationResults.value);
+    }
     
     // Clear target input after applying
     setTargetSalesPrice(0);
-  }, [targetSalesPrice, suggestedPurchasePrice]);
+  }, [targetSalesPrice, negotiationResults]);
 
   return (
     <div className="min-h-screen bg-zinc-100 p-4 md:p-8 flex items-center justify-center font-sans">
@@ -559,15 +578,20 @@ export default function App() {
                     </div>
                     <div className="w-full">
                       <div className="flex flex-col gap-1 bg-zinc-800 rounded-lg p-1">
-                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide px-1">Preço de Compra Ideal</label>
+                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide px-1">
+                          {negotiationResults?.label || "Resultado Sugerido"}
+                        </label>
                         <div className="py-2 px-3 text-right font-mono text-amber-400 font-bold text-lg">
-                          {formatCurrency(suggestedPurchasePrice)}
+                          {negotiationResults?.type === 'margin' 
+                            ? `${negotiationResults.value.toFixed(2)}%`
+                            : formatCurrency(negotiationResults?.value || 0)
+                          }
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {suggestedPurchasePrice > 0 && (
+                  {negotiationResults && negotiationResults.value > 0 && (
                     <button
                       onClick={handleApplyNegotiation}
                       className="w-full mt-2 bg-amber-600/20 hover:bg-amber-600/30 text-amber-500 py-2 rounded-lg text-xs font-bold border border-amber-600/30 transition-all flex items-center justify-center gap-2 active:scale-95"
