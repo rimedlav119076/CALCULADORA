@@ -81,8 +81,8 @@ const PercentInputRow = React.memo(({
   const calculatedValue = useMemo(() => baseValue * (percent / 100), [baseValue, percent]);
 
   return (
-    <div className="grid grid-cols-3 gap-2">
-      <div className="col-span-2">
+    <div className="grid grid-cols-2 gap-4">
+      <div>
         <NumberInput 
           label={label} 
           value={percent} 
@@ -91,7 +91,7 @@ const PercentInputRow = React.memo(({
           suffix="%" 
         />
       </div>
-      <div className="col-span-1">
+      <div>
         <NumberInput 
           label="Valor Calc." 
           value={calculatedValue} 
