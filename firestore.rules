@@ -1,0 +1,146 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: userId (from Auth)
+    // Fields:
+    //   - email: string (required)
+    //   - displayName: string (optional)
+    //   - photoURL: string (optional)
+    //   - plan: string (required, enum: ["FREE", "PRO"])
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: products
+    // Document ID: productId (auto-generated)
+    // Fields:
+    //   - userId: string (required, matches owner)
+    //   - name: string (required, max 100 chars)
+    //   - supplierName: string (optional)
+    //   - baseCost: number (required, positive)
+    //   - icmsPurchaseRate: number (optional)
+    //   - icmsFreightRate: number (optional)
+    //   - icmsSaleRate: number (optional)
+    //   - pisSaleRate: number (optional)
+    //   - cofinsSaleRate: number (optional)
+    //   - category: string (optional)
+    //   - defaultMargin: number (optional)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: calculations
+    // Document ID: calculationId (auto-generated)
+    // Fields:
+    //   - userId: string (required, matches owner)
+    //   - productId: string (optional)
+    //   - productName: string (required)
+    //   - representativeName: string (optional)
+    //   - purchasePrice: number (required, positive)
+    //   - freight: number (optional)
+    //   - otherExpenses: number (optional)
+    //   - icmsPurchaseRate: number (optional)
+    //   - icmsFreightRate: number (optional)
+    //   - icmsSaleRate: number (optional)
+    //   - pisSaleRate: number (optional)
+    //   - cofinsSaleRate: number (optional)
+    //   - saleExpensesValue: number (optional)
+    //   - commissionRate: number (optional)
+    //   - profitMargin: number (optional)
+    //   - salesPrice: number (required, positive)
+    //   - realCost: number (optional)
+    //   - totalCost: number (optional)
+    //   - createdAt: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "adm.valdemir@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidUrl(url) {
+      return url is string && (url.matches("^https://.*") || url.matches("^http://.*"));
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'plan', 'createdAt']) &&
+             isValidEmail(data.email) &&
+             data.plan in ['FREE', 'PRO'] &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidProduct(data) {
+      return data.keys().hasAll(['userId', 'name', 'baseCost', 'createdAt']) &&
+             data.userId == request.auth.uid &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.baseCost is number && data.baseCost >= 0 &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidCalculation(data) {
+      return data.keys().hasAll(['userId', 'productName', 'purchasePrice', 'salesPrice', 'createdAt']) &&
+             data.userId == request.auth.uid &&
+             data.productName is string && data.productName.size() > 0 &&
+             data.purchasePrice is number && data.purchasePrice >= 0 &&
+             data.salesPrice is number && data.salesPrice >= 0 &&
+             data.createdAt is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && 
+                      request.resource.data.plan == resource.data.plan; // Plan changes only via admin/stripe
+    }
+
+    match /products/{productId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && isValidProduct(request.resource.data);
+      allow update: if isDocOwner() && isValidProduct(request.resource.data);
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    match /calculations/{calculationId} {
+      allow read: if isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && isValidCalculation(request.resource.data);
+      allow update: if isDocOwner() && isValidCalculation(request.resource.data);
+      allow delete: if isDocOwner() || isAdmin();
+    }
+
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

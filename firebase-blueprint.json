@@ -1,0 +1,78 @@
+{
+  "entities": {
+    "users": {
+      "title": "User",
+      "description": "User profile and subscription information.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string", "format": "uri" },
+        "plan": { "type": "string", "enum": ["FREE", "PRO"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "plan", "createdAt"]
+    },
+    "products": {
+      "title": "Product",
+      "description": "Pre-configured product data for quick calculations.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "supplierName": { "type": "string" },
+        "baseCost": { "type": "number" },
+        "icmsPurchaseRate": { "type": "number" },
+        "icmsFreightRate": { "type": "number" },
+        "icmsSaleRate": { "type": "number" },
+        "pisSaleRate": { "type": "number" },
+        "cofinsSaleRate": { "type": "number" },
+        "category": { "type": "string" },
+        "defaultMargin": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "name", "baseCost", "createdAt"]
+    },
+    "calculations": {
+      "title": "Calculation",
+      "description": "A saved pricing simulation.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "productId": { "type": "string" },
+        "productName": { "type": "string" },
+        "representativeName": { "type": "string" },
+        "purchasePrice": { "type": "number" },
+        "freight": { "type": "number" },
+        "otherExpenses": { "type": "number" },
+        "icmsPurchaseRate": { "type": "number" },
+        "icmsFreightRate": { "type": "number" },
+        "icmsSaleRate": { "type": "number" },
+        "pisSaleRate": { "type": "number" },
+        "cofinsSaleRate": { "type": "number" },
+        "saleExpensesValue": { "type": "number" },
+        "commissionRate": { "type": "number" },
+        "profitMargin": { "type": "number" },
+        "salesPrice": { "type": "number" },
+        "realCost": { "type": "number" },
+        "totalCost": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "productName", "purchasePrice", "salesPrice", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "users",
+      "description": "Stores user profiles."
+    },
+    "/products/{productId}": {
+      "schema": "products",
+      "description": "Stores product catalog."
+    },
+    "/calculations/{calculationId}": {
+      "schema": "calculations",
+      "description": "Stores saved simulations."
+    }
+  }
+}
