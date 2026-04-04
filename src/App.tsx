@@ -11,6 +11,8 @@ import {
   db, 
   googleProvider, 
   signInWithPopup, 
+  signInWithRedirect,
+  getRedirectResult,
   signOut, 
   onAuthStateChanged, 
   doc, 
@@ -610,6 +612,16 @@ export default function App() {
   // Refs
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
+  // Handle Redirect Result
+  useEffect(() => {
+    getRedirectResult(auth).catch((error) => {
+      if (error && error.code !== 'auth/cancelled-query' && error.code !== 'auth/popup-closed-by-user') {
+        console.error("Redirect Login Error:", error);
+        alert("Erro no login: " + error.message);
+      }
+    });
+  }, []);
+
   // Auth Listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -1118,9 +1130,19 @@ export default function App() {
 
   const handleLogin = useCallback(async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (error) {
+      // Check if mobile device
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        await signInWithRedirect(auth, googleProvider);
+      } else {
+        await signInWithPopup(auth, googleProvider);
+      }
+    } catch (error: any) {
       console.error("Login Error:", error);
+      if (error.code !== 'auth/cancelled-query' && error.code !== 'auth/popup-closed-by-user') {
+        alert("Erro ao entrar: " + error.message);
+      }
     }
   }, []);
 
