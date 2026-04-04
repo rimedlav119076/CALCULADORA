@@ -622,6 +622,11 @@ export default function App() {
         
         // Listen to user document for plan changes
         const unsubscribeUser = onSnapshot(userDocRef, (docSnap) => {
+          if (currentUser.email === 'adm.valdemir@gmail.com') {
+            setUserPlan('PRO');
+            return;
+          }
+          
           if (docSnap.exists()) {
             const userData = docSnap.data();
             setUserPlan(userData.plan || 'FREE');
@@ -643,6 +648,17 @@ export default function App() {
       }
     });
     return () => unsubscribe();
+  }, []);
+
+  // Fetch History
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsUpgradeModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
   }, []);
 
   // Fetch History
@@ -2005,7 +2021,7 @@ export default function App() {
               <div className="pt-4 border-t border-zinc-100">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <span className="text-3xl font-black text-zinc-900">R$ 49,90</span>
+                    <span className="text-3xl font-black text-zinc-900">R$ 36,90</span>
                     <span className="text-zinc-500 text-sm font-medium"> / mês</span>
                   </div>
                   <div className="text-right">
