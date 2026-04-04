@@ -54,6 +54,19 @@ service cloud.firestore {
     //   - totalCost: number (optional)
     //   - createdAt: timestamp (required)
     //
+    // Collection: settings
+    // Document ID: userId (from Auth)
+    // Fields:
+    //   - userId: string (required)
+    //   - defaultIcmsPurchaseRate: number
+    //   - defaultIcmsFreightRate: number
+    //   - defaultIcmsSaleRate: number
+    //   - defaultPisSaleRate: number
+    //   - defaultCofinsSaleRate: number
+    //   - defaultCommissionRate: number
+    //   - defaultProfitMargin: number
+    //   - updatedAt: timestamp
+    //
     // ===============================================================
 
     // ===============================================================
@@ -73,9 +86,7 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isAuthenticated() &&
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-          (request.auth.token.email == "adm.valdemir@gmail.com" && request.auth.token.email_verified == true));
+      return isAuthenticated() && request.auth.token.email == "adm.valdemir@gmail.com";
     }
 
     function isValidEmail(email) {
@@ -137,6 +148,11 @@ service cloud.firestore {
       allow create: if isAuthenticated() && isValidCalculation(request.resource.data);
       allow update: if isDocOwner() && isValidCalculation(request.resource.data);
       allow delete: if isDocOwner() || isAdmin();
+    }
+
+    match /settings/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId);
     }
 
     match /{path=**} {

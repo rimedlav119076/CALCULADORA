@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { useState, useMemo, useCallback, useEffect, Component } from 'react';
-import { Calculator, DollarSign, Percent, RefreshCw, Info, Download, RotateCcw, LogIn, LogOut, Save, History, CheckCircle2, AlertCircle, Trash2, Calendar, User as UserIcon, Package, Plus, Edit2 } from 'lucide-react';
+import { Calculator, DollarSign, Percent, RefreshCw, Info, Download, RotateCcw, LogIn, LogOut, Save, History, CheckCircle2, AlertCircle, Trash2, Calendar, User as UserIcon, Package, Plus, Edit2, Settings, LayoutDashboard, FileUp } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { formatCurrency } from './utils/format';
 import { 
   auth, 
@@ -233,12 +234,327 @@ const BRLIcon = React.memo(({ className }: { className?: string }) => (
 
 BRLIcon.displayName = 'BRLIcon';
 
+// Dashboard Component
+const Dashboard = ({ savedCalculations, products }: { savedCalculations: any[], products: any[] }) => {
+  const stats = useMemo(() => {
+    // Filtrar apenas cálculos válidos para não distorcer os gráficos
+    const validCalculations = savedCalculations.filter(calc => (calc.salesPrice || 0) > 0);
+    
+    if (validCalculations.length === 0) return null;
+
+    const totalCalculations = validCalculations.length;
+    const avgProfitMargin = validCalculations.reduce((acc, curr) => acc + (curr.profitMargin || 0), 0) / totalCalculations;
+    const totalSalesValue = validCalculations.reduce((acc, curr) => acc + (curr.salesPrice || 0), 0);
+    
+    // Most calculated products
+    const productCounts: Record<string, number> = {};
+    validCalculations.forEach(calc => {
+      const name = calc.productName || 'Desconhecido';
+      productCounts[name] = (productCounts[name] || 0) + 1;
+    });
+
+    const topProducts = Object.entries(productCounts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    // Margin distribution
+    const marginRanges = [
+      { name: '0-10%', count: 0, range: [0, 10] },
+      { name: '10-20%', count: 0, range: [10, 20] },
+      { name: '20-30%', count: 0, range: [20, 30] },
+      { name: '30%+', count: 0, range: [30, 1000] },
+    ];
+
+    validCalculations.forEach(calc => {
+      const margin = calc.profitMargin || 0;
+      const range = marginRanges.find(r => margin >= r.range[0] && margin < r.range[1]);
+      if (range) range.count++;
+    });
+
+    return {
+      totalCalculations,
+      avgProfitMargin,
+      totalSalesValue,
+      topProducts,
+      marginRanges
+    };
+  }, [savedCalculations]);
+
+  if (!stats) {
+    return (
+      <div className="p-12 text-center space-y-4">
+        <div className="bg-zinc-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
+          <LayoutDashboard className="w-8 h-8 text-zinc-400" />
+        </div>
+        <h3 className="text-lg font-bold text-zinc-900">Nenhum dado disponível</h3>
+        <p className="text-zinc-500 max-w-xs mx-auto">Salve alguns cálculos para começar a ver as estatísticas da sua operação.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 space-y-8 animate-in fade-in duration-500">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-2">
+          <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Total de Simulações</div>
+          <div className="text-3xl font-bold text-zinc-900">{stats.totalCalculations}</div>
+          <div className="text-xs text-zinc-500">Histórico completo</div>
+        </div>
+        <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-2">
+          <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Margem Média</div>
+          <div className="text-3xl font-bold text-amber-600">{stats.avgProfitMargin.toFixed(2)}%</div>
+          <div className="text-xs text-zinc-500">Lucro líquido médio</div>
+        </div>
+        <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-2">
+          <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Volume de Vendas</div>
+          <div className="text-3xl font-bold text-green-600">{formatCurrency(stats.totalSalesValue)}</div>
+          <div className="text-xs text-zinc-500">Soma de todos os preços calculados</div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Top Products Chart */}
+        <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-6">
+          <h3 className="font-bold text-zinc-900 flex items-center gap-2">
+            <Package className="w-5 h-5 text-amber-500" />
+            Produtos Mais Calculados
+          </h3>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={stats.topProducts} layout="vertical" margin={{ left: 40, right: 40 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f4f4f5" />
+                <XAxis type="number" hide />
+                <YAxis 
+                  dataKey="name" 
+                  type="category" 
+                  width={100} 
+                  tick={{ fontSize: 10, fill: '#71717a' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip 
+                  cursor={{ fill: '#f8fafc' }}
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                />
+                <Bar dataKey="count" fill="#d97706" radius={[0, 4, 4, 0]} barSize={20} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Margin Distribution Chart */}
+        <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-6">
+          <h3 className="font-bold text-zinc-900 flex items-center gap-2">
+            <Percent className="w-5 h-5 text-amber-500" />
+            Distribuição de Margens
+          </h3>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={stats.marginRanges}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={5}
+                  dataKey="count"
+                >
+                  {stats.marginRanges.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={['#f59e0b', '#d97706', '#b45309', '#78350f'][index % 4]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="flex justify-center gap-4 flex-wrap">
+            {stats.marginRanges.map((range, i) => (
+              <div key={i} className="flex items-center gap-2 text-[10px] font-medium text-zinc-500">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#f59e0b', '#d97706', '#b45309', '#78350f'][i % 4] }}></div>
+                {range.name}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// SettingsModal Component
+const SettingsModal = ({ 
+  isOpen, 
+  onClose, 
+  settings, 
+  onSave, 
+  isSaving 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  settings: any; 
+  onSave: (s: any) => void; 
+  isSaving: boolean;
+}) => {
+  const [localSettings, setLocalSettings] = useState<any>({
+    defaultIcmsPurchaseRate: 0,
+    defaultIcmsFreightRate: 0,
+    defaultIcmsSaleRate: 0,
+    defaultPisSaleRate: 0.165,
+    defaultCofinsSaleRate: 0.76,
+    defaultCommissionRate: 0,
+    defaultProfitMargin: 0
+  });
+
+  useEffect(() => {
+    if (settings) {
+      setLocalSettings(settings);
+    }
+  }, [settings, isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-zinc-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden border border-zinc-200 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+        <div className="p-6 border-b border-zinc-100 flex items-center justify-between bg-zinc-50">
+          <div className="flex items-center gap-3">
+            <div className="bg-amber-100 p-2 rounded-xl">
+              <Settings className="w-6 h-6 text-amber-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-zinc-900">Configurações Padrão</h2>
+              <p className="text-xs text-zinc-500">Defina as alíquotas que serão usadas em novos cálculos.</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-zinc-200 rounded-full transition-colors">
+            <RotateCcw className="w-5 h-5 text-zinc-400" />
+          </button>
+        </div>
+
+        <div className="p-6 overflow-y-auto space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Créditos de Compra</h3>
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-zinc-500 uppercase">ICMS Compra (%)</label>
+                  <input 
+                    type="number" 
+                    value={localSettings.defaultIcmsPurchaseRate} 
+                    onChange={(e) => setLocalSettings({ ...localSettings, defaultIcmsPurchaseRate: Number(e.target.value) })}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-zinc-500 uppercase">ICMS Frete (%)</label>
+                  <input 
+                    type="number" 
+                    value={localSettings.defaultIcmsFreightRate} 
+                    onChange={(e) => setLocalSettings({ ...localSettings, defaultIcmsFreightRate: Number(e.target.value) })}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Impostos de Venda</h3>
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-zinc-500 uppercase">ICMS Venda (%)</label>
+                  <input 
+                    type="number" 
+                    value={localSettings.defaultIcmsSaleRate} 
+                    onChange={(e) => setLocalSettings({ ...localSettings, defaultIcmsSaleRate: Number(e.target.value) })}
+                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase">PIS (%)</label>
+                    <input 
+                      type="number" 
+                      step="0.001"
+                      value={localSettings.defaultPisSaleRate} 
+                      onChange={(e) => setLocalSettings({ ...localSettings, defaultPisSaleRate: Number(e.target.value) })}
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase">COFINS (%)</label>
+                    <input 
+                      type="number" 
+                      step="0.001"
+                      value={localSettings.defaultCofinsSaleRate} 
+                      onChange={(e) => setLocalSettings({ ...localSettings, defaultCofinsSaleRate: Number(e.target.value) })}
+                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-zinc-100 space-y-4">
+            <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Comercial</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-zinc-500 uppercase">Comissão (%)</label>
+                <input 
+                  type="number" 
+                  value={localSettings.defaultCommissionRate} 
+                  onChange={(e) => setLocalSettings({ ...localSettings, defaultCommissionRate: Number(e.target.value) })}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-zinc-500 uppercase">Margem de Lucro (%)</label>
+                <input 
+                  type="number" 
+                  value={localSettings.defaultProfitMargin} 
+                  onChange={(e) => setLocalSettings({ ...localSettings, defaultProfitMargin: Number(e.target.value) })}
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 border-t border-zinc-100 bg-zinc-50 flex gap-3">
+          <button 
+            onClick={onClose}
+            className="flex-1 bg-zinc-200 hover:bg-zinc-300 text-zinc-700 py-3 rounded-2xl font-bold text-sm transition-colors"
+          >
+            Cancelar
+          </button>
+          <button 
+            onClick={() => onSave(localSettings)}
+            disabled={isSaving}
+            className="flex-[2] bg-amber-600 hover:bg-amber-500 text-white py-3 rounded-2xl font-bold text-sm transition-all shadow-lg shadow-amber-500/20 active:scale-95 disabled:opacity-50"
+          >
+            {isSaving ? 'Salvando...' : 'Salvar Configurações'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function App() {
   // Auth State
   const [user, setUser] = useState<User | null>(null);
+  const [userPlan, setUserPlan] = useState<'FREE' | 'PRO'>('FREE');
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // State - Upgrade Modal
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [isUpgrading, setIsUpgrading] = useState(false);
 
   // State - Save Modal
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
@@ -259,6 +575,12 @@ export default function App() {
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [isSavingProduct, setIsSavingProduct] = useState(false);
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
+  
+  // State - Settings & Dashboard
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [userSettings, setUserSettings] = useState<any | null>(null);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   // State - Purchase
   const [purchasePrice, setPurchasePrice] = useState(0);
@@ -280,6 +602,14 @@ export default function App() {
   // State - Negotiation Tool
   const [targetSalesPrice, setTargetSalesPrice] = useState(0);
 
+  // State - XML Import Selection
+  const [isXmlSelectModalOpen, setIsXmlSelectModalOpen] = useState(false);
+  const [xmlItems, setXmlItems] = useState<any[]>([]);
+  const [xmlSupplier, setXmlSupplier] = useState('');
+
+  // Refs
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
   // Auth Listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -289,10 +619,15 @@ export default function App() {
       if (currentUser) {
         // Ensure user document exists
         const userDocRef = doc(db, 'users', currentUser.uid);
-        try {
-          const userDoc = await getDoc(userDocRef);
-          if (!userDoc.exists()) {
-            await setDoc(userDocRef, {
+        
+        // Listen to user document for plan changes
+        const unsubscribeUser = onSnapshot(userDocRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const userData = docSnap.data();
+            setUserPlan(userData.plan || 'FREE');
+          } else {
+            // Create user doc if not exists
+            setDoc(userDocRef, {
               email: currentUser.email,
               displayName: currentUser.displayName,
               photoURL: currentUser.photoURL,
@@ -300,9 +635,11 @@ export default function App() {
               createdAt: Timestamp.now()
             });
           }
-        } catch (error) {
-          console.error("Error checking/creating user doc:", error);
-        }
+        });
+
+        return () => unsubscribeUser();
+      } else {
+        setUserPlan('FREE');
       }
     });
     return () => unsubscribe();
@@ -329,6 +666,36 @@ export default function App() {
       setSavedCalculations(calcs);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'calculations');
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  // Fetch Settings
+  useEffect(() => {
+    if (!user) {
+      setUserSettings(null);
+      return;
+    }
+
+    const docRef = doc(db, 'settings', user.uid);
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const settings = docSnap.data();
+        setUserSettings(settings);
+        
+        // Apply defaults if this is a fresh start (no manual values yet)
+        // We only do this if the values are currently 0 or default
+        setIcmsPurchaseRate(prev => prev === 0 ? (settings.defaultIcmsPurchaseRate || 0) : prev);
+        setIcmsFreightRate(prev => prev === 0 ? (settings.defaultIcmsFreightRate || 0) : prev);
+        setIcmsSaleRate(prev => prev === 0 ? (settings.defaultIcmsSaleRate || 0) : prev);
+        setPisSaleRate(prev => prev === 0.165 ? (settings.defaultPisSaleRate || 0.165) : prev);
+        setCofinsSaleRate(prev => prev === 0.76 ? (settings.defaultCofinsSaleRate || 0.76) : prev);
+        setCommissionRate(prev => prev === 0 ? (settings.defaultCommissionRate || 0) : prev);
+        setProfitMargin(prev => prev === 0 ? (settings.defaultProfitMargin || 0) : prev);
+      }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'settings');
     });
 
     return () => unsubscribe();
@@ -521,16 +888,16 @@ export default function App() {
     setPurchasePrice(0);
     setFreight(0);
     setOtherExpenses(0);
-    setIcmsPurchaseRate(0);
-    setIcmsFreightRate(0);
-    setIcmsSaleRate(0);
-    setPisSaleRate(0.165);
-    setCofinsSaleRate(0.76);
+    setIcmsPurchaseRate(userSettings?.defaultIcmsPurchaseRate || 0);
+    setIcmsFreightRate(userSettings?.defaultIcmsFreightRate || 0);
+    setIcmsSaleRate(userSettings?.defaultIcmsSaleRate || 0);
+    setPisSaleRate(userSettings?.defaultPisSaleRate || 0.165);
+    setCofinsSaleRate(userSettings?.defaultCofinsSaleRate || 0.76);
     setSaleExpensesValue(0);
-    setCommissionRate(0);
-    setProfitMargin(0);
+    setCommissionRate(userSettings?.defaultCommissionRate || 0);
+    setProfitMargin(userSettings?.defaultProfitMargin || 0);
     setTargetSalesPrice(0);
-  }, []);
+  }, [userSettings]);
 
   const handleExportPDF = useCallback(() => {
     const doc = new jsPDF();
@@ -749,6 +1116,24 @@ export default function App() {
     }
   }, []);
 
+  const handleSaveSettings = useCallback(async (settings: any) => {
+    if (!user) return;
+    setIsSavingSettings(true);
+    try {
+      const docRef = doc(db, 'settings', user.uid);
+      await setDoc(docRef, {
+        ...settings,
+        userId: user.uid,
+        updatedAt: Timestamp.now()
+      });
+      setIsSettingsModalOpen(false);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, 'settings');
+    } finally {
+      setIsSavingSettings(false);
+    }
+  }, [user]);
+
   const handleSaveCalculation = useCallback(async () => {
     if (!user) {
       handleLogin();
@@ -757,8 +1142,122 @@ export default function App() {
     setIsSaveModalOpen(true);
   }, [user, handleLogin]);
 
+  const handleXMLImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const xmlText = event.target?.result as string;
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+        // Emitente (Fornecedor)
+        const supplierName = xmlDoc.getElementsByTagName("xNome")[0]?.textContent || "";
+        setXmlSupplier(supplierName);
+        
+        // Itens da Nota
+        const items = xmlDoc.getElementsByTagName("det");
+        const parsedItems: any[] = [];
+        
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          const prodName = item.getElementsByTagName("xProd")[0]?.textContent || "";
+          const unitPrice = parseFloat(item.getElementsByTagName("vUnCom")[0]?.textContent || "0");
+          
+          // ICMS Compra
+          let icmsRate = 0;
+          const pICMSNodes = item.getElementsByTagName("pICMS");
+          if (pICMSNodes.length > 0) {
+            icmsRate = parseFloat(pICMSNodes[0].textContent || "0");
+          }
+
+          // Frete do item
+          const itemFrete = parseFloat(item.getElementsByTagName("vFrete")[0]?.textContent || "0");
+          
+          parsedItems.push({
+            name: prodName,
+            price: unitPrice,
+            icms: icmsRate,
+            freight: itemFrete
+          });
+        }
+        
+        if (parsedItems.length > 0) {
+          // Se houver apenas um item, podemos carregar direto ou abrir o modal
+          // O usuário pediu para abrir uma janela para selecionar, então abrimos sempre
+          setXmlItems(parsedItems);
+          setIsXmlSelectModalOpen(true);
+          
+          // Valor total de frete da nota (para referência se necessário)
+          const totalFrete = parseFloat(xmlDoc.getElementsByTagName("vFrete")[0]?.textContent || "0");
+          // Se o frete do item for 0, mas houver frete total, podemos sugerir o rateio ou apenas guardar o total
+          // Por enquanto, vamos manter o frete do item extraído
+        } else {
+          alert("Nenhum item encontrado no XML.");
+        }
+      } catch (error) {
+        console.error("Erro ao processar XML:", error);
+        alert("Erro ao processar o arquivo XML. Verifique se é uma NFe válida.");
+      }
+      
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+    reader.readAsText(file);
+  }, []);
+
+  const selectXmlItem = useCallback((item: any) => {
+    setRepresentativeName(xmlSupplier);
+    setProductName(item.name);
+    setPurchasePrice(item.price);
+    setIcmsPurchaseRate(item.icms);
+    setFreight(item.freight);
+    setIsXmlSelectModalOpen(false);
+    alert(`Produto selecionado: ${item.name}`);
+  }, [xmlSupplier]);
+
+  const handleUpgrade = useCallback(async () => {
+    if (!user) {
+      handleLogin();
+      return;
+    }
+
+    setIsUpgrading(true);
+    try {
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.uid,
+          email: user.email,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error(data.error || 'Erro ao criar sessão de pagamento');
+      }
+    } catch (error: any) {
+      console.error('Upgrade Error:', error);
+      alert(error.message || 'Ocorreu um erro ao processar seu upgrade.');
+    } finally {
+      setIsUpgrading(false);
+    }
+  }, [user, handleLogin]);
+
   const handleConfirmSave = useCallback(async () => {
     if (!user || !productName) return;
+    
+    // Validação: Não permitir salvar cálculos vazios ou com preço zero
+    if (salesPrice <= 0 || purchasePrice <= 0) {
+      alert("Por favor, realize um cálculo válido antes de salvar.");
+      return;
+    }
 
     setIsSaving(true);
     setSaveSuccess(false);
@@ -816,9 +1315,13 @@ export default function App() {
       await addDoc(collection(db, 'calculations'), calculationData);
       setSaveSuccess(true);
       setIsSaveModalOpen(false);
+      
+      // Limpar campos após salvar a análise escolhida para evitar duplicidade
       setProductName('');
       setRepresentativeName('');
       setSelectedProductId(null);
+      handleReset(); // Reseta os valores da calculadora para o estado inicial/padrão
+      
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'calculations');
@@ -828,6 +1331,8 @@ export default function App() {
   }, [user, productName, selectedProductId, products, representativeName, purchasePrice, freight, otherExpenses, icmsPurchaseRate, icmsFreightRate, icmsSaleRate, saleExpensesValue, commissionRate, profitMargin, salesPrice, realCost, totalCost]);
 
   const handleLoadCalculation = useCallback((calc: any) => {
+    setProductName(calc.productName || '');
+    setRepresentativeName(calc.representativeName || '');
     setPurchasePrice(calc.purchasePrice || 0);
     setFreight(calc.freight || 0);
     setOtherExpenses(calc.otherExpenses || 0);
@@ -924,21 +1429,42 @@ export default function App() {
         <div className="w-full max-w-5xl bg-white rounded-2xl shadow-xl overflow-hidden border border-zinc-200">
           
           {/* Header */}
-          <div className="bg-zinc-950 text-white p-6 flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <img src="/logo.svg" alt="NIVOR Consultoria" className="h-12" />
-            </div>
-            <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+          <div className="bg-zinc-950 text-white p-4 md:p-6 flex flex-col gap-4">
+            {/* Top Row: Logo and User */}
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-3">
+                <img src="/logo.svg" alt="NIVOR Consultoria" className="h-10 md:h-12" />
+              </div>
+              
               {user ? (
-                <div className="flex items-center gap-3 mr-2">
-                  <div className="text-right hidden sm:block">
-                    <div className="text-[10px] text-zinc-500 uppercase font-bold">Usuário</div>
-                    <div className="text-xs text-zinc-200 font-medium">{user.displayName}</div>
+                <div className="flex items-center gap-2 bg-zinc-900 px-3 py-1.5 rounded-full border border-zinc-800">
+                  {userPlan === 'PRO' ? (
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/10 rounded-md border border-amber-500/20">
+                      <Package className="w-3 h-3 text-amber-500" />
+                      <span className="text-[10px] font-black text-amber-500 uppercase tracking-tighter">PRO</span>
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => setIsUpgradeModalOpen(true)}
+                      className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-md text-[10px] font-black transition-all active:scale-95 animate-pulse"
+                    >
+                      <Package className="w-3 h-3" />
+                      SEJA PRO
+                    </button>
+                  )}
+                  <div className="w-[1px] h-4 bg-zinc-800 mx-1"></div>
+                  <div className="flex items-center gap-2">
+                    <img 
+                      src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || 'User'}`} 
+                      alt="User" 
+                      className="w-6 h-6 rounded-full border border-zinc-700"
+                      referrerPolicy="no-referrer"
+                    />
+                    <span className="text-xs font-medium text-zinc-300 hidden sm:inline">{user.displayName?.split(' ')[0]}</span>
                   </div>
-                  <img src={user.photoURL || ''} alt={user.displayName || ''} className="w-8 h-8 rounded-full border border-zinc-700" />
                   <button 
                     onClick={handleLogout}
-                    className="p-2 text-zinc-400 hover:text-white transition-colors"
+                    className="p-1 text-zinc-500 hover:text-red-400 transition-colors ml-1"
                     title="Sair"
                   >
                     <LogOut className="w-4 h-4" />
@@ -953,69 +1479,143 @@ export default function App() {
                   <span>Entrar</span>
                 </button>
               )}
-              
+            </div>
+
+            {/* Bottom Row: Navigation Actions */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar md:overflow-visible md:pb-0 justify-start md:justify-end">
+              <button 
+                onClick={() => setIsDashboardOpen(!isDashboardOpen)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all border shrink-0 active:scale-95 ${isDashboardOpen ? 'bg-amber-600 border-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700'}`}
+                title={isDashboardOpen ? "Voltar para Calculadora" : "Ver Dashboard"}
+              >
+                {isDashboardOpen ? <Calculator className="w-4 h-4" /> : <LayoutDashboard className="w-4 h-4 text-amber-500" />}
+                <span>{isDashboardOpen ? "Calculadora" : "Dashboard"}</span>
+              </button>
+
+              <button 
+                onClick={() => setIsSettingsModalOpen(true)}
+                className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition-colors border border-zinc-700 shrink-0 active:scale-95"
+                title="Configurações Padrão"
+              >
+                <Settings className="w-4 h-4 text-amber-500" />
+                <span>Config</span>
+              </button>
+
               <button 
                 onClick={() => setIsProductsModalOpen(true)}
-                className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-zinc-700 active:scale-95"
+                className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition-colors border border-zinc-700 shrink-0 active:scale-95"
                 title="Gerenciar Produtos"
               >
                 <Package className="w-4 h-4 text-amber-500" />
-                <span className="hidden sm:inline">Produtos</span>
+                <span>Produtos</span>
               </button>
 
               <button 
                 onClick={() => setIsHistoryModalOpen(true)}
-                className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-zinc-700 active:scale-95"
+                className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition-colors border border-zinc-700 shrink-0 active:scale-95"
                 title="Ver Histórico"
               >
                 <History className="w-4 h-4 text-amber-500" />
-                <span className="hidden sm:inline">Histórico</span>
+                <span>Histórico</span>
               </button>
 
-              <div className="h-8 w-[1px] bg-zinc-800 mx-1 hidden sm:block"></div>
+              <div className="w-[1px] h-6 bg-zinc-800 mx-1 shrink-0"></div>
 
               <button 
                 onClick={handleReset}
-                className="flex items-center gap-2 bg-zinc-700 hover:bg-zinc-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-md hover:shadow-zinc-500/20 active:scale-95 border border-zinc-600"
+                className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition-colors border border-zinc-700 shrink-0 active:scale-95"
                 title="Resetar valores"
               >
-                <RotateCcw className="w-4 h-4" />
-                <span className="hidden sm:inline">Resetar</span>
+                <RotateCcw className="w-4 h-4 text-zinc-400" />
+                <span>Resetar</span>
               </button>
 
               <button 
                 onClick={handleExportPDF}
-                className="flex items-center gap-2 bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-md hover:shadow-amber-500/20 active:scale-95 border border-amber-500"
-                title="Exportar PDF"
+                className="flex items-center gap-2 bg-amber-600 hover:bg-amber-500 text-white px-3 py-2 rounded-lg text-xs font-bold transition-colors shadow-md hover:shadow-amber-500/20 active:scale-95 border border-amber-500 shrink-0"
               >
                 <Download className="w-4 h-4" />
-                <span className="hidden lg:inline">PDF</span>
+                <span>PDF</span>
               </button>
 
               <button 
                 onClick={handleExportExcel}
-                className="flex items-center gap-2 bg-green-700 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-md hover:shadow-green-500/20 active:scale-95 border border-green-600"
-                title="Exportar Excel"
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-3 py-2 rounded-lg text-xs font-bold transition-colors shadow-md hover:shadow-green-500/20 active:scale-95 border border-green-500 shrink-0"
               >
                 <Download className="w-4 h-4" />
-                <span className="hidden lg:inline">Excel</span>
+                <span>EXCEL</span>
               </button>
             </div>
           </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2">
-          
-          {/* LEFT COLUMN: COMPRA (Zinc/Grey Theme) */}
-          <div className="p-6 bg-zinc-50 border-r border-zinc-200 relative">
+          {isDashboardOpen ? (
+            <Dashboard savedCalculations={savedCalculations} products={products} />
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2">
+              {/* LEFT COLUMN: COMPRA (Zinc/Grey Theme) */}
+              <div className="p-6 bg-zinc-50 border-r border-zinc-200 relative">
             {/* Vertical Label Strip */}
             <div className="absolute left-0 top-0 bottom-0 w-1 bg-zinc-700 rounded-tl-none"></div>
 
             <div className="pl-4 space-y-6">
               <div className="space-y-4">
-                <h2 className="text-zinc-800 font-bold text-lg border-b border-zinc-300 pb-2 flex items-center gap-2">
-                  <BRLIcon className="w-6 h-6 text-zinc-600" />
-                  Custos de Aquisição
+                <h2 className="text-zinc-800 font-bold text-lg border-b border-zinc-300 pb-2 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <BRLIcon className="w-6 h-6 text-zinc-600" />
+                    Custos de Aquisição
+                  </div>
+                  {userPlan === 'PRO' ? (
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex items-center gap-1.5 bg-zinc-200 hover:bg-zinc-300 text-zinc-700 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all border border-zinc-300 active:scale-95"
+                      title="Importar XML da NFe"
+                    >
+                      <FileUp className="w-3 h-3" />
+                      IMPORTAR XML
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setIsUpgradeModalOpen(true)}
+                      className="flex items-center gap-1.5 bg-amber-100 hover:bg-amber-200 text-amber-700 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all border border-amber-200 active:scale-95 group"
+                      title="Funcionalidade PRO"
+                    >
+                      <FileUp className="w-3 h-3" />
+                      IMPORTAR XML
+                      <span className="ml-1 bg-amber-500 text-white px-1 rounded text-[8px]">PRO</span>
+                    </button>
+                  )}
                 </h2>
+                
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleXMLImport} 
+                  accept=".xml" 
+                  className="hidden" 
+                />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide px-1">Nome do Produto</label>
+                    <input 
+                      type="text"
+                      value={productName}
+                      onChange={(e) => setProductName(e.target.value)}
+                      placeholder="Ex: Smartphone Samsung"
+                      className="w-full bg-white border border-zinc-300 rounded-lg py-2 px-3 outline-none focus:ring-2 focus:ring-amber-500 text-zinc-800 text-sm transition-all"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide px-1">Fornecedor / Representante</label>
+                    <input 
+                      type="text"
+                      value={representativeName}
+                      onChange={(e) => setRepresentativeName(e.target.value)}
+                      placeholder="Ex: Distribuidora XYZ"
+                      className="w-full bg-white border border-zinc-300 rounded-lg py-2 px-3 outline-none focus:ring-2 focus:ring-amber-500 text-zinc-800 text-sm transition-all"
+                    />
+                  </div>
+                </div>
                 
                 <NumberInput 
                   label="(+) Preço Compra" 
@@ -1284,10 +1884,157 @@ export default function App() {
           </div>
 
         </div>
-      </div>
-    </div>
+      )}
 
-    {/* Save Modal */}
+      {/* XML Item Selection Modal */}
+      {isXmlSelectModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[100] animate-in fade-in duration-300">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-zinc-200 flex flex-col max-h-[80vh]">
+            <div className="bg-zinc-950 p-4 text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="bg-amber-500 p-2 rounded-lg">
+                  <FileUp className="w-5 h-5 text-zinc-950" />
+                </div>
+                <div>
+                  <h3 className="font-bold uppercase tracking-wider text-sm">Selecionar Produto do XML</h3>
+                  <p className="text-[10px] text-zinc-400 font-medium">Fornecedor: {xmlSupplier}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsXmlSelectModalOpen(false)}
+                className="text-zinc-400 hover:text-white transition-colors p-2 hover:bg-zinc-800 rounded-full"
+              >
+                <RotateCcw className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-4 bg-amber-50 border-b border-amber-100 flex items-center gap-2 text-amber-800 text-xs font-medium shrink-0">
+              <Info className="w-4 h-4" />
+              Esta nota fiscal contém {xmlItems.length} itens. Selecione qual você deseja analisar agora.
+            </div>
+
+            <div className="overflow-y-auto p-2 space-y-2 bg-zinc-50">
+              {xmlItems.map((item, index) => (
+                <button
+                  key={index}
+                  onClick={() => selectXmlItem(item)}
+                  className="w-full text-left bg-white p-4 rounded-xl border border-zinc-200 hover:border-amber-500 hover:shadow-md transition-all group flex items-center justify-between gap-4"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[10px] font-bold text-zinc-400 uppercase mb-1">Item #{index + 1}</div>
+                    <h4 className="font-bold text-zinc-900 group-hover:text-amber-700 transition-colors truncate">{item.name}</h4>
+                    <div className="flex items-center gap-4 mt-2">
+                      <div className="flex flex-col">
+                        <span className="text-[9px] text-zinc-400 uppercase font-bold">Preço Unit.</span>
+                        <span className="text-sm font-mono font-bold text-zinc-700">{formatCurrency(item.price)}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[9px] text-zinc-400 uppercase font-bold">ICMS</span>
+                        <span className="text-sm font-mono font-bold text-zinc-700">{item.icms}%</span>
+                      </div>
+                      {item.freight > 0 && (
+                        <div className="flex flex-col">
+                          <span className="text-[9px] text-zinc-400 uppercase font-bold">Frete Item</span>
+                          <span className="text-sm font-mono font-bold text-zinc-700">{formatCurrency(item.freight)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="shrink-0 bg-zinc-100 group-hover:bg-amber-500 p-2 rounded-lg transition-colors">
+                    <Calculator className="w-5 h-5 text-zinc-400 group-hover:text-white" />
+                  </div>
+                </button>
+              ))}
+            </div>
+            
+            <div className="p-4 border-t border-zinc-100 bg-white shrink-0 flex justify-end">
+              <button
+                onClick={() => setIsXmlSelectModalOpen(false)}
+                className="px-6 py-2 text-sm font-bold text-zinc-500 hover:text-zinc-700 transition-colors"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upgrade Modal */}
+      {isUpgradeModalOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-[110] animate-in fade-in duration-300">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-zinc-200 flex flex-col">
+            <div className="relative h-48 bg-zinc-950 flex items-center justify-center overflow-hidden">
+              <div className="absolute inset-0 opacity-20">
+                <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,#f59e0b_0%,transparent_50%)]"></div>
+              </div>
+              <div className="relative z-10 text-center">
+                <div className="inline-flex p-3 bg-amber-500 rounded-2xl shadow-xl shadow-amber-500/20 mb-4">
+                  <Package className="w-8 h-8 text-zinc-950" />
+                </div>
+                <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Seja Markup PRO</h3>
+                <p className="text-amber-500 font-bold text-sm">Desbloqueie o potencial máximo da sua empresa</p>
+              </div>
+              <button 
+                onClick={() => setIsUpgradeModalOpen(false)}
+                className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors p-2"
+              >
+                <RotateCcw className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-8 space-y-6">
+              <div className="grid grid-cols-1 gap-4">
+                {[
+                  { icon: <FileUp className="w-5 h-5" />, title: "Importação de XML", desc: "Carregue notas fiscais e economize horas de trabalho manual." },
+                  { icon: <LayoutDashboard className="w-5 h-5" />, title: "Dashboard Avançado", desc: "Métricas detalhadas de lucratividade e volume de vendas." },
+                  { icon: <History className="w-5 h-5" />, title: "Histórico Ilimitado", desc: "Salve quantas simulações precisar sem restrições." },
+                  { icon: <Save className="w-5 h-5" />, title: "Suporte Prioritário", desc: "Atendimento exclusivo para assinantes PRO." }
+                ].map((item, i) => (
+                  <div key={i} className="flex gap-4 items-start">
+                    <div className="bg-amber-50 p-2 rounded-lg text-amber-600 shrink-0">
+                      {item.icon}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-zinc-900 text-sm">{item.title}</h4>
+                      <p className="text-zinc-500 text-xs leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-4 border-t border-zinc-100">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <span className="text-3xl font-black text-zinc-900">R$ 49,90</span>
+                    <span className="text-zinc-500 text-sm font-medium"> / mês</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="block text-[10px] font-bold text-green-600 uppercase">Assinatura Mensal</span>
+                    <span className="text-zinc-400 text-[10px]">Cancele quando quiser</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleUpgrade}
+                  disabled={isUpgrading}
+                  className="w-full bg-zinc-950 hover:bg-zinc-800 text-white py-4 rounded-2xl font-bold text-lg transition-all shadow-xl shadow-zinc-950/20 active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50"
+                >
+                  {isUpgrading ? (
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-5 h-5 text-amber-500" />
+                      ASSINAR AGORA
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Save Modal */}
       {isSaveModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-zinc-200">
@@ -1720,6 +2467,16 @@ export default function App() {
           </div>
         </div>
       )}
-    </ErrorBoundary>
-  );
+        {/* Settings Modal */}
+        <SettingsModal 
+          isOpen={isSettingsModalOpen}
+          onClose={() => setIsSettingsModalOpen(false)}
+          settings={userSettings}
+          onSave={handleSaveSettings}
+          isSaving={isSavingSettings}
+        />
+      </div>
+    </div>
+  </ErrorBoundary>
+);
 }

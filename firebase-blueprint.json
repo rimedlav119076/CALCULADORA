@@ -59,6 +59,23 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "productName", "purchasePrice", "salesPrice", "createdAt"]
+    },
+    "settings": {
+      "title": "User Settings",
+      "description": "Global default tax rates and preferences.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "defaultIcmsPurchaseRate": { "type": "number" },
+        "defaultIcmsFreightRate": { "type": "number" },
+        "defaultIcmsSaleRate": { "type": "number" },
+        "defaultPisSaleRate": { "type": "number" },
+        "defaultCofinsSaleRate": { "type": "number" },
+        "defaultCommissionRate": { "type": "number" },
+        "defaultProfitMargin": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId"]
     }
   },
   "firestore": {
@@ -73,6 +90,10 @@
     "/calculations/{calculationId}": {
       "schema": "calculations",
       "description": "Stores saved simulations."
+    },
+    "/settings/{userId}": {
+      "schema": "settings",
+      "description": "Stores user global settings."
     }
   }
 }
