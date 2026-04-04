@@ -1498,67 +1498,67 @@ export default function App() {
             </div>
 
             {/* Bottom Row: Navigation Actions */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar md:overflow-visible md:pb-0 justify-start md:justify-end">
+            <div className="flex flex-wrap items-center gap-1.5 md:gap-2 justify-center md:justify-end w-full">
               <button 
                 onClick={() => setIsDashboardOpen(!isDashboardOpen)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all border shrink-0 active:scale-95 ${isDashboardOpen ? 'bg-amber-600 border-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700'}`}
+                className={`flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-all border active:scale-95 ${isDashboardOpen ? 'bg-amber-600 border-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700'}`}
                 title={isDashboardOpen ? "Voltar para Calculadora" : "Ver Dashboard"}
               >
-                {isDashboardOpen ? <Calculator className="w-4 h-4" /> : <LayoutDashboard className="w-4 h-4 text-amber-500" />}
+                {isDashboardOpen ? <Calculator className="w-3.5 h-3.5 md:w-4 md:h-4" /> : <LayoutDashboard className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500" />}
                 <span>{isDashboardOpen ? "Calculadora" : "Dashboard"}</span>
               </button>
 
               <button 
                 onClick={() => setIsSettingsModalOpen(true)}
-                className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition-colors border border-zinc-700 shrink-0 active:scale-95"
+                className="flex items-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95"
                 title="Configurações Padrão"
               >
-                <Settings className="w-4 h-4 text-amber-500" />
+                <Settings className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500" />
                 <span>Config</span>
               </button>
 
               <button 
                 onClick={() => setIsProductsModalOpen(true)}
-                className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition-colors border border-zinc-700 shrink-0 active:scale-95"
+                className="flex items-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95"
                 title="Gerenciar Produtos"
               >
-                <Package className="w-4 h-4 text-amber-500" />
+                <Package className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500" />
                 <span>Produtos</span>
               </button>
 
               <button 
                 onClick={() => setIsHistoryModalOpen(true)}
-                className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition-colors border border-zinc-700 shrink-0 active:scale-95"
+                className="flex items-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95"
                 title="Ver Histórico"
               >
-                <History className="w-4 h-4 text-amber-500" />
+                <History className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500" />
                 <span>Histórico</span>
               </button>
 
-              <div className="w-[1px] h-6 bg-zinc-800 mx-1 shrink-0"></div>
+              <div className="hidden md:block w-[1px] h-6 bg-zinc-800 mx-1"></div>
 
               <button 
                 onClick={handleReset}
-                className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-2 rounded-lg text-xs font-bold transition-colors border border-zinc-700 shrink-0 active:scale-95"
+                className="flex items-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95"
                 title="Resetar valores"
               >
-                <RotateCcw className="w-4 h-4 text-zinc-400" />
+                <RotateCcw className="w-3.5 h-3.5 md:w-4 md:h-4 text-zinc-400" />
                 <span>Resetar</span>
               </button>
 
               <button 
                 onClick={handleExportPDF}
-                className="flex items-center gap-2 bg-amber-600 hover:bg-amber-500 text-white px-3 py-2 rounded-lg text-xs font-bold transition-colors shadow-md hover:shadow-amber-500/20 active:scale-95 border border-amber-500 shrink-0"
+                className="flex items-center gap-1.5 md:gap-2 bg-amber-600 hover:bg-amber-500 text-white px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors shadow-md hover:shadow-amber-500/20 active:scale-95 border border-amber-500"
               >
-                <Download className="w-4 h-4" />
+                <Download className="w-3.5 h-3.5 md:w-4 md:h-4" />
                 <span>PDF</span>
               </button>
 
               <button 
                 onClick={handleExportExcel}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-3 py-2 rounded-lg text-xs font-bold transition-colors shadow-md hover:shadow-green-500/20 active:scale-95 border border-green-500 shrink-0"
+                className="flex items-center gap-1.5 md:gap-2 bg-green-600 hover:bg-green-500 text-white px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors shadow-md hover:shadow-green-500/20 active:scale-95 border border-green-500"
               >
-                <Download className="w-4 h-4" />
+                <Download className="w-3.5 h-3.5 md:w-4 md:h-4" />
                 <span>EXCEL</span>
               </button>
             </div>
