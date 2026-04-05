@@ -2544,26 +2544,24 @@ const FloatingCalculator = React.memo(({ isOpen, onClose }: { isOpen: boolean, o
   const [equation, setEquation] = useState('');
   const [shouldReset, setShouldReset] = useState(false);
 
-  if (!isOpen) return null;
+  const handleNumber = useCallback((num: string) => {
+    setDisplay(prev => {
+      if (prev === '0' || shouldReset) {
+        setShouldReset(false);
+        return num;
+      }
+      return prev + num;
+    });
+  }, [shouldReset]);
 
-  const handleNumber = (num: string) => {
-    if (display === '0' || shouldReset) {
-      setDisplay(num);
-      setShouldReset(false);
-    } else {
-      setDisplay(display + num);
-    }
-  };
-
-  const handleOperator = (op: string) => {
+  const handleOperator = useCallback((op: string) => {
     setEquation(display + ' ' + op + ' ');
     setShouldReset(true);
-  };
+  }, [display]);
 
-  const calculate = () => {
+  const calculate = useCallback(() => {
     try {
       const fullEquation = equation + display;
-      // Simple safe eval for basic math
       const result = eval(fullEquation.replace(',', '.'));
       setDisplay(String(result).replace('.', ','));
       setEquation('');
@@ -2571,12 +2569,50 @@ const FloatingCalculator = React.memo(({ isOpen, onClose }: { isOpen: boolean, o
     } catch (e) {
       setDisplay('Erro');
     }
-  };
+  }, [equation, display]);
 
-  const clear = () => {
+  const clear = useCallback(() => {
     setDisplay('0');
     setEquation('');
-  };
+    setShouldReset(false);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Numbers
+      if (e.key >= '0' && e.key <= '9') {
+        handleNumber(e.key);
+      } 
+      // Operators
+      else if (['+', '-', '*', '/'].includes(e.key)) {
+        handleOperator(e.key);
+      } 
+      // Equals
+      else if (e.key === 'Enter' || e.key === '=') {
+        e.preventDefault();
+        calculate();
+      } 
+      // Clear
+      else if (e.key === 'Escape' || e.key === 'Delete' || e.key === 'c' || e.key === 'C') {
+        clear();
+      } 
+      // Decimal
+      else if (e.key === ',' || e.key === '.') {
+        handleNumber(',');
+      }
+      // Backspace
+      else if (e.key === 'Backspace') {
+        setDisplay(prev => prev.length > 1 ? prev.slice(0, -1) : '0');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, handleNumber, handleOperator, calculate, clear]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 sm:inset-auto sm:bottom-4 sm:right-4 flex items-center justify-center sm:block z-[200] animate-in fade-in zoom-in duration-200">
