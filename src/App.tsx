@@ -686,6 +686,7 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [userPlan, setUserPlan] = useState<'FREE' | 'PRO'>('FREE');
   const isPro = useMemo(() => userPlan === 'PRO', [userPlan]);
+  const isAdmin = useMemo(() => user?.email === 'adm.valdemir@gmail.com', [user]);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -693,6 +694,7 @@ export default function App() {
   // State - Upgrade Modal
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+  const [isManualAdminModalOpen, setIsManualAdminModalOpen] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
 
   // State - Save Modal
@@ -747,6 +749,16 @@ export default function App() {
   const [isXmlSelectModalOpen, setIsXmlSelectModalOpen] = useState(false);
   const [xmlItems, setXmlItems] = useState<any[]>([]);
   const [xmlSupplier, setXmlSupplier] = useState('');
+
+  // Manual State
+  const [manualConfig, setManualConfig] = useState<any>({
+    introTitle: "Bem-vindo!",
+    introContent: "Este guia rápido ajudará você a entender todas as ferramentas disponíveis no aplicativo para otimizar a precificação dos seus produtos.",
+    items: manualData,
+    contactTitle: "Dúvidas ou Sugestões?",
+    contactContent: "Estamos sempre buscando melhorar! Se você tiver alguma pergunta sobre os cálculos ou sugestões de novas funcionalidades, entre em contato conosco."
+  });
+  const [isSavingManual, setIsSavingManual] = useState(false);
 
   // Refs
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -1301,6 +1313,34 @@ export default function App() {
     }
   }, [showToast]);
 
+  // Fetch Manual Data from Firestore
+  useEffect(() => {
+    const manualDocRef = doc(db, 'config', 'manual');
+    const unsubscribe = onSnapshot(manualDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setManualConfig({
+          introTitle: data.introTitle || "Bem-vindo!",
+          introContent: data.introContent || "Este guia rápido ajudará você a entender todas as ferramentas disponíveis no aplicativo para otimizar a precificação dos seus produtos.",
+          items: data.items || manualData,
+          contactTitle: data.contactTitle || "Dúvidas ou Sugestões?",
+          contactContent: data.contactContent || "Estamos sempre buscando melhorar! Se você tiver alguma pergunta sobre os cálculos ou sugestões de novas funcionalidades, entre em contato conosco."
+        });
+      } else if (isAdmin) {
+        // Seed initial data if it doesn't exist and user is admin
+        setDoc(manualDocRef, { 
+          introTitle: "Bem-vindo!",
+          introContent: "Este guia rápido ajudará você a entender todas as ferramentas disponíveis no aplicativo para otimizar a precificação dos seus produtos.",
+          items: manualData,
+          contactTitle: "Dúvidas ou Sugestões?",
+          contactContent: "Estamos sempre buscando melhorar! Se você tiver alguma pergunta sobre os cálculos ou sugestões de novas funcionalidades, entre em contato conosco.",
+          updatedAt: Timestamp.now() 
+        }).catch(err => console.error("Error seeding manual:", err));
+      }
+    });
+    return () => unsubscribe();
+  }, [isAdmin]);
+
   const handleLogout = useCallback(async () => {
     try {
       await signOut(auth);
@@ -1602,6 +1642,25 @@ export default function App() {
     }
   }, []);
 
+  const handleSaveManual = useCallback(async (newConfig: any) => {
+    if (!isAdmin) return;
+    setIsSavingManual(true);
+    try {
+      const manualDocRef = doc(db, 'config', 'manual');
+      await setDoc(manualDocRef, { 
+        ...newConfig,
+        updatedAt: Timestamp.now(),
+        updatedBy: user?.uid
+      });
+      showToast("Manual atualizado com sucesso!", "success");
+      setIsManualAdminModalOpen(false);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, 'config/manual');
+    } finally {
+      setIsSavingManual(false);
+    }
+  }, [isAdmin, user, showToast]);
+
   const handleSelectProductForCalculator = useCallback((product: any) => {
     setPurchasePrice(product.baseCost || 0);
     // Also update the product name and representative name in the state
@@ -1659,6 +1718,18 @@ export default function App() {
                     <HelpCircle className="w-3 h-3 text-amber-500" />
                     MANUAL
                   </button>
+
+                  {isAdmin && (
+                    <button 
+                      onClick={() => setIsManualAdminModalOpen(true)}
+                      className="flex items-center gap-1.5 bg-red-600 hover:bg-red-500 text-white px-2.5 py-1 rounded-md text-[10px] font-black transition-all active:scale-95 border border-red-700"
+                      title="Painel Administrativo"
+                    >
+                      <Settings className="w-3 h-3 text-white" />
+                      ADMIN
+                    </button>
+                  )}
+
                   <div className="w-[1px] h-4 bg-zinc-800 mx-1"></div>
                   <div className="flex items-center gap-2">
                     <img 
@@ -2295,15 +2366,15 @@ export default function App() {
             <div className="flex-1 overflow-y-auto p-6 space-y-8">
               {/* Introduction */}
               <div className="space-y-2">
-                <h4 className="text-lg font-black text-zinc-900 uppercase tracking-tight border-b-2 border-amber-500 inline-block">Bem-vindo!</h4>
-                <p className="text-zinc-600 text-sm leading-relaxed">
-                  Este guia rápido ajudará você a entender todas as ferramentas disponíveis no aplicativo para otimizar a precificação dos seus produtos.
+                <h4 className="text-lg font-black text-zinc-900 uppercase tracking-tight border-b-2 border-amber-500 inline-block">{manualConfig.introTitle}</h4>
+                <p className="text-zinc-600 text-sm leading-relaxed whitespace-pre-wrap">
+                  {manualConfig.introContent}
                 </p>
               </div>
 
               {/* Features Loop */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {manualData.map((item: any) => (
+                {manualConfig.items.map((item: any) => (
                   <div key={item.id} className="bg-zinc-50 border border-zinc-200 rounded-2xl p-4 hover:border-amber-500/50 transition-all group">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="bg-white p-2 rounded-lg shadow-sm border border-zinc-100 group-hover:bg-amber-500 group-hover:text-white transition-colors">
@@ -2320,10 +2391,10 @@ export default function App() {
               <div className="bg-amber-50 rounded-2xl p-6 border border-amber-200 space-y-4">
                 <div className="flex items-center gap-3">
                   <Mail className="w-6 h-6 text-amber-600" />
-                  <h4 className="text-lg font-black text-amber-900 uppercase tracking-tight">Dúvidas ou Sugestões?</h4>
+                  <h4 className="text-lg font-black text-amber-900 uppercase tracking-tight">{manualConfig.contactTitle}</h4>
                 </div>
-                <p className="text-amber-800 text-sm leading-relaxed">
-                  Estamos sempre buscando melhorar! Se você tiver alguma pergunta sobre os cálculos ou sugestões de novas funcionalidades, entre em contato conosco.
+                <p className="text-amber-800 text-sm leading-relaxed whitespace-pre-wrap">
+                  {manualConfig.contactContent}
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <a 
@@ -2346,7 +2417,19 @@ export default function App() {
               </div>
             </div>
 
-            <div className="p-6 bg-zinc-50 border-t border-zinc-200 flex justify-end">
+            <div className="p-6 bg-zinc-50 border-t border-zinc-200 flex justify-end gap-3">
+              {isAdmin && (
+                <button 
+                  onClick={() => {
+                    setIsManualModalOpen(false);
+                    setIsManualAdminModalOpen(true);
+                  }}
+                  className="bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 flex items-center gap-2"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  EDITAR CONTEÚDO
+                </button>
+              )}
               <button 
                 onClick={() => setIsManualModalOpen(false)}
                 className="bg-zinc-950 hover:bg-zinc-800 text-white px-8 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95"
@@ -2357,6 +2440,266 @@ export default function App() {
           </div>
         </div>
       )}
+      {/* Manual Admin Modal */}
+      {isManualAdminModalOpen && isAdmin && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-[110] animate-in fade-in duration-300">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-zinc-200 flex flex-col">
+            <div className="bg-red-600 p-6 text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 p-2 rounded-xl">
+                  <Settings className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black uppercase tracking-tighter">Painel Administrativo</h3>
+                  <p className="text-red-200 text-[10px] font-bold uppercase tracking-widest">Edição do Manual do Usuário</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsManualAdminModalOpen(false)}
+                className="text-white/60 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-full"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-8">
+              <div className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center gap-4">
+                <AlertCircle className="w-6 h-6 text-red-600 shrink-0" />
+                <p className="text-red-800 text-xs font-medium">
+                  As alterações feitas aqui serão salvas no banco de dados e refletidas para todos os usuários do aplicativo em tempo real.
+                </p>
+              </div>
+
+              {/* Intro Editor */}
+              <div className="space-y-4 bg-zinc-50 p-6 rounded-2xl border border-zinc-200">
+                <h4 className="text-sm font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
+                  <Info className="w-4 h-4 text-amber-500" />
+                  Seção de Introdução
+                </h4>
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase">Título da Introdução</label>
+                    <input 
+                      type="text"
+                      value={manualConfig.introTitle}
+                      onChange={(e) => setManualConfig({ ...manualConfig, introTitle: e.target.value })}
+                      className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase">Texto de Boas-vindas</label>
+                    <textarea 
+                      value={manualConfig.introContent}
+                      onChange={(e) => setManualConfig({ ...manualConfig, introContent: e.target.value })}
+                      rows={3}
+                      className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-red-500 outline-none resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Items Editor */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-black text-zinc-900 uppercase tracking-tight flex items-center gap-2">
+                  <LayoutDashboard className="w-4 h-4 text-amber-500" />
+                  Funcionalidades (Lista)
+                </h4>
+                <div className="space-y-4">
+                  {manualConfig.items.map((item: any, index: number) => (
+                    <div key={item.id} className="bg-zinc-50 border border-zinc-200 rounded-2xl p-6 space-y-4 relative group">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="bg-zinc-200 text-zinc-600 text-[10px] font-black px-2 py-0.5 rounded-md">#{index + 1}</span>
+                          <h5 className="font-bold text-zinc-900">Item: {item.title}</h5>
+                        </div>
+                        <button 
+                          onClick={() => {
+                            const newItems = manualConfig.items.filter((_: any, i: number) => i !== index);
+                            setManualConfig({ ...manualConfig, items: newItems });
+                          }}
+                          className="text-zinc-400 hover:text-red-600 transition-colors p-2"
+                          title="Remover Item"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-zinc-500 uppercase">Título</label>
+                          <input 
+                            type="text"
+                            value={item.title}
+                            onChange={(e) => {
+                              const newItems = [...manualConfig.items];
+                              newItems[index].title = e.target.value;
+                              setManualConfig({ ...manualConfig, items: newItems });
+                            }}
+                            className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-zinc-500 uppercase">Ícone (Lucide Name)</label>
+                          <select 
+                            value={item.icon}
+                            onChange={(e) => {
+                              const newItems = [...manualConfig.items];
+                              newItems[index].icon = e.target.value;
+                              setManualConfig({ ...manualConfig, items: newItems });
+                            }}
+                            className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                          >
+                            <option value="Calculator">Calculadora</option>
+                            <option value="LayoutDashboard">Dashboard</option>
+                            <option value="Settings">Configurações</option>
+                            <option value="Package">Produtos</option>
+                            <option value="History">Histórico</option>
+                            <option value="FileUp">Importação</option>
+                            <option value="Download">Exportação</option>
+                            <option value="RotateCcw">Resetar</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-zinc-500 uppercase">Descrição</label>
+                        <textarea 
+                          value={item.description}
+                          onChange={(e) => {
+                            const newItems = [...manualConfig.items];
+                            newItems[index].description = e.target.value;
+                            setManualConfig({ ...manualConfig, items: newItems });
+                          }}
+                          rows={3}
+                          className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-red-500 outline-none resize-none"
+                        />
+                      </div>
+                    </div>
+                  ))}
+
+                  <button 
+                    onClick={() => {
+                      const newItem = {
+                        id: `item-${Date.now()}`,
+                        title: 'Novo Item',
+                        description: 'Descrição do novo item...',
+                        icon: 'HelpCircle'
+                      };
+                      setManualConfig({ ...manualConfig, items: [...manualConfig.items, newItem] });
+                    }}
+                    className="w-full py-4 border-2 border-dashed border-zinc-200 rounded-2xl text-zinc-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all flex items-center justify-center gap-2 font-bold text-sm"
+                  >
+                    <Plus className="w-5 h-5" />
+                    ADICIONAR NOVO ITEM AO MANUAL
+                  </button>
+                </div>
+              </div>
+
+              {/* Contact Editor */}
+              <div className="space-y-4 bg-amber-50 p-6 rounded-2xl border border-amber-200">
+                <h4 className="text-sm font-black text-amber-900 uppercase tracking-tight flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-amber-600" />
+                  Seção de Contato
+                </h4>
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-amber-700 uppercase">Título do Contato</label>
+                    <input 
+                      type="text"
+                      value={manualConfig.contactTitle}
+                      onChange={(e) => setManualConfig({ ...manualConfig, contactTitle: e.target.value })}
+                      className="w-full bg-white border border-amber-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-amber-700 uppercase">Mensagem de Suporte</label>
+                    <textarea 
+                      value={manualConfig.contactContent}
+                      onChange={(e) => setManualConfig({ ...manualConfig, contactContent: e.target.value })}
+                      rows={3}
+                      className="w-full bg-white border border-amber-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-red-500 outline-none resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 bg-zinc-50 border-t border-zinc-200 flex justify-between items-center">
+              <div className="flex gap-2">
+                <input 
+                  type="file" 
+                  accept=".json"
+                  className="hidden"
+                  id="manual-import"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        try {
+                          const json = JSON.parse(event.target?.result as string);
+                          if (Array.isArray(json)) {
+                            setManualConfig({ ...manualConfig, items: json });
+                            showToast("Itens do manual importados! Clique em salvar para aplicar.", "success");
+                          } else if (json && typeof json === 'object' && json.items) {
+                            setManualConfig(json);
+                            showToast("Configuração completa do manual importada! Clique em salvar para aplicar.", "success");
+                          } else {
+                            showToast("Formato de arquivo inválido.", "error");
+                          }
+                        } catch (err) {
+                          showToast("Erro ao ler arquivo JSON.", "error");
+                        }
+                      };
+                      reader.readAsText(file);
+                    }
+                  }}
+                />
+                <button 
+                  onClick={() => document.getElementById('manual-import')?.click()}
+                  className="flex items-center gap-2 bg-white hover:bg-zinc-100 text-zinc-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border border-zinc-200"
+                >
+                  <FileUp className="w-4 h-4 text-amber-500" />
+                  IMPORTAR JSON
+                </button>
+                <button 
+                  onClick={() => {
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(manualConfig, null, 2));
+                    const downloadAnchorNode = document.createElement('a');
+                    downloadAnchorNode.setAttribute("href",     dataStr);
+                    downloadAnchorNode.setAttribute("download", "manual_backup.json");
+                    document.body.appendChild(downloadAnchorNode);
+                    downloadAnchorNode.click();
+                    downloadAnchorNode.remove();
+                  }}
+                  className="flex items-center gap-2 bg-white hover:bg-zinc-100 text-zinc-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border border-zinc-200"
+                >
+                  <Download className="w-4 h-4 text-blue-500" />
+                  EXPORTAR JSON
+                </button>
+              </div>
+              
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setIsManualAdminModalOpen(false)}
+                  className="px-6 py-2.5 text-sm font-bold text-zinc-500 hover:text-zinc-700 transition-colors"
+                >
+                  DESCARTAR
+                </button>
+                <button 
+                  onClick={() => handleSaveManual(manualConfig)}
+                  disabled={isSavingManual}
+                  className="bg-red-600 hover:bg-red-500 text-white px-8 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 shadow-lg shadow-red-500/20 disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isSavingManual ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  SALVAR ALTERAÇÕES NO MANUAL
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Save Modal */}
       {isSaveModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">

@@ -155,6 +155,11 @@ service cloud.firestore {
       allow write: if isOwner(userId);
     }
 
+    match /config/manual {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /{path=**} {
       allow read, write: if false;
     }
