@@ -2,7 +2,7 @@ import express from 'express';
 import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import Stripe from 'stripe';
+import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 import admin from 'firebase-admin';
 import dotenv from 'dotenv';
 
@@ -11,17 +11,18 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-let stripeClient: Stripe | null = null;
+// Initialize Mercado Pago
+let mpClient: MercadoPagoConfig | null = null;
 
-function getStripe() {
-  if (!stripeClient) {
-    const key = process.env.STRIPE_SECRET_KEY;
-    if (!key) {
-      throw new Error('STRIPE_SECRET_KEY is not configured. Please set it in the environment variables.');
+function getMP() {
+  if (!mpClient) {
+    const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
+    if (!accessToken) {
+      throw new Error('MERCADO_PAGO_ACCESS_TOKEN is not configured. Please set it in the environment variables.');
     }
-    stripeClient = new Stripe(key);
+    mpClient = new MercadoPagoConfig({ accessToken });
   }
-  return stripeClient;
+  return mpClient;
 }
 
 const app = express();
@@ -32,7 +33,7 @@ function getDb() {
   if (!admin.apps.length) {
     try {
       admin.initializeApp({
-        projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'calculadora-markup-pro'
+        projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'gen-lang-client-0624434095'
       });
     } catch (error) {
       console.error('Firebase Admin Init Error:', error);
@@ -42,74 +43,87 @@ function getDb() {
   return admin.firestore();
 }
 
-// Webhook needs raw body
-app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-  const sig = req.headers['stripe-signature'] as string;
-  let event;
+app.use(express.json());
 
-  try {
-    const stripe = getStripe();
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET || ''
-    );
-  } catch (err: any) {
-    console.error(`Webhook Error: ${err.message}`);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
+// Mercado Pago Webhook
+app.post('/api/webhook', async (req, res) => {
+  const { action, data, type } = req.body;
 
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.Checkout.Session;
-    const userId = session.client_reference_id;
+  console.log('Mercado Pago Webhook received:', { action, data, type });
 
-    if (userId) {
+  // Handle payment notification
+  if (type === 'payment' || action === 'payment.created' || action === 'payment.updated') {
+    const paymentId = data?.id || req.query.id;
+    
+    if (paymentId) {
       try {
-        const db = getDb();
-        await db.collection('users').doc(userId).update({
-          plan: 'PRO',
-          updatedAt: admin.firestore.FieldValue.serverTimestamp()
-        });
-        console.log(`User ${userId} upgraded to PRO`);
+        const client = getMP();
+        const payment = new Payment(client);
+        const paymentDetails = await payment.get({ id: paymentId });
+
+        if (paymentDetails.status === 'approved') {
+          const userId = paymentDetails.external_reference;
+          
+          if (userId) {
+            const db = getDb();
+            await db.collection('users').doc(userId).update({
+              plan: 'PRO',
+              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+              paymentId: paymentId,
+              paymentMethod: paymentDetails.payment_method_id
+            });
+            console.log(`User ${userId} upgraded to PRO via Mercado Pago payment ${paymentId}`);
+          }
+        }
       } catch (error) {
-        console.error('Error updating user plan:', error);
+        console.error('Error processing Mercado Pago payment:', error);
       }
     }
   }
 
-  res.json({ received: true });
+  res.sendStatus(200);
 });
 
-app.use(express.json());
-
-// Create Checkout Session
-app.post('/api/create-checkout-session', async (req, res) => {
-  const { userId, email } = req.body;
+// Create Mercado Pago Preference
+app.post('/api/create-preference', async (req, res) => {
+  const { userId, email, title, price } = req.body;
 
   if (!userId) {
     return res.status(400).json({ error: 'User ID is required' });
   }
 
   try {
-    const stripe = getStripe();
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price: process.env.STRIPE_PRO_PRICE_ID,
-          quantity: 1,
+    const client = getMP();
+    const preference = new Preference(client);
+    
+    const result = await preference.create({
+      body: {
+        items: [
+          {
+            id: 'pro-plan',
+            title: title || 'NIVOR Calculadora PRO - Assinatura Mensal',
+            quantity: 1,
+            unit_price: Number(price) || 36.90,
+            currency_id: 'BRL',
+          },
+        ],
+        payer: {
+          email: email,
         },
-      ],
-      mode: 'subscription',
-      success_url: `${req.headers.origin}/?success=true`,
-      cancel_url: `${req.headers.origin}/?canceled=true`,
-      client_reference_id: userId,
-      customer_email: email,
+        external_reference: userId,
+        back_urls: {
+          success: `${req.headers.origin}/?payment=success`,
+          failure: `${req.headers.origin}/?payment=failure`,
+          pending: `${req.headers.origin}/?payment=pending`,
+        },
+        auto_return: 'approved',
+        notification_url: `${process.env.APP_URL || req.headers.origin}/api/webhook`,
+      },
     });
 
-    res.json({ id: session.id, url: session.url });
+    res.json({ id: result.id, init_point: result.init_point });
   } catch (error: any) {
-    console.error('Stripe Session Error:', error);
+    console.error('Mercado Pago Preference Error:', error);
     res.status(500).json({ error: error.message });
   }
 });

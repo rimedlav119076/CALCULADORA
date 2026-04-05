@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState, useMemo, useCallback, useEffect, Component } from 'react';
-import { Calculator, DollarSign, Percent, RefreshCw, Info, Download, RotateCcw, LogIn, LogOut, Save, History, CheckCircle2, AlertCircle, Trash2, Calendar, User as UserIcon, Package, Plus, Edit2, Settings, LayoutDashboard, FileUp } from 'lucide-react';
+import { Calculator, DollarSign, Percent, RefreshCw, Info, Download, RotateCcw, LogIn, LogOut, Save, History, CheckCircle2, AlertCircle, Trash2, Calendar, User as UserIcon, Package, Plus, Edit2, Settings, LayoutDashboard, FileUp, X } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -149,9 +149,9 @@ const NumberInput = React.memo(({
 
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
-      <label className={`text-xs font-bold uppercase tracking-wide ${labelClassName}`}>{label}</label>
+      <label className={`text-[10px] sm:text-xs font-bold uppercase tracking-wide ${labelClassName}`}>{label}</label>
       <div className={`relative flex items-center bg-white border border-zinc-300 rounded-md shadow-sm focus-within:ring-2 focus-within:ring-amber-500 focus-within:border-amber-500 ${disabled ? 'bg-zinc-100 opacity-80' : ''}`}>
-        {prefix && <span className="pl-3 text-zinc-500 text-sm font-medium">{prefix}</span>}
+        {prefix && <span className="pl-2 sm:pl-3 text-zinc-500 text-[10px] sm:text-sm font-medium">{prefix}</span>}
         <input
           type="text"
           inputMode="decimal"
@@ -162,10 +162,10 @@ const NumberInput = React.memo(({
           onFocus={handleFocus}
           onBlur={handleBlur}
           disabled={disabled}
-          className="w-full py-2 px-3 text-right outline-none bg-transparent font-mono text-zinc-800 font-medium"
+          className="w-full py-1.5 sm:py-2 px-2 sm:px-3 text-right outline-none bg-transparent font-mono text-zinc-800 font-medium text-xs sm:text-sm"
           placeholder={placeholder}
         />
-        {suffix && <span className="pr-3 text-zinc-500 text-sm font-medium">{suffix}</span>}
+        {suffix && <span className="pr-2 sm:pr-3 text-zinc-500 text-[10px] sm:text-sm font-medium">{suffix}</span>}
       </div>
     </div>
   );
@@ -190,7 +190,7 @@ const PercentInputRow = React.memo(({
   const calculatedValue = useMemo(() => baseValue * (percent / 100), [baseValue, percent]);
 
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-2 gap-2 sm:gap-4">
       <div>
         <NumberInput 
           label={label} 
@@ -200,7 +200,7 @@ const PercentInputRow = React.memo(({
           suffix="%" 
         />
       </div>
-      <div>
+      <div className="flex flex-col">
         <NumberInput 
           label="Valor Calc." 
           value={calculatedValue} 
@@ -579,6 +579,7 @@ export default function App() {
   // State - Settings & Dashboard
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [isFloatingCalculatorOpen, setIsFloatingCalculatorOpen] = useState(false);
   const [userSettings, setUserSettings] = useState<any | null>(null);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
@@ -609,6 +610,24 @@ export default function App() {
 
   // Refs
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Handle Payment Result
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paymentStatus = params.get('payment');
+    
+    if (paymentStatus === 'success') {
+      alert('Pagamento aprovado! Seu acesso PRO será liberado em instantes.');
+      // Remove params from URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (paymentStatus === 'failure') {
+      alert('O pagamento não foi concluído. Tente novamente.');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (paymentStatus === 'pending') {
+      alert('Seu pagamento está pendente de aprovação. Assim que confirmado, seu acesso PRO será liberado.');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   // Auth Listener
   useEffect(() => {
@@ -1244,7 +1263,7 @@ export default function App() {
 
     setIsUpgrading(true);
     try {
-      const response = await fetch('/api/create-checkout-session', {
+      const response = await fetch('/api/create-preference', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1252,14 +1271,16 @@ export default function App() {
         body: JSON.stringify({
           userId: user.uid,
           email: user.email,
+          title: 'NIVOR Calculadora PRO - Assinatura Mensal',
+          price: 36.90
         }),
       });
 
       const data = await response.json();
-      if (data.url) {
-        window.location.href = data.url;
+      if (data.init_point) {
+        window.location.href = data.init_point;
       } else {
-        throw new Error(data.error || 'Erro ao criar sessão de pagamento');
+        throw new Error(data.error || 'Erro ao criar preferência de pagamento');
       }
     } catch (error: any) {
       console.error('Upgrade Error:', error);
@@ -1448,11 +1469,14 @@ export default function App() {
         <div className="w-full max-w-5xl bg-white rounded-2xl shadow-xl overflow-hidden border border-zinc-200">
           
           {/* Header */}
-          <div className="bg-zinc-950 text-white p-4 md:p-6 flex flex-col gap-4">
-            {/* Top Row: Logo and User */}
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-3">
-                <img src="/logo.svg" alt="NIVOR Consultoria" className="h-10 md:h-12" />
+          <div className="bg-zinc-950 text-white p-4 md:p-6 flex flex-col gap-6">
+            {/* Top Row: Title and User */}
+            <div className="flex flex-col sm:flex-row items-center justify-between w-full gap-4 sm:gap-0">
+              <div className="flex flex-col items-center sm:items-start">
+                <h1 className="text-xl md:text-2xl font-black tracking-tighter text-white uppercase italic">
+                  CALCULADORA <span className="text-amber-500">PREÇO VENDA</span>
+                </h1>
+                <div className="h-1 w-12 bg-amber-500 rounded-full mt-1 hidden sm:block"></div>
               </div>
               
               {user ? (
@@ -1501,10 +1525,10 @@ export default function App() {
             </div>
 
             {/* Bottom Row: Navigation Actions */}
-            <div className="flex flex-wrap items-center gap-1.5 md:gap-2 justify-center md:justify-end w-full">
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 justify-center sm:justify-end w-full">
               <button 
                 onClick={() => setIsDashboardOpen(!isDashboardOpen)}
-                className={`flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-all border active:scale-95 ${isDashboardOpen ? 'bg-amber-600 border-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700'}`}
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-all border active:scale-95 w-full sm:w-auto whitespace-nowrap ${isDashboardOpen ? 'bg-amber-600 border-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700'}`}
                 title={isDashboardOpen ? "Voltar para Calculadora" : "Ver Dashboard"}
               >
                 {isDashboardOpen ? <Calculator className="w-3.5 h-3.5 md:w-4 md:h-4" /> : <LayoutDashboard className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500" />}
@@ -1513,7 +1537,7 @@ export default function App() {
 
               <button 
                 onClick={() => setIsSettingsModalOpen(true)}
-                className="flex items-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95 w-full sm:w-auto whitespace-nowrap"
                 title="Configurações Padrão"
               >
                 <Settings className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500" />
@@ -1522,7 +1546,7 @@ export default function App() {
 
               <button 
                 onClick={() => setIsProductsModalOpen(true)}
-                className="flex items-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95 w-full sm:w-auto whitespace-nowrap"
                 title="Gerenciar Produtos"
               >
                 <Package className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500" />
@@ -1531,18 +1555,16 @@ export default function App() {
 
               <button 
                 onClick={() => setIsHistoryModalOpen(true)}
-                className="flex items-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95 w-full sm:w-auto whitespace-nowrap"
                 title="Ver Histórico"
               >
                 <History className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500" />
                 <span>Histórico</span>
               </button>
 
-              <div className="hidden md:block w-[1px] h-6 bg-zinc-800 mx-1"></div>
-
               <button 
                 onClick={handleReset}
-                className="flex items-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95 w-full sm:w-auto whitespace-nowrap"
                 title="Resetar valores"
               >
                 <RotateCcw className="w-3.5 h-3.5 md:w-4 md:h-4 text-zinc-400" />
@@ -1550,18 +1572,29 @@ export default function App() {
               </button>
 
               <button 
-                onClick={handleExportPDF}
-                className="flex items-center gap-1.5 md:gap-2 bg-amber-600 hover:bg-amber-500 text-white px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors shadow-md hover:shadow-amber-500/20 active:scale-95 border border-amber-500"
+                onClick={() => setIsFloatingCalculatorOpen(true)}
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-amber-600 hover:bg-amber-500 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-all shadow-md hover:shadow-amber-500/20 active:scale-95 border border-amber-500 w-full sm:w-auto whitespace-nowrap"
+                title="Abrir Calculadora"
               >
-                <Download className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <Calculator className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <span>CALC</span>
+              </button>
+
+              <button 
+                onClick={handleExportPDF}
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95 w-full sm:w-auto whitespace-nowrap"
+                title="Exportar PDF"
+              >
+                <Download className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500" />
                 <span>PDF</span>
               </button>
 
               <button 
                 onClick={handleExportExcel}
-                className="flex items-center gap-1.5 md:gap-2 bg-green-600 hover:bg-green-500 text-white px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors shadow-md hover:shadow-green-500/20 active:scale-95 border border-green-500"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95 w-full sm:w-auto whitespace-nowrap"
+                title="Exportar Excel"
               >
-                <Download className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <Download className="w-3.5 h-3.5 md:w-4 md:h-4 text-green-500" />
                 <span>EXCEL</span>
               </button>
             </div>
@@ -1642,7 +1675,7 @@ export default function App() {
                   onChange={setPurchasePrice} 
                 />
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-2 sm:gap-4">
                   <NumberInput 
                     label="(+) Valor Frete" 
                     value={freight} 
@@ -2494,8 +2527,99 @@ export default function App() {
           onSave={handleSaveSettings}
           isSaving={isSavingSettings}
         />
+
+        <FloatingCalculator 
+          isOpen={isFloatingCalculatorOpen}
+          onClose={() => setIsFloatingCalculatorOpen(false)}
+        />
       </div>
     </div>
   </ErrorBoundary>
 );
 }
+
+// Floating Calculator Component
+const FloatingCalculator = React.memo(({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+  const [display, setDisplay] = useState('0');
+  const [equation, setEquation] = useState('');
+  const [shouldReset, setShouldReset] = useState(false);
+
+  if (!isOpen) return null;
+
+  const handleNumber = (num: string) => {
+    if (display === '0' || shouldReset) {
+      setDisplay(num);
+      setShouldReset(false);
+    } else {
+      setDisplay(display + num);
+    }
+  };
+
+  const handleOperator = (op: string) => {
+    setEquation(display + ' ' + op + ' ');
+    setShouldReset(true);
+  };
+
+  const calculate = () => {
+    try {
+      const fullEquation = equation + display;
+      // Simple safe eval for basic math
+      const result = eval(fullEquation.replace(',', '.'));
+      setDisplay(String(result).replace('.', ','));
+      setEquation('');
+      setShouldReset(true);
+    } catch (e) {
+      setDisplay('Erro');
+    }
+  };
+
+  const clear = () => {
+    setDisplay('0');
+    setEquation('');
+  };
+
+  return (
+    <div className="fixed inset-0 sm:inset-auto sm:bottom-4 sm:right-4 flex items-center justify-center sm:block z-[200] animate-in fade-in zoom-in duration-200">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl w-72 overflow-hidden flex flex-col">
+        <div className="bg-zinc-800 p-3 flex items-center justify-between border-b border-zinc-700">
+          <div className="flex items-center gap-2">
+            <Calculator className="w-4 h-4 text-amber-500" />
+            <span className="text-white text-xs font-bold uppercase tracking-wider">Calculadora</span>
+          </div>
+          <button onClick={onClose} className="text-zinc-400 hover:text-white transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="p-4 bg-zinc-950 text-right">
+          <div className="text-zinc-500 text-[10px] h-4 mb-1 font-mono">{equation}</div>
+          <div className="text-white text-3xl font-mono font-bold truncate">{display}</div>
+        </div>
+
+        <div className="p-2 grid grid-cols-4 gap-1 bg-zinc-900">
+          <button onClick={clear} className="col-span-2 p-3 bg-zinc-800 text-amber-500 rounded-lg font-bold hover:bg-zinc-700 transition-colors">AC</button>
+          <button onClick={() => handleOperator('/')} className="p-3 bg-zinc-800 text-amber-500 rounded-lg font-bold hover:bg-zinc-700 transition-colors">÷</button>
+          <button onClick={() => handleOperator('*')} className="p-3 bg-zinc-800 text-amber-500 rounded-lg font-bold hover:bg-zinc-700 transition-colors">×</button>
+
+          {[7, 8, 9].map(n => (
+            <button key={n} onClick={() => handleNumber(String(n))} className="p-3 bg-zinc-800 text-white rounded-lg font-bold hover:bg-zinc-700 transition-colors">{n}</button>
+          ))}
+          <button onClick={() => handleOperator('-')} className="p-3 bg-zinc-800 text-amber-500 rounded-lg font-bold hover:bg-zinc-700 transition-colors">−</button>
+
+          {[4, 5, 6].map(n => (
+            <button key={n} onClick={() => handleNumber(String(n))} className="p-3 bg-zinc-800 text-white rounded-lg font-bold hover:bg-zinc-700 transition-colors">{n}</button>
+          ))}
+          <button onClick={() => handleOperator('+')} className="p-3 bg-zinc-800 text-amber-500 rounded-lg font-bold hover:bg-zinc-700 transition-colors">+</button>
+
+          {[1, 2, 3].map(n => (
+            <button key={n} onClick={() => handleNumber(String(n))} className="p-3 bg-zinc-800 text-white rounded-lg font-bold hover:bg-zinc-700 transition-colors">{n}</button>
+          ))}
+          <button onClick={calculate} className="row-span-2 p-3 bg-amber-600 text-white rounded-lg font-bold hover:bg-amber-500 transition-colors shadow-lg shadow-amber-600/20">=</button>
+
+          <button onClick={() => handleNumber('0')} className="col-span-2 p-3 bg-zinc-800 text-white rounded-lg font-bold hover:bg-zinc-700 transition-colors">0</button>
+          <button onClick={() => handleNumber(',')} className="p-3 bg-zinc-800 text-white rounded-lg font-bold hover:bg-zinc-700 transition-colors">,</button>
+        </div>
+      </div>
+    </div>
+  );
+});
