@@ -295,7 +295,30 @@ const BRLIcon = React.memo(({ className }: { className?: string }) => (
 BRLIcon.displayName = 'BRLIcon';
 
 // Dashboard Component
-const Dashboard = ({ savedCalculations, products }: { savedCalculations: any[], products: any[] }) => {
+const Dashboard = ({ savedCalculations, products, isPro, onUpgrade }: { savedCalculations: any[], products: any[], isPro: boolean, onUpgrade: () => void }) => {
+  if (!isPro) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-6 bg-zinc-50 min-h-[600px]">
+        <div className="bg-amber-500/10 p-6 rounded-3xl">
+          <LayoutDashboard className="w-16 h-16 text-amber-600" />
+        </div>
+        <div className="max-w-md space-y-2">
+          <h3 className="text-2xl font-black text-zinc-900 uppercase tracking-tighter">Dashboard Exclusivo PRO</h3>
+          <p className="text-zinc-500 text-sm leading-relaxed">
+            Tenha acesso a métricas avançadas, gráficos de lucratividade e análise detalhada do seu faturamento.
+          </p>
+        </div>
+        <button 
+          onClick={onUpgrade}
+          className="bg-zinc-950 hover:bg-zinc-800 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-xl shadow-zinc-950/20 active:scale-95 flex items-center gap-3"
+        >
+          <Package className="w-5 h-5 text-amber-500" />
+          DESBLOQUEAR AGORA
+        </button>
+      </div>
+    );
+  }
+
   const stats = useMemo(() => {
     // Filtrar apenas cálculos válidos para não distorcer os gráficos
     const validCalculations = savedCalculations.filter(calc => (calc.salesPrice || 0) > 0);
@@ -451,13 +474,17 @@ const SettingsModal = ({
   onClose, 
   settings, 
   onSave, 
-  isSaving 
+  isSaving,
+  isPro,
+  onUpgrade
 }: { 
   isOpen: boolean; 
   onClose: () => void; 
   settings: any; 
   onSave: (s: any) => void; 
   isSaving: boolean;
+  isPro: boolean;
+  onUpgrade: () => void;
 }) => {
   const [localSettings, setLocalSettings] = useState<any>({
     defaultIcmsPurchaseRate: 0,
@@ -476,6 +503,39 @@ const SettingsModal = ({
   }, [settings, isOpen]);
 
   if (!isOpen) return null;
+
+  if (!isPro) {
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-zinc-200">
+          <div className="bg-zinc-950 p-6 text-center space-y-4">
+            <div className="bg-amber-500/20 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto">
+              <Settings className="w-8 h-8 text-amber-500" />
+            </div>
+            <h3 className="text-xl font-black text-white uppercase tracking-tighter">Configurações PRO</h3>
+            <p className="text-zinc-400 text-sm">
+              Defina alíquotas padrão e automatize seus cálculos. Funcionalidade exclusiva para assinantes PRO.
+            </p>
+            <div className="flex flex-col gap-3 pt-4">
+              <button 
+                onClick={onUpgrade}
+                className="w-full bg-amber-600 hover:bg-amber-500 text-white py-3 rounded-xl font-bold transition-all shadow-lg shadow-amber-500/20 active:scale-95 flex items-center justify-center gap-2"
+              >
+                <Package className="w-4 h-4" />
+                QUERO SER PRO
+              </button>
+              <button 
+                onClick={onClose}
+                className="w-full bg-zinc-800 text-zinc-400 hover:text-white py-3 rounded-xl font-bold transition-colors"
+              >
+                Voltar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-zinc-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
@@ -608,6 +668,7 @@ export default function App() {
   // Auth State
   const [user, setUser] = useState<User | null>(null);
   const [userPlan, setUserPlan] = useState<'FREE' | 'PRO'>('FREE');
+  const isPro = useMemo(() => userPlan === 'PRO', [userPlan]);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -676,6 +737,15 @@ export default function App() {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
   }, []);
+
+  const requirePro = useCallback((action: () => void) => {
+    if (isPro) {
+      action();
+    } else {
+      setIsUpgradeModalOpen(true);
+      showToast("Esta funcionalidade é exclusiva para assinantes PRO.", "info");
+    }
+  }, [isPro, showToast]);
 
   // Handle Payment Result
   useEffect(() => {
@@ -1240,12 +1310,10 @@ export default function App() {
   }, [user]);
 
   const handleSaveCalculation = useCallback(async () => {
-    if (!user) {
-      handleLogin();
-      return;
-    }
-    setIsSaveModalOpen(true);
-  }, [user, handleLogin]);
+    requirePro(() => {
+      setIsSaveModalOpen(true);
+    });
+  }, [requirePro]);
 
   const handleXMLImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1322,7 +1390,7 @@ export default function App() {
     showToast(`Produto selecionado: ${item.name}`, "success");
   }, [xmlSupplier, showToast]);
 
-  const handleUpgrade = useCallback(async () => {
+  const handleUpgrade = useCallback(async (planType: 'monthly' | 'annual' = 'monthly') => {
     if (!user) {
       handleLogin();
       return;
@@ -1330,6 +1398,9 @@ export default function App() {
 
     setIsUpgrading(true);
     try {
+      const title = planType === 'annual' ? 'NIVOR Calculadora PRO - Plano Anual' : 'NIVOR Calculadora PRO - Assinatura Mensal';
+      const price = planType === 'annual' ? 360.00 : 36.90;
+
       const response = await fetch('/api/create-preference', {
         method: 'POST',
         headers: {
@@ -1338,8 +1409,8 @@ export default function App() {
         body: JSON.stringify({
           userId: user.uid,
           email: user.email,
-          title: 'NIVOR Calculadora PRO - Assinatura Mensal',
-          price: 36.90
+          title,
+          price
         }),
       });
 
@@ -1594,39 +1665,43 @@ export default function App() {
             {/* Bottom Row: Navigation Actions */}
             <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 justify-center sm:justify-end w-full">
               <button 
-                onClick={() => setIsDashboardOpen(!isDashboardOpen)}
+                onClick={() => requirePro(() => setIsDashboardOpen(!isDashboardOpen))}
                 className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-all border active:scale-95 w-full sm:w-auto whitespace-nowrap ${isDashboardOpen ? 'bg-amber-600 border-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700'}`}
                 title={isDashboardOpen ? "Voltar para Calculadora" : "Ver Dashboard"}
               >
                 {isDashboardOpen ? <Calculator className="w-3.5 h-3.5 md:w-4 md:h-4" /> : <LayoutDashboard className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500" />}
                 <span>{isDashboardOpen ? "Calculadora" : "Dashboard"}</span>
+                {!isPro && <span className="ml-1 bg-amber-500 text-white px-1 rounded-[4px] text-[8px]">PRO</span>}
               </button>
 
               <button 
-                onClick={() => setIsSettingsModalOpen(true)}
+                onClick={() => requirePro(() => setIsSettingsModalOpen(true))}
                 className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95 w-full sm:w-auto whitespace-nowrap"
                 title="Configurações Padrão"
               >
                 <Settings className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500" />
                 <span>Config</span>
+                {!isPro && <span className="ml-1 bg-amber-500 text-white px-1 rounded-[4px] text-[8px]">PRO</span>}
               </button>
 
               <button 
-                onClick={() => setIsProductsModalOpen(true)}
+                onClick={() => requirePro(() => setIsProductsModalOpen(true))}
                 className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95 w-full sm:w-auto whitespace-nowrap"
                 title="Gerenciar Produtos"
               >
                 <Package className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500" />
                 <span>Produtos</span>
+                {!isPro && <span className="ml-1 bg-amber-500 text-white px-1 rounded-[4px] text-[8px]">PRO</span>}
               </button>
 
               <button 
-                onClick={() => setIsHistoryModalOpen(true)}
+                onClick={() => requirePro(() => setIsHistoryModalOpen(true))}
                 className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95 w-full sm:w-auto whitespace-nowrap"
                 title="Ver Histórico"
               >
                 <History className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500" />
                 <span>Histórico</span>
+                {!isPro && <span className="ml-1 bg-amber-500 text-white px-1 rounded-[4px] text-[8px]">PRO</span>}
               </button>
 
               <button 
@@ -1648,27 +1723,34 @@ export default function App() {
               </button>
 
               <button 
-                onClick={handleExportPDF}
+                onClick={() => requirePro(handleExportPDF)}
                 className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95 w-full sm:w-auto whitespace-nowrap"
                 title="Exportar PDF"
               >
                 <Download className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500" />
                 <span>PDF</span>
+                {!isPro && <span className="ml-1 bg-amber-500 text-white px-1 rounded-[4px] text-[8px]">PRO</span>}
               </button>
 
               <button 
-                onClick={handleExportExcel}
+                onClick={() => requirePro(handleExportExcel)}
                 className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95 w-full sm:w-auto whitespace-nowrap"
                 title="Exportar Excel"
               >
                 <Download className="w-3.5 h-3.5 md:w-4 md:h-4 text-green-500" />
                 <span>EXCEL</span>
+                {!isPro && <span className="ml-1 bg-amber-500 text-white px-1 rounded-[4px] text-[8px]">PRO</span>}
               </button>
             </div>
           </div>
 
           {isDashboardOpen ? (
-            <Dashboard savedCalculations={savedCalculations} products={products} />
+            <Dashboard 
+              savedCalculations={savedCalculations} 
+              products={products} 
+              isPro={isPro}
+              onUpgrade={() => setIsUpgradeModalOpen(true)}
+            />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2">
               {/* LEFT COLUMN: COMPRA (Zinc/Grey Theme) */}
@@ -1683,7 +1765,7 @@ export default function App() {
                     <BRLIcon className="w-6 h-6 text-zinc-600" />
                     Custos de Aquisição
                   </div>
-                  {userPlan === 'PRO' ? (
+                  {isPro ? (
                     <button
                       onClick={() => fileInputRef.current?.click()}
                       className="flex items-center gap-1.5 bg-zinc-200 hover:bg-zinc-300 text-zinc-700 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all border border-zinc-300 active:scale-95"
@@ -1694,13 +1776,13 @@ export default function App() {
                     </button>
                   ) : (
                     <button
-                      onClick={() => setIsUpgradeModalOpen(true)}
+                      onClick={() => requirePro(() => fileInputRef.current?.click())}
                       className="flex items-center gap-1.5 bg-amber-100 hover:bg-amber-200 text-amber-700 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all border border-amber-200 active:scale-95 group"
                       title="Funcionalidade PRO"
                     >
                       <FileUp className="w-3 h-3" />
                       IMPORTAR XML
-                      <span className="ml-1 bg-amber-500 text-white px-1 rounded text-[8px]">PRO</span>
+                      <span className="ml-1 bg-amber-500 text-white px-1 rounded-[4px] text-[8px]">PRO</span>
                     </button>
                   )}
                 </h2>
@@ -1945,7 +2027,12 @@ export default function App() {
                     ) : (
                       <Save className="w-3 h-3" />
                     )}
-                    {saveSuccess ? 'Salvo!' : 'Salvar Cálculo'}
+                    {saveSuccess ? 'Salvo!' : (
+                      <span className="flex items-center gap-1">
+                        Salvar Cálculo
+                        {!isPro && <span className="bg-amber-500 text-white px-1 rounded-[4px] text-[8px]">PRO</span>}
+                      </span>
+                    )}
                   </button>
                 </div>
               </div>
@@ -2121,33 +2208,38 @@ export default function App() {
                 ))}
               </div>
 
-              <div className="pt-4 border-t border-zinc-100">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <span className="text-3xl font-black text-zinc-900">R$ 36,90</span>
-                    <span className="text-zinc-500 text-sm font-medium"> / mês</span>
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                    <div>
+                      <span className="text-2xl font-black text-zinc-900">R$ 36,90</span>
+                      <span className="text-zinc-500 text-xs font-medium"> / mês</span>
+                      <span className="block text-[10px] font-bold text-zinc-400 uppercase">Assinatura Mensal</span>
+                    </div>
+                    <button
+                      onClick={() => handleUpgrade('monthly')}
+                      disabled={isUpgrading}
+                      className="bg-zinc-950 hover:bg-zinc-800 text-white px-6 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 disabled:opacity-50"
+                    >
+                      {isUpgrading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'ASSINAR MENSAL'}
+                    </button>
                   </div>
-                  <div className="text-right">
-                    <span className="block text-[10px] font-bold text-green-600 uppercase">Assinatura Mensal</span>
-                    <span className="text-zinc-400 text-[10px]">Cancele quando quiser</span>
+
+                  <div className="flex items-center justify-between p-4 bg-amber-50 rounded-2xl border border-amber-200 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 bg-amber-500 text-white text-[8px] font-black px-2 py-0.5 rounded-bl-lg uppercase tracking-tighter">Melhor Valor</div>
+                    <div>
+                      <span className="text-2xl font-black text-zinc-900">R$ 360,00</span>
+                      <span className="text-zinc-500 text-xs font-medium"> / ano</span>
+                      <span className="block text-[10px] font-bold text-amber-600 uppercase">Plano Anual à Vista</span>
+                    </div>
+                    <button
+                      onClick={() => handleUpgrade('annual')}
+                      disabled={isUpgrading}
+                      className="bg-amber-600 hover:bg-amber-500 text-white px-6 py-2.5 rounded-xl font-bold text-xs transition-all shadow-lg shadow-amber-500/20 active:scale-95 disabled:opacity-50"
+                    >
+                      {isUpgrading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'ASSINAR ANUAL'}
+                    </button>
                   </div>
                 </div>
-
-                <button
-                  onClick={handleUpgrade}
-                  disabled={isUpgrading}
-                  className="w-full bg-zinc-950 hover:bg-zinc-800 text-white py-4 rounded-2xl font-bold text-lg transition-all shadow-xl shadow-zinc-950/20 active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50"
-                >
-                  {isUpgrading ? (
-                    <RefreshCw className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-5 h-5 text-amber-500" />
-                      ASSINAR AGORA
-                    </>
-                  )}
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -2269,12 +2361,26 @@ export default function App() {
             </div>
             
             <div className="flex-1 overflow-auto p-6">
-              {!user ? (
-                <div className="text-center py-12">
-                  <AlertCircle className="w-12 h-12 text-zinc-300 mx-auto mb-4" />
-                  <p className="text-zinc-500">Faça login para ver seu histórico.</p>
+              {!isPro ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center space-y-6">
+                  <div className="bg-amber-500/10 p-6 rounded-3xl">
+                    <History className="w-16 h-16 text-amber-600" />
+                  </div>
+                  <div className="max-w-md space-y-2">
+                    <h3 className="text-2xl font-black text-zinc-900 uppercase tracking-tighter">Histórico de Simulações PRO</h3>
+                    <p className="text-zinc-500 text-sm leading-relaxed">
+                      Acesse todos os seus cálculos salvos, compare simulações e mantenha um registro completo das suas operações.
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => setIsUpgradeModalOpen(true)}
+                    className="bg-zinc-950 hover:bg-zinc-800 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-xl shadow-zinc-950/20 active:scale-95 flex items-center gap-3"
+                  >
+                    <Package className="w-5 h-5 text-amber-500" />
+                    DESBLOQUEAR AGORA
+                  </button>
                 </div>
-              ) : savedCalculations.length === 0 ? (
+              ) : !user ? (
                 <div className="text-center py-12">
                   <History className="w-12 h-12 text-zinc-300 mx-auto mb-4" />
                   <p className="text-zinc-500">Nenhum cálculo salvo ainda.</p>
@@ -2382,7 +2488,26 @@ export default function App() {
             </div>
             
             <div className="flex-1 overflow-auto p-6">
-              {!user ? (
+              {!isPro ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center space-y-6">
+                  <div className="bg-amber-500/10 p-6 rounded-3xl">
+                    <Package className="w-16 h-16 text-amber-600" />
+                  </div>
+                  <div className="max-w-md space-y-2">
+                    <h3 className="text-2xl font-black text-zinc-900 uppercase tracking-tighter">Gestão de Produtos PRO</h3>
+                    <p className="text-zinc-500 text-sm leading-relaxed">
+                      Cadastre seus produtos, gerencie estoques e tenha acesso rápido aos custos de aquisição para agilizar seus cálculos.
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => setIsUpgradeModalOpen(true)}
+                    className="bg-zinc-950 hover:bg-zinc-800 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-xl shadow-zinc-950/20 active:scale-95 flex items-center gap-3"
+                  >
+                    <Package className="w-5 h-5 text-amber-500" />
+                    DESBLOQUEAR AGORA
+                  </button>
+                </div>
+              ) : !user ? (
                 <div className="text-center py-12">
                   <AlertCircle className="w-12 h-12 text-zinc-300 mx-auto mb-4" />
                   <p className="text-zinc-500">Faça login para gerenciar seus produtos.</p>
@@ -2593,6 +2718,8 @@ export default function App() {
           settings={userSettings}
           onSave={handleSaveSettings}
           isSaving={isSavingSettings}
+          isPro={isPro}
+          onUpgrade={() => setIsUpgradeModalOpen(true)}
         />
 
         <FloatingCalculator 
