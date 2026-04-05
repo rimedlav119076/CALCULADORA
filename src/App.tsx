@@ -756,7 +756,8 @@ export default function App() {
     introContent: "Este guia rápido ajudará você a entender todas as ferramentas disponíveis no aplicativo para otimizar a precificação dos seus produtos.",
     items: manualData,
     contactTitle: "Dúvidas ou Sugestões?",
-    contactContent: "Estamos sempre buscando melhorar! Se você tiver alguma pergunta sobre os cálculos ou sugestões de novas funcionalidades, entre em contato conosco."
+    contactContent: "Estamos sempre buscando melhorar! Se você tiver alguma pergunta sobre os cálculos ou sugestões de novas funcionalidades, entre em contato conosco.",
+    supportEmail: "adm.valdemir@gmail.com"
   });
   const [isSavingManual, setIsSavingManual] = useState(false);
 
@@ -1324,7 +1325,8 @@ export default function App() {
           introContent: data.introContent || "Este guia rápido ajudará você a entender todas as ferramentas disponíveis no aplicativo para otimizar a precificação dos seus produtos.",
           items: data.items || manualData,
           contactTitle: data.contactTitle || "Dúvidas ou Sugestões?",
-          contactContent: data.contactContent || "Estamos sempre buscando melhorar! Se você tiver alguma pergunta sobre os cálculos ou sugestões de novas funcionalidades, entre em contato conosco."
+          contactContent: data.contactContent || "Estamos sempre buscando melhorar! Se você tiver alguma pergunta sobre os cálculos ou sugestões de novas funcionalidades, entre em contato conosco.",
+          supportEmail: data.supportEmail || "adm.valdemir@gmail.com"
         });
       } else if (isAdmin) {
         // Seed initial data if it doesn't exist and user is admin
@@ -1334,6 +1336,7 @@ export default function App() {
           items: manualData,
           contactTitle: "Dúvidas ou Sugestões?",
           contactContent: "Estamos sempre buscando melhorar! Se você tiver alguma pergunta sobre os cálculos ou sugestões de novas funcionalidades, entre em contato conosco.",
+          supportEmail: "adm.valdemir@gmail.com",
           updatedAt: Timestamp.now() 
         }).catch(err => console.error("Error seeding manual:", err));
       }
@@ -2398,14 +2401,14 @@ export default function App() {
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <a 
-                    href="mailto:adm.valdemir@gmail.com"
+                    href={`mailto:${manualConfig.supportEmail || 'adm.valdemir@gmail.com'}`}
                     className="flex items-center gap-2 bg-zinc-950 hover:bg-zinc-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-lg shadow-zinc-950/20"
                   >
                     <Mail className="w-4 h-4 text-amber-500" />
                     ENVIAR E-MAIL
                   </a>
                   <a 
-                    href="https://mail.google.com/mail/?view=cm&fs=1&to=adm.valdemir@gmail.com"
+                    href={`https://mail.google.com/mail/?view=cm&fs=1&to=${manualConfig.supportEmail || 'adm.valdemir@gmail.com'}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 bg-white hover:bg-zinc-50 text-zinc-900 px-4 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 border border-zinc-200 shadow-sm"
@@ -2618,6 +2621,16 @@ export default function App() {
                       onChange={(e) => setManualConfig({ ...manualConfig, contactContent: e.target.value })}
                       rows={3}
                       className="w-full bg-white border border-amber-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-red-500 outline-none resize-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-amber-700 uppercase">E-mail de Suporte</label>
+                    <input 
+                      type="email"
+                      value={manualConfig.supportEmail}
+                      onChange={(e) => setManualConfig({ ...manualConfig, supportEmail: e.target.value })}
+                      placeholder="exemplo@email.com"
+                      className="w-full bg-white border border-amber-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-red-500 outline-none"
                     />
                   </div>
                 </div>
