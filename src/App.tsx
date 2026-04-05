@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useMemo, useCallback, useEffect, Component } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Calculator, DollarSign, Percent, RefreshCw, Info, Download, RotateCcw, LogIn, LogOut, Save, History, CheckCircle2, AlertCircle, Trash2, Calendar, User as UserIcon, Package, Plus, Edit2, Settings, LayoutDashboard, FileUp, X } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -66,10 +66,70 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   throw new Error(JSON.stringify(errInfo));
 }
 
-// Error Boundary Component (Placeholder)
-const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
-  return <>{children}</>;
-};
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: any;
+}
+
+// Error Boundary Component
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  public state: ErrorBoundaryState = { hasError: false, error: null };
+  public props: ErrorBoundaryProps;
+
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.props = props;
+  }
+
+  static getDerivedStateFromError(error: any): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error("ErrorBoundary caught an error", error, errorInfo);
+  }
+
+  render() {
+    const { hasError, error } = this.state;
+    if (hasError) {
+      let errorMessage = "Ocorreu um erro inesperado.";
+      if (error && error.message) {
+        try {
+          const parsedError = JSON.parse(error.message);
+          if (parsedError.error) errorMessage = parsedError.error;
+        } catch (e) {
+          errorMessage = error.message;
+        }
+      }
+
+      return (
+        <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-red-500/30 p-8 rounded-3xl max-w-md w-full text-center space-y-6 shadow-2xl shadow-red-500/10">
+            <div className="bg-red-500/10 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto">
+              <AlertCircle className="w-8 h-8 text-red-500" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-xl font-black text-white uppercase tracking-tighter">Ops! Algo deu errado</h2>
+              <p className="text-zinc-400 text-sm leading-relaxed">{errorMessage}</p>
+            </div>
+            <button 
+              onClick={() => window.location.reload()}
+              className="w-full bg-zinc-800 hover:bg-zinc-700 text-white py-3 rounded-xl font-bold transition-all border border-zinc-700 active:scale-95"
+            >
+              Recarregar Aplicativo
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 // Input Component - Memoized to prevent unnecessary re-renders
 const NumberInput = React.memo(({ 
@@ -580,6 +640,7 @@ export default function App() {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isFloatingCalculatorOpen, setIsFloatingCalculatorOpen] = useState(false);
+  const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' | 'info' } | null>(null);
   const [userSettings, setUserSettings] = useState<any | null>(null);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
@@ -611,23 +672,28 @@ export default function App() {
   // Refs
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
+  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  }, []);
+
   // Handle Payment Result
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const paymentStatus = params.get('payment');
     
     if (paymentStatus === 'success') {
-      alert('Pagamento aprovado! Seu acesso PRO será liberado em instantes.');
+      showToast('Pagamento aprovado! Seu acesso PRO será liberado em instantes.', 'success');
       // Remove params from URL
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (paymentStatus === 'failure') {
-      alert('O pagamento não foi concluído. Tente novamente.');
+      showToast('O pagamento não foi concluído. Tente novamente.', 'error');
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (paymentStatus === 'pending') {
-      alert('Seu pagamento está pendente de aprovação. Assim que confirmado, seu acesso PRO será liberado.');
+      showToast('Seu pagamento está pendente de aprovação. Assim que confirmado, seu acesso PRO será liberado.', 'info');
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, []);
+  }, [showToast]);
 
   // Auth Listener
   useEffect(() => {
@@ -1138,13 +1204,14 @@ export default function App() {
   const handleLogin = useCallback(async () => {
     try {
       await signInWithPopup(auth, googleProvider);
+      showToast("Login realizado com sucesso!", "success");
     } catch (error: any) {
       console.error("Login Error:", error);
       if (error.code !== 'auth/cancelled-query' && error.code !== 'auth/popup-closed-by-user') {
-        alert("Erro ao entrar: " + error.message);
+        showToast("Erro ao entrar: " + error.message, "error");
       }
     }
-  }, []);
+  }, [showToast]);
 
   const handleLogout = useCallback(async () => {
     try {
@@ -1233,11 +1300,11 @@ export default function App() {
           // Se o frete do item for 0, mas houver frete total, podemos sugerir o rateio ou apenas guardar o total
           // Por enquanto, vamos manter o frete do item extraído
         } else {
-          alert("Nenhum item encontrado no XML.");
+          showToast("Nenhum item encontrado no XML.", "error");
         }
       } catch (error) {
         console.error("Erro ao processar XML:", error);
-        alert("Erro ao processar o arquivo XML. Verifique se é uma NFe válida.");
+        showToast("Erro ao processar o arquivo XML. Verifique se é uma NFe válida.", "error");
       }
       
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -1252,8 +1319,8 @@ export default function App() {
     setIcmsPurchaseRate(item.icms);
     setFreight(item.freight);
     setIsXmlSelectModalOpen(false);
-    alert(`Produto selecionado: ${item.name}`);
-  }, [xmlSupplier]);
+    showToast(`Produto selecionado: ${item.name}`, "success");
+  }, [xmlSupplier, showToast]);
 
   const handleUpgrade = useCallback(async () => {
     if (!user) {
@@ -1284,18 +1351,18 @@ export default function App() {
       }
     } catch (error: any) {
       console.error('Upgrade Error:', error);
-      alert(error.message || 'Ocorreu um erro ao processar seu upgrade.');
+      showToast(error.message || 'Ocorreu um erro ao processar seu upgrade.', "error");
     } finally {
       setIsUpgrading(false);
     }
-  }, [user, handleLogin]);
+  }, [user, handleLogin, showToast]);
 
   const handleConfirmSave = useCallback(async () => {
     if (!user || !productName) return;
     
     // Validação: Não permitir salvar cálculos vazios ou com preço zero
     if (salesPrice <= 0 || purchasePrice <= 0) {
-      alert("Por favor, realize um cálculo válido antes de salvar.");
+      showToast("Por favor, realize um cálculo válido antes de salvar.", "error");
       return;
     }
 
@@ -2532,6 +2599,22 @@ export default function App() {
           isOpen={isFloatingCalculatorOpen}
           onClose={() => setIsFloatingCalculatorOpen(false)}
         />
+
+        {/* Toast Notification */}
+        {toast && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[300] animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className={`px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border ${
+              toast.type === 'success' ? 'bg-zinc-900 border-green-500/50 text-green-400' :
+              toast.type === 'error' ? 'bg-zinc-900 border-red-500/50 text-red-400' :
+              'bg-zinc-900 border-amber-500/50 text-amber-400'
+            }`}>
+              {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> :
+               toast.type === 'error' ? <AlertCircle className="w-5 h-5" /> :
+               <Info className="w-5 h-5" />}
+              <span className="text-sm font-bold tracking-tight">{toast.message}</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   </ErrorBoundary>
@@ -2562,7 +2645,9 @@ const FloatingCalculator = React.memo(({ isOpen, onClose }: { isOpen: boolean, o
   const calculate = useCallback(() => {
     try {
       const fullEquation = equation + display;
-      const result = eval(fullEquation.replace(',', '.'));
+      // Sanitize input: only allow numbers, operators, and decimal point
+      const sanitized = fullEquation.replace(/[^0-9+\-*/.,]/g, '').replace(',', '.');
+      const result = eval(sanitized);
       setDisplay(String(result).replace('.', ','));
       setEquation('');
       setShouldReset(true);
