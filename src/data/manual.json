@@ -1,0 +1,56 @@
+[
+  {
+    "id": "calc-venda",
+    "title": "Calculadora de Preço de Venda",
+    "description": "Ferramenta principal para calcular o preço ideal de venda de um produto, considerando custos de aquisição, impostos, despesas e margem de lucro desejada.",
+    "icon": "Calculator"
+  },
+  {
+    "id": "dashboard",
+    "title": "Dashboard (PRO)",
+    "description": "Visão geral do seu negócio com métricas de faturamento total, margem média de lucro e gráficos de desempenho das simulações salvas.",
+    "icon": "LayoutDashboard"
+  },
+  {
+    "id": "config",
+    "title": "Configurações (PRO)",
+    "description": "Defina alíquotas padrão (ICMS, PIS, COFINS) e margens de lucro preferenciais para agilizar novos cálculos automaticamente.",
+    "icon": "Settings"
+  },
+  {
+    "id": "produtos",
+    "title": "Gestão de Produtos (PRO)",
+    "description": "Cadastre seu catálogo de produtos com custos fixos para facilitar a seleção e o cálculo recorrente.",
+    "icon": "Package"
+  },
+  {
+    "id": "historico",
+    "title": "Histórico (PRO)",
+    "description": "Acesse todas as suas simulações salvas anteriormente para consulta, edição ou exclusão.",
+    "icon": "History"
+  },
+  {
+    "id": "import-xml",
+    "title": "Importar XML (PRO)",
+    "description": "Carregue arquivos XML de Notas Fiscais (NFe) para importar automaticamente os custos de aquisição e impostos dos itens.",
+    "icon": "FileUp"
+  },
+  {
+    "id": "export-pdf-excel",
+    "title": "Exportação PDF/Excel (PRO)",
+    "description": "Gere relatórios profissionais em PDF ou planilhas Excel dos seus cálculos para compartilhar ou arquivar.",
+    "icon": "Download"
+  },
+  {
+    "id": "floating-calc",
+    "title": "Calculadora Auxiliar",
+    "description": "Uma calculadora flutuante para realizar contas rápidas sem sair da tela principal do aplicativo.",
+    "icon": "Calculator"
+  },
+  {
+    "id": "reset",
+    "title": "Resetar",
+    "description": "Limpa todos os campos da calculadora atual para iniciar uma nova simulação do zero.",
+    "icon": "RotateCcw"
+  }
+]

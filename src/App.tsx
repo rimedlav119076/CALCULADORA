@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { Calculator, DollarSign, Percent, RefreshCw, Info, Download, RotateCcw, LogIn, LogOut, Save, History, CheckCircle2, AlertCircle, Trash2, Calendar, User as UserIcon, Package, Plus, Edit2, Settings, LayoutDashboard, FileUp, X } from 'lucide-react';
+import { Calculator, DollarSign, Percent, RefreshCw, Info, Download, RotateCcw, LogIn, LogOut, Save, History, CheckCircle2, AlertCircle, Trash2, Calendar, User as UserIcon, Package, Plus, Edit2, Settings, LayoutDashboard, FileUp, X, HelpCircle, Mail, ExternalLink } from 'lucide-react';
+import manualData from './data/manual.json';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -74,6 +75,22 @@ interface ErrorBoundaryState {
   hasError: boolean;
   error: any;
 }
+
+// Manual Icon Helper
+const ManualIcon = ({ name, className }: { name: string, className?: string }) => {
+  const icons: Record<string, any> = {
+    Calculator,
+    LayoutDashboard,
+    Settings,
+    Package,
+    History,
+    FileUp,
+    Download,
+    RotateCcw
+  };
+  const Icon = icons[name] || HelpCircle;
+  return <Icon className={className} />;
+};
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
@@ -675,6 +692,7 @@ export default function App() {
 
   // State - Upgrade Modal
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [isManualModalOpen, setIsManualModalOpen] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
 
   // State - Save Modal
@@ -1633,6 +1651,14 @@ export default function App() {
                       SEJA PRO
                     </button>
                   )}
+                  <button 
+                    onClick={() => setIsManualModalOpen(true)}
+                    className="flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 py-1 rounded-md text-[10px] font-black transition-all active:scale-95 border border-zinc-700"
+                    title="Manual do Usuário"
+                  >
+                    <HelpCircle className="w-3 h-3 text-amber-500" />
+                    MANUAL
+                  </button>
                   <div className="w-[1px] h-4 bg-zinc-800 mx-1"></div>
                   <div className="flex items-center gap-2">
                     <img 
@@ -2164,7 +2190,6 @@ export default function App() {
           </div>
         </div>
       )}
-
       {/* Upgrade Modal */}
       {isUpgradeModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-[110] animate-in fade-in duration-300">
@@ -2245,6 +2270,93 @@ export default function App() {
         </div>
       )}
 
+      {/* Manual Modal */}
+      {isManualModalOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-[110] animate-in fade-in duration-300">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden border border-zinc-200 flex flex-col">
+            <div className="bg-zinc-950 p-6 text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="bg-amber-500 p-2 rounded-xl">
+                  <HelpCircle className="w-6 h-6 text-zinc-950" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black uppercase tracking-tighter">Manual do Usuário</h3>
+                  <p className="text-amber-500 text-[10px] font-bold uppercase tracking-widest">NIVOR Calculadora</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsManualModalOpen(false)}
+                className="text-zinc-500 hover:text-white transition-colors p-2 hover:bg-zinc-800 rounded-full"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-8">
+              {/* Introduction */}
+              <div className="space-y-2">
+                <h4 className="text-lg font-black text-zinc-900 uppercase tracking-tight border-b-2 border-amber-500 inline-block">Bem-vindo!</h4>
+                <p className="text-zinc-600 text-sm leading-relaxed">
+                  Este guia rápido ajudará você a entender todas as ferramentas disponíveis no aplicativo para otimizar a precificação dos seus produtos.
+                </p>
+              </div>
+
+              {/* Features Loop */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {manualData.map((item: any) => (
+                  <div key={item.id} className="bg-zinc-50 border border-zinc-200 rounded-2xl p-4 hover:border-amber-500/50 transition-all group">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="bg-white p-2 rounded-lg shadow-sm border border-zinc-100 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                        <ManualIcon name={item.icon} className="w-5 h-5" />
+                      </div>
+                      <h5 className="font-bold text-zinc-900 text-sm">{item.title}</h5>
+                    </div>
+                    <p className="text-zinc-500 text-xs leading-relaxed">{item.description}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Contact Section */}
+              <div className="bg-amber-50 rounded-2xl p-6 border border-amber-200 space-y-4">
+                <div className="flex items-center gap-3">
+                  <Mail className="w-6 h-6 text-amber-600" />
+                  <h4 className="text-lg font-black text-amber-900 uppercase tracking-tight">Dúvidas ou Sugestões?</h4>
+                </div>
+                <p className="text-amber-800 text-sm leading-relaxed">
+                  Estamos sempre buscando melhorar! Se você tiver alguma pergunta sobre os cálculos ou sugestões de novas funcionalidades, entre em contato conosco.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <a 
+                    href="mailto:adm.valdemir@gmail.com"
+                    className="flex items-center gap-2 bg-zinc-950 hover:bg-zinc-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-lg shadow-zinc-950/20"
+                  >
+                    <Mail className="w-4 h-4 text-amber-500" />
+                    ENVIAR E-MAIL
+                  </a>
+                  <a 
+                    href="https://mail.google.com/mail/?view=cm&fs=1&to=adm.valdemir@gmail.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 bg-white hover:bg-zinc-50 text-zinc-900 px-4 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 border border-zinc-200 shadow-sm"
+                  >
+                    <ExternalLink className="w-4 h-4 text-red-500" />
+                    ABRIR NO GMAIL
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 bg-zinc-50 border-t border-zinc-200 flex justify-end">
+              <button 
+                onClick={() => setIsManualModalOpen(false)}
+                className="bg-zinc-950 hover:bg-zinc-800 text-white px-8 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95"
+              >
+                ENTENDI
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Save Modal */}
       {isSaveModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
