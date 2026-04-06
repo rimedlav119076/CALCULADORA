@@ -1,5 +1,4 @@
 import express from 'express';
-import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
@@ -172,7 +171,11 @@ app.post('/api/create-preference', async (req, res) => {
 });
 
 async function startServer() {
-  if (process.env.NODE_ENV !== 'production') {
+  const isProduction = process.env.NODE_ENV === 'production' || !!process.env.VERCEL;
+
+  if (!isProduction) {
+    // Dynamic import to avoid loading Vite in production/Vercel
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
@@ -186,10 +189,8 @@ async function startServer() {
     });
   }
 
-  // Only listen if not running on Vercel (which handles the invocation)
-  if (process.env.Vercel || process.env.VERCEL) {
-    console.log('Running as Vercel Serverless Function');
-  } else {
+  // Only listen if not running on Vercel
+  if (!process.env.VERCEL) {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running on http://localhost:${PORT}`);
     });
