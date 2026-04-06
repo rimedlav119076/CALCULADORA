@@ -18,7 +18,11 @@ function getMP() {
   if (!mpClient) {
     const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
     if (!accessToken) {
-      throw new Error('MERCADO_PAGO_ACCESS_TOKEN is not configured. Please set it in the environment variables.');
+      throw new Error('MERCADO_PAGO_ACCESS_TOKEN is not configured. Please set it in the environment variables (Vercel Settings > Environment Variables).');
+    }
+    // Basic validation to check if it's a real token or just a placeholder
+    if (accessToken === 'MERCADO_PAGO_ACCESS_TOKEN' || accessToken === 'YOUR_ACCESS_TOKEN') {
+      throw new Error('O valor da chave MERCADO_PAGO_ACCESS_TOKEN parece ser um texto de exemplo. Você deve colar o seu Token de Acesso real (que começa com APP_USR-).');
     }
     mpClient = new MercadoPagoConfig({ accessToken });
   }
@@ -40,7 +44,8 @@ function getDb() {
       throw error;
     }
   }
-  return admin.firestore();
+  // Use the specific database ID from config
+  return admin.firestore('ai-studio-c4d6b3fe-53ca-4e86-923e-a0918eb8fade');
 }
 
 app.use(express.json());

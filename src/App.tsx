@@ -1479,16 +1479,18 @@ export default function App() {
         const text = await response.text();
         console.error('Server Error Response:', text);
         
-        // If the response is HTML, it's likely a 404 or 500 page
-        if (text.includes('<!DOCTYPE html>') || text.includes('<html') || text.includes('The page cannot be found')) {
-          throw new Error('O servidor retornou uma página de erro (404/500). Verifique se o backend está rodando e se a URL está correta.');
+        // If the response is HTML, it's likely a 404 or 500 page from Vercel/Cloud Run
+        if (text.includes('<!DOCTYPE html>') || text.includes('<html') || text.includes('The page cannot be found') || text.includes('Deployment Error')) {
+          throw new Error('Erro de Servidor (Vercel/Cloud Run): O backend não está respondendo corretamente. Verifique se o deployment foi concluído com sucesso.');
         }
         
         try {
           const errorData = JSON.parse(text);
           throw new Error(errorData.error || 'Erro ao criar preferência de pagamento');
         } catch (e) {
-          throw new Error('Erro desconhecido no servidor ao processar o pagamento');
+          // Show the first 100 characters of the response to help debug
+          const snippet = text.substring(0, 100);
+          throw new Error(`Erro no servidor: ${snippet}... (Verifique o deployment no Vercel)`);
         }
       }
 
