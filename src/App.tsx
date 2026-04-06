@@ -1462,7 +1462,10 @@ export default function App() {
       const title = planType === 'annual' ? 'NIVOR Calculadora PRO - Plano Anual' : 'NIVOR Calculadora PRO - Assinatura Mensal';
       const price = planType === 'annual' ? 360.00 : 36.90;
 
-      const response = await fetch('/api/create-preference', {
+      // Use absolute URL for better mobile compatibility
+      const apiUrl = `${window.location.origin}/api/create-preference`;
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

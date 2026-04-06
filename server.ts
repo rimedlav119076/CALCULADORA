@@ -87,7 +87,7 @@ app.post('/api/webhook', async (req, res) => {
 });
 
 // Create Mercado Pago Preference
-app.post('/api/create-preference', async (req, res) => {
+app.post(['/api/create-preference', '/api/create-preference/'], async (req, res) => {
   const { userId, email, title, price } = req.body;
 
   console.log('Creating preference for user:', userId, 'Price:', price);
