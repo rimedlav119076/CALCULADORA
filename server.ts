@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 import admin from 'firebase-admin';
 import dotenv from 'dotenv';
+import cors from 'cors';
 
 dotenv.config();
 
@@ -27,9 +28,6 @@ function getMP() {
   return mpClient;
 }
 
-const app = express();
-const PORT = 3000;
-
 // Initialize Firebase Admin lazily
 function getDb() {
   if (!admin.apps.length) {
@@ -45,7 +43,39 @@ function getDb() {
   return admin.firestore();
 }
 
+const app = express();
+const PORT = 3000;
+
+app.use(cors({
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With']
+}));
 app.use(express.json());
+
+// Request logger for debugging mobile issues
+app.use((req, res, next) => {
+  console.log(`[DEBUG] ${req.method} ${req.url}`);
+  console.log(`[HEADERS] ${JSON.stringify(req.headers)}`);
+  next();
+});
+
+// Health check and Diagnostics
+app.get('/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
+app.get('/diag', (req, res) => {
+  res.json({
+    status: 'ok',
+    ua: req.headers['user-agent'],
+    method: req.method,
+    url: req.url,
+    headers: req.headers,
+    env: {
+      has_mp_token: !!process.env.MERCADO_PAGO_ACCESS_TOKEN,
+      node_env: process.env.NODE_ENV
+    }
+  });
+});
 
 // Mercado Pago Webhook
 app.post('/api/webhook', async (req, res) => {
@@ -86,21 +116,27 @@ app.post('/api/webhook', async (req, res) => {
   res.sendStatus(200);
 });
 
-// Create Mercado Pago Preference
-app.post(['/api/create-preference', '/api/create-preference/'], async (req, res) => {
-  const { userId, email, title, price } = req.body;
-
-  console.log('Creating preference for user:', userId, 'Price:', price);
+// Create Mercado Pago Preference (GET and POST support)
+app.all(['/pay-pro', '/api/pay-pro', '/checkout'], async (req, res) => {
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  
+  // Support both GET (for direct links) and POST (for fetch)
+  const userId = req.method === 'GET' ? req.query.userId : req.body.userId;
+  const email = req.method === 'GET' ? req.query.email : req.body.email;
+  const title = req.method === 'GET' ? req.query.title : req.body.title;
+  const price = req.method === 'GET' ? req.query.price : req.body.price;
 
   if (!userId) {
+    if (req.method === 'GET') return res.status(400).send('User ID is required. Please go back and try again.');
     return res.status(400).json({ error: 'User ID is required' });
   }
+
+  console.log(`[PAYMENT] Processing for user ${userId}, method ${req.method}`);
 
   try {
     const client = getMP();
     const preference = new Preference(client);
     
-    // Detect base URL more robustly
     const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
     const host = req.headers.host;
     const baseUrl = process.env.APP_URL || `${protocol}://${host}`;
@@ -110,16 +146,16 @@ app.post(['/api/create-preference', '/api/create-preference/'], async (req, res)
         items: [
           {
             id: 'pro-plan',
-            title: title || 'NIVOR Calculadora PRO - Assinatura Mensal',
+            title: (title as string) || 'NIVOR Calculadora PRO - Assinatura',
             quantity: 1,
             unit_price: Number(price) || 36.90,
             currency_id: 'BRL',
           },
         ],
         payer: {
-          email: email,
+          email: (email as string) || '',
         },
-        external_reference: userId,
+        external_reference: userId as string,
         back_urls: {
           success: `${baseUrl}/?payment=success`,
           failure: `${baseUrl}/?payment=failure`,
@@ -130,18 +166,17 @@ app.post(['/api/create-preference', '/api/create-preference/'], async (req, res)
       },
     });
 
+    if (req.method === 'GET') {
+      // Direct redirect for GET requests (mobile friendly)
+      return res.redirect(result.init_point!);
+    }
+
     res.json({ id: result.id, init_point: result.init_point });
   } catch (error: any) {
-    console.error('Mercado Pago Preference Error:', error);
-    
-    let errorMessage = error.message || 'Erro interno ao processar pagamento';
-    
-    // Handle specific Google Cloud / Secret Manager unauthorized error
-    if (errorMessage.includes('UNAUTHORIZED') || errorMessage.includes('policy')) {
-      errorMessage = 'Erro de autorização: Verifique se a chave MERCADO_PAGO_ACCESS_TOKEN está configurada corretamente no menu Settings.';
-    }
-    
-    res.status(500).json({ error: errorMessage });
+    console.error('Mercado Pago Error:', error);
+    const msg = error.message || 'Erro ao processar pagamento';
+    if (req.method === 'GET') return res.status(500).send(`Erro: ${msg}`);
+    res.status(500).json({ error: msg });
   }
 });
 
