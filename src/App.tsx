@@ -1488,7 +1488,8 @@ export default function App() {
           const errorData = JSON.parse(text);
           throw new Error(errorData.error || 'Erro ao criar preferência de pagamento');
         } catch (e) {
-          throw new Error('Erro desconhecido no servidor ao processar o pagamento');
+          console.error('Failed to parse error JSON:', text);
+          throw new Error(`Erro no servidor: ${text.substring(0, 100)}${text.length > 100 ? '...' : ''}`);
         }
       }
 

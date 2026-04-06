@@ -18,8 +18,10 @@ function getMP() {
   if (!mpClient) {
     const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
     if (!accessToken) {
+      console.error('MERCADO_PAGO_ACCESS_TOKEN is missing in process.env');
       throw new Error('MERCADO_PAGO_ACCESS_TOKEN is not configured. Please set it in the environment variables.');
     }
+    console.log('MERCADO_PAGO_ACCESS_TOKEN found (length:', accessToken.length, ')');
     mpClient = new MercadoPagoConfig({ accessToken });
   }
   return mpClient;
