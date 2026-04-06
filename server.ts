@@ -38,7 +38,7 @@ function getDb() {
   if (!admin.apps.length) {
     try {
       admin.initializeApp({
-        projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'gen-lang-client-0624434095'
+        projectId: 'gen-lang-client-0624434095'
       });
     } catch (error) {
       console.error('Firebase Admin Init Error:', error);
