@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 import admin from 'firebase-admin';
+import { getFirestore } from 'firebase-admin/firestore';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -45,7 +46,7 @@ function getDb() {
     }
   }
   // Use the specific database ID from config
-  return admin.firestore('ai-studio-c4d6b3fe-53ca-4e86-923e-a0918eb8fade');
+  return getFirestore('ai-studio-c4d6b3fe-53ca-4e86-923e-a0918eb8fade');
 }
 
 app.use(express.json());
