@@ -1479,7 +1479,12 @@ export default function App() {
       if (data.init_point) {
         window.location.href = data.init_point;
       } else {
-        throw new Error(data.error || 'Erro ao criar preferência de pagamento');
+        const errorMsg = data.error || 'Erro ao criar preferência de pagamento';
+        if (errorMsg.includes('UNAUTHORIZED') || errorMsg.includes('Settings')) {
+          showToast("Erro de configuração: Verifique a chave de acesso do Mercado Pago no menu Settings.", "error");
+        } else {
+          throw new Error(errorMsg);
+        }
       }
     } catch (error: any) {
       console.error('Upgrade Error:', error);

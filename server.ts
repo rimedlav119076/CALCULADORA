@@ -124,7 +124,15 @@ app.post('/api/create-preference', async (req, res) => {
     res.json({ id: result.id, init_point: result.init_point });
   } catch (error: any) {
     console.error('Mercado Pago Preference Error:', error);
-    res.status(500).json({ error: error.message });
+    
+    let errorMessage = error.message || 'Erro interno ao processar pagamento';
+    
+    // Handle specific Google Cloud / Secret Manager unauthorized error
+    if (errorMessage.includes('UNAUTHORIZED') || errorMessage.includes('policy')) {
+      errorMessage = 'Erro de autorização: Verifique se a chave MERCADO_PAGO_ACCESS_TOKEN está configurada corretamente no menu Settings.';
+    }
+    
+    res.status(500).json({ error: errorMessage });
   }
 });
 
