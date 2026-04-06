@@ -33,23 +33,37 @@ function getMP() {
 const app = express();
 const PORT = 3000;
 
-// Initialize Firebase Admin lazily
+// Initialize Firebase Admin lazily and safely
+let db: any = null;
 function getDb() {
-  if (!admin.apps.length) {
-    try {
+  if (db) return db;
+  
+  try {
+    if (!admin.apps.length) {
       admin.initializeApp({
         projectId: 'gen-lang-client-0624434095'
       });
-    } catch (error) {
-      console.error('Firebase Admin Init Error:', error);
-      throw error;
     }
+    db = getFirestore('ai-studio-c4d6b3fe-53ca-4e86-923e-a0918eb8fade');
+    return db;
+  } catch (error) {
+    console.error('CRITICAL: Firebase Admin Init Error:', error);
+    // Return a mock or null to prevent total crash if payment is the goal
+    return null;
   }
-  // Use the specific database ID from config
-  return getFirestore('ai-studio-c4d6b3fe-53ca-4e86-923e-a0918eb8fade');
 }
 
 app.use(express.json());
+
+// Health check route
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    env: process.env.NODE_ENV,
+    hasMpToken: !!process.env.MERCADO_PAGO_ACCESS_TOKEN,
+    timestamp: new Date().toISOString()
+  });
+});
 
 // Mercado Pago Webhook
 app.post('/api/webhook', async (req, res) => {
@@ -70,16 +84,24 @@ app.post('/api/webhook', async (req, res) => {
         if (paymentDetails.status === 'approved') {
           const userId = paymentDetails.external_reference;
           
-          if (userId) {
-            const db = getDb();
-            await db.collection('users').doc(userId).update({
-              plan: 'PRO',
-              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-              paymentId: paymentId,
-              paymentMethod: paymentDetails.payment_method_id
-            });
-            console.log(`User ${userId} upgraded to PRO via Mercado Pago payment ${paymentId}`);
-          }
+    if (userId) {
+      try {
+        const firestore = getDb();
+        if (firestore) {
+          await firestore.collection('users').doc(userId).update({
+            plan: 'PRO',
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            paymentId: paymentId,
+            paymentMethod: paymentDetails.payment_method_id
+          });
+          console.log(`User ${userId} upgraded to PRO via Mercado Pago payment ${paymentId}`);
+        } else {
+          console.error('Could not update user: Firestore not initialized');
+        }
+      } catch (dbError) {
+        console.error('Database update error after payment:', dbError);
+      }
+    }
         }
       } catch (error) {
         console.error('Error processing Mercado Pago payment:', error);
