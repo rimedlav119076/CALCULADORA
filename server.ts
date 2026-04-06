@@ -88,6 +88,8 @@ app.post('/api/webhook', async (req, res) => {
 app.post('/api/create-preference', async (req, res) => {
   const { userId, email, title, price } = req.body;
 
+  console.log('Creating preference for user:', userId, 'Price:', price);
+
   if (!userId) {
     return res.status(400).json({ error: 'User ID is required' });
   }
@@ -95,6 +97,11 @@ app.post('/api/create-preference', async (req, res) => {
   try {
     const client = getMP();
     const preference = new Preference(client);
+    
+    // Detect base URL more robustly
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+    const host = req.headers.host;
+    const baseUrl = process.env.APP_URL || `${protocol}://${host}`;
     
     const result = await preference.create({
       body: {
@@ -112,12 +119,12 @@ app.post('/api/create-preference', async (req, res) => {
         },
         external_reference: userId,
         back_urls: {
-          success: `${req.headers.origin}/?payment=success`,
-          failure: `${req.headers.origin}/?payment=failure`,
-          pending: `${req.headers.origin}/?payment=pending`,
+          success: `${baseUrl}/?payment=success`,
+          failure: `${baseUrl}/?payment=failure`,
+          pending: `${baseUrl}/?payment=pending`,
         },
         auto_return: 'approved',
-        notification_url: `${process.env.APP_URL || req.headers.origin}/api/webhook`,
+        notification_url: `${baseUrl}/api/webhook`,
       },
     });
 
