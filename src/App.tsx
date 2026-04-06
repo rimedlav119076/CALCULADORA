@@ -1462,16 +1462,51 @@ export default function App() {
       const title = planType === 'annual' ? 'NIVOR Calculadora PRO - Plano Anual' : 'NIVOR Calculadora PRO - Assinatura Mensal';
       const price = planType === 'annual' ? 360.00 : 36.90;
 
-      // Use direct redirect for better mobile compatibility
-      const checkoutUrl = `${window.location.origin}/checkout?userId=${user.uid}&email=${encodeURIComponent(user.email || '')}&title=${encodeURIComponent(title)}&price=${price}`;
-      
-      console.log('Redirecting to checkout:', checkoutUrl);
-      window.location.href = checkoutUrl;
+      const response = await fetch('/api/create-preference', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.uid,
+          email: user.email,
+          title,
+          price
+        }),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.error('Server Error Response:', text);
+        
+        // If the response is HTML, it's likely a 404 or 500 page
+        if (text.includes('<!DOCTYPE html>') || text.includes('<html') || text.includes('The page cannot be found')) {
+          throw new Error('O servidor retornou uma página de erro (404/500). Verifique se o backend está rodando e se a URL está correta.');
+        }
+        
+        try {
+          const errorData = JSON.parse(text);
+          throw new Error(errorData.error || 'Erro ao criar preferência de pagamento');
+        } catch (e) {
+          throw new Error('Erro desconhecido no servidor ao processar o pagamento');
+        }
+      }
+
+      const data = await response.json();
+      if (data.init_point) {
+        window.location.href = data.init_point;
+      } else {
+        const errorMsg = data.error || 'Erro ao criar preferência de pagamento';
+        if (errorMsg.includes('UNAUTHORIZED') || errorMsg.includes('Settings')) {
+          showToast("Erro de configuração: Verifique a chave de acesso do Mercado Pago no menu Secrets.", "error");
+        } else {
+          throw new Error(errorMsg);
+        }
+      }
     } catch (error: any) {
       console.error('Upgrade Error:', error);
       showToast(error.message || 'Ocorreu um erro ao processar seu upgrade.', "error");
-      setIsUpgrading(false);
-    }
+    } finally {
       setIsUpgrading(false);
     }
   }, [user, handleLogin, showToast]);
@@ -2325,21 +2360,6 @@ export default function App() {
                       {isUpgrading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'ASSINAR ANUAL'}
                     </button>
                   </div>
-
-                  <button
-                    onClick={async () => {
-                      try {
-                        const res = await fetch('/health');
-                        const data = await res.json();
-                        showToast(`Conexão OK: ${data.status}`, "success");
-                      } catch (e: any) {
-                        showToast(`Erro de Conexão: ${e.message}`, "error");
-                      }
-                    }}
-                    className="text-[10px] text-zinc-400 hover:text-zinc-600 transition-colors uppercase font-bold text-center mt-2"
-                  >
-                    Testar Conexão com Servidor
-                  </button>
                 </div>
             </div>
           </div>

@@ -5,7 +5,6 @@ import { fileURLToPath } from 'url';
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 import admin from 'firebase-admin';
 import dotenv from 'dotenv';
-import cors from 'cors';
 
 dotenv.config();
 
@@ -19,14 +18,15 @@ function getMP() {
   if (!mpClient) {
     const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
     if (!accessToken) {
-      console.error('MERCADO_PAGO_ACCESS_TOKEN is missing in process.env');
       throw new Error('MERCADO_PAGO_ACCESS_TOKEN is not configured. Please set it in the environment variables.');
     }
-    console.log('MERCADO_PAGO_ACCESS_TOKEN found (length:', accessToken.length, ')');
     mpClient = new MercadoPagoConfig({ accessToken });
   }
   return mpClient;
 }
+
+const app = express();
+const PORT = 3000;
 
 // Initialize Firebase Admin lazily
 function getDb() {
@@ -43,17 +43,7 @@ function getDb() {
   return admin.firestore();
 }
 
-const app = express();
-const PORT = 3000;
-
-app.use(cors({
-  origin: true,
-  credentials: true
-}));
 app.use(express.json());
-
-// Health check
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 // Mercado Pago Webhook
 app.post('/api/webhook', async (req, res) => {
@@ -95,12 +85,7 @@ app.post('/api/webhook', async (req, res) => {
 });
 
 // Create Mercado Pago Preference
-app.all(['/pay-pro', '/api/pay-pro'], async (req, res) => {
-  if (req.method === 'OPTIONS') return res.sendStatus(200);
-  if (req.method === 'GET') return res.send('Payment endpoint is active. Use POST to create a preference.');
-  
-  if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
-
+app.post('/api/create-preference', async (req, res) => {
   const { userId, email, title, price } = req.body;
 
   console.log('Creating preference for user:', userId, 'Price:', price);
