@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { Calculator, DollarSign, Percent, RefreshCw, Info, Download, RotateCcw, LogIn, LogOut, Save, History, CheckCircle2, AlertCircle, Trash2, Calendar, User as UserIcon, Package, Plus, Edit2, Settings, LayoutDashboard, FileUp, X, HelpCircle, Mail, ExternalLink } from 'lucide-react';
+import { Calculator, DollarSign, Percent, RefreshCw, Info, Download, RotateCcw, LogIn, LogOut, Save, History, CheckCircle2, AlertCircle, Trash2, Calendar, User as UserIcon, Package, Plus, Edit2, Settings, LayoutDashboard, FileUp, X, HelpCircle, Mail, ExternalLink, Search } from 'lucide-react';
 import manualData from './data/manual.json';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -705,6 +705,7 @@ export default function App() {
   // State - History Modal
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [savedCalculations, setSavedCalculations] = useState<any[]>([]);
+  const [historySearch, setHistorySearch] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // State - Products (for suggestions and management)
@@ -1592,6 +1593,15 @@ export default function App() {
       setIsSaving(false);
     }
   }, [user, productName, selectedProductId, products, representativeName, purchasePrice, freight, otherExpenses, icmsPurchaseRate, icmsFreightRate, icmsSaleRate, saleExpensesValue, commissionRate, profitMargin, salesPrice, realCost, totalCost]);
+
+  const filteredCalculations = useMemo(() => {
+    if (!historySearch) return savedCalculations;
+    const search = historySearch.toLowerCase();
+    return savedCalculations.filter(calc => 
+      calc.productName?.toLowerCase().includes(search) || 
+      calc.representativeName?.toLowerCase().includes(search)
+    );
+  }, [savedCalculations, historySearch]);
 
   const handleLoadCalculation = useCallback((calc: any) => {
     setProductName(calc.productName || '');
@@ -2842,12 +2852,26 @@ export default function App() {
                 <History className="w-4 h-4 text-amber-500" />
                 Histórico de Simulações
               </h3>
-              <button 
-                onClick={() => setIsHistoryModalOpen(false)}
-                className="text-zinc-400 hover:text-white transition-colors"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-4">
+                {isPro && user && (
+                  <div className="relative">
+                    <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input 
+                      type="text"
+                      placeholder="Buscar produto ou fornecedor..."
+                      value={historySearch}
+                      onChange={(e) => setHistorySearch(e.target.value)}
+                      className="bg-zinc-900 border border-zinc-800 rounded-lg pl-9 pr-4 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500 w-64 transition-all"
+                    />
+                  </div>
+                )}
+                <button 
+                  onClick={() => setIsHistoryModalOpen(false)}
+                  className="text-zinc-400 hover:text-white transition-colors"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+              </div>
             </div>
             
             <div className="flex-1 overflow-auto p-6">
@@ -2877,7 +2901,7 @@ export default function App() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {savedCalculations.map((calc) => (
+                  {filteredCalculations.map((calc) => (
                     <div key={calc.id} className="bg-brand-black border border-brand-border rounded-xl p-4 hover:border-brand-primary/50 transition-all group">
                       <div className="flex justify-between items-start mb-3">
                         <div className="space-y-1">
@@ -3279,6 +3303,14 @@ const FloatingCalculator = React.memo(({ isOpen, onClose }: { isOpen: boolean, o
     setShouldReset(false);
   }, []);
 
+  const handlePercent = useCallback(() => {
+    setDisplay(prev => {
+      const val = parseFloat(prev.replace(',', '.'));
+      if (isNaN(val)) return prev;
+      return String(val / 100).replace('.', ',');
+    });
+  }, []);
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -3300,6 +3332,10 @@ const FloatingCalculator = React.memo(({ isOpen, onClose }: { isOpen: boolean, o
       else if (e.key === 'Escape' || e.key === 'Delete' || e.key === 'c' || e.key === 'C') {
         clear();
       } 
+      // Percent
+      else if (e.key === '%') {
+        handlePercent();
+      }
       // Decimal
       else if (e.key === ',' || e.key === '.') {
         handleNumber(',');
@@ -3335,7 +3371,8 @@ const FloatingCalculator = React.memo(({ isOpen, onClose }: { isOpen: boolean, o
         </div>
 
         <div className="p-2 grid grid-cols-4 gap-1 bg-brand-black">
-          <button onClick={clear} className="col-span-2 p-3 bg-brand-muted text-brand-primary rounded-lg font-bold hover:bg-brand-muted/80 transition-colors">AC</button>
+          <button onClick={clear} className="p-3 bg-brand-muted text-brand-primary rounded-lg font-bold hover:bg-brand-muted/80 transition-colors">AC</button>
+          <button onClick={handlePercent} className="p-3 bg-brand-muted text-brand-primary rounded-lg font-bold hover:bg-brand-muted/80 transition-colors">%</button>
           <button onClick={() => handleOperator('/')} className="p-3 bg-brand-muted text-brand-primary rounded-lg font-bold hover:bg-brand-muted/80 transition-colors">÷</button>
           <button onClick={() => handleOperator('*')} className="p-3 bg-brand-muted text-brand-primary rounded-lg font-bold hover:bg-brand-muted/80 transition-colors">×</button>
 
