@@ -158,7 +158,7 @@ const NumberInput = React.memo(({
   disabled = false,
   placeholder = "0,00",
   className = "",
-  labelClassName = "text-zinc-700"
+  labelClassName = "text-slate-300"
 }: {
   label: string;
   value: number | string;
@@ -228,7 +228,7 @@ const NumberInput = React.memo(({
     <div className={`flex flex-col gap-1 ${className}`}>
       <label className={`text-[10px] sm:text-xs font-bold uppercase tracking-wide ${labelClassName}`}>{label}</label>
       <div className={`relative flex items-center bg-white border border-zinc-300 rounded-md shadow-sm focus-within:ring-2 focus-within:ring-amber-500 focus-within:border-amber-500 ${disabled ? 'bg-zinc-100 opacity-80' : ''}`}>
-        {prefix && <span className="pl-2 sm:pl-3 text-zinc-500 text-[10px] sm:text-sm font-medium">{prefix}</span>}
+        {prefix && <span className="pl-2 sm:pl-3 text-slate-400 text-[10px] sm:text-sm font-medium">{prefix}</span>}
         <input
           type="text"
           inputMode="decimal"
@@ -242,7 +242,7 @@ const NumberInput = React.memo(({
           className="w-full py-1.5 sm:py-2 px-2 sm:px-3 text-right outline-none bg-transparent font-mono text-zinc-800 font-medium text-xs sm:text-sm"
           placeholder={placeholder}
         />
-        {suffix && <span className="pr-2 sm:pr-3 text-zinc-500 text-[10px] sm:text-sm font-medium">{suffix}</span>}
+        {suffix && <span className="pr-2 sm:pr-3 text-slate-400 text-[10px] sm:text-sm font-medium">{suffix}</span>}
       </div>
     </div>
   );
@@ -397,17 +397,17 @@ const Dashboard = ({ savedCalculations, products, isPro, onUpgrade }: { savedCal
     <div className="p-6 space-y-8 animate-in fade-in duration-500">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-brand-card p-6 rounded-2xl border border-brand-border shadow-sm space-y-2">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total de Simulações</div>
+          <div className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Total de Simulações</div>
           <div className="text-3xl font-bold text-slate-100">{stats.totalCalculations}</div>
           <div className="text-xs text-slate-500">Histórico completo</div>
         </div>
         <div className="bg-brand-card p-6 rounded-2xl border border-brand-border shadow-sm space-y-2">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Margem Média</div>
+          <div className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Margem Média</div>
           <div className="text-3xl font-bold text-brand-primary">{stats.avgProfitMargin.toFixed(2)}%</div>
           <div className="text-xs text-slate-500">Lucro líquido médio</div>
         </div>
         <div className="bg-brand-card p-6 rounded-2xl border border-brand-border shadow-sm space-y-2">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Volume de Vendas</div>
+          <div className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Volume de Vendas</div>
           <div className="text-3xl font-bold text-brand-primary">{formatCurrency(stats.totalSalesValue)}</div>
           <div className="text-xs text-slate-500">Soma de todos os preços calculados</div>
         </div>
@@ -575,10 +575,10 @@ const SettingsModal = ({
         <div className="p-6 overflow-y-auto space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Créditos de Compra</h3>
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Créditos de Compra</h3>
               <div className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">ICMS Compra (%)</label>
+                  <label className="text-[10px] font-bold text-slate-300 uppercase">ICMS Compra (%)</label>
                   <input 
                     type="number" 
                     value={localSettings.defaultIcmsPurchaseRate} 
@@ -587,7 +587,7 @@ const SettingsModal = ({
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">ICMS Frete (%)</label>
+                  <label className="text-[10px] font-bold text-slate-300 uppercase">ICMS Frete (%)</label>
                   <input 
                     type="number" 
                     value={localSettings.defaultIcmsFreightRate} 
@@ -599,10 +599,10 @@ const SettingsModal = ({
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Impostos de Venda</h3>
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Impostos de Venda</h3>
               <div className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">ICMS Venda (%)</label>
+                  <label className="text-[10px] font-bold text-slate-300 uppercase">ICMS Venda (%)</label>
                   <input 
                     type="number" 
                     value={localSettings.defaultIcmsSaleRate} 
@@ -612,7 +612,7 @@ const SettingsModal = ({
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase">PIS (%)</label>
+                    <label className="text-[10px] font-bold text-slate-300 uppercase">PIS (%)</label>
                     <input 
                       type="number" 
                       step="0.001"
@@ -622,7 +622,7 @@ const SettingsModal = ({
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase">COFINS (%)</label>
+                    <label className="text-[10px] font-bold text-slate-300 uppercase">COFINS (%)</label>
                     <input 
                       type="number" 
                       step="0.001"
@@ -637,10 +637,10 @@ const SettingsModal = ({
           </div>
 
           <div className="pt-4 border-t border-brand-border space-y-4">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Comercial</h3>
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Comercial</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase">Comissão (%)</label>
+                <label className="text-[10px] font-bold text-slate-300 uppercase">Comissão (%)</label>
                 <input 
                   type="number" 
                   value={localSettings.defaultCommissionRate} 
@@ -649,7 +649,7 @@ const SettingsModal = ({
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase">Margem de Lucro (%)</label>
+                <label className="text-[10px] font-bold text-slate-300 uppercase">Margem de Lucro (%)</label>
                 <input 
                   type="number" 
                   value={localSettings.defaultProfitMargin} 
@@ -1920,7 +1920,7 @@ export default function App() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide px-1">Nome do Produto</label>
+                    <label className="text-[10px] font-bold text-slate-300 uppercase tracking-wide px-1">Nome do Produto</label>
                     <input 
                       type="text"
                       value={productName}
@@ -1930,7 +1930,7 @@ export default function App() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide px-1">Fornecedor / Representante</label>
+                    <label className="text-[10px] font-bold text-slate-300 uppercase tracking-wide px-1">Fornecedor / Representante</label>
                     <input 
                       type="text"
                       value={representativeName}
@@ -2112,7 +2112,7 @@ export default function App() {
 
               {/* Summary Table */}
               <div className="bg-brand-black rounded-lg border border-brand-border p-4 shadow-sm mb-6">
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Resumo da Operação</h3>
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Resumo da Operação</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between border-b border-brand-border pb-1">
                     <span className="text-slate-400">Preço Venda</span>
@@ -2178,12 +2178,12 @@ export default function App() {
                         value={targetSalesPrice} 
                         onChange={setTargetSalesPrice}
                         className="bg-zinc-800 rounded-lg p-1"
-                        labelClassName="text-zinc-400"
+                        labelClassName="text-slate-300"
                       />
                     </div>
                     <div className="w-full">
                       <div className="flex flex-col gap-1 bg-zinc-800 rounded-lg p-1">
-                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide px-1">
+                        <label className="text-[10px] font-bold text-slate-300 uppercase tracking-wide px-1">
                           {negotiationResults?.label || "Resultado Sugerido"}
                         </label>
                         <div className="py-2 px-3 text-right font-mono text-amber-400 font-bold text-lg">
@@ -2249,20 +2249,20 @@ export default function App() {
                   className="w-full text-left bg-white p-4 rounded-xl border border-zinc-200 hover:border-amber-500 hover:shadow-md transition-all group flex items-center justify-between gap-4"
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="text-[10px] font-bold text-zinc-400 uppercase mb-1">Item #{index + 1}</div>
+                    <div className="text-[10px] font-bold text-slate-300 uppercase mb-1">Item #{index + 1}</div>
                     <h4 className="font-bold text-zinc-900 group-hover:text-amber-700 transition-colors truncate">{item.name}</h4>
                     <div className="flex items-center gap-4 mt-2">
                       <div className="flex flex-col">
-                        <span className="text-[9px] text-zinc-400 uppercase font-bold">Preço Unit.</span>
+                        <span className="text-[9px] text-slate-300 uppercase font-bold">Preço Unit.</span>
                         <span className="text-sm font-mono font-bold text-zinc-700">{formatCurrency(item.price)}</span>
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-[9px] text-zinc-400 uppercase font-bold">ICMS</span>
+                        <span className="text-[9px] text-slate-300 uppercase font-bold">ICMS</span>
                         <span className="text-sm font-mono font-bold text-zinc-700">{item.icms}%</span>
                       </div>
                       {item.freight > 0 && (
                         <div className="flex flex-col">
-                          <span className="text-[9px] text-zinc-400 uppercase font-bold">Frete Item</span>
+                          <span className="text-[9px] text-slate-300 uppercase font-bold">Frete Item</span>
                           <span className="text-sm font-mono font-bold text-zinc-700">{formatCurrency(item.freight)}</span>
                         </div>
                       )}
@@ -2503,7 +2503,7 @@ export default function App() {
                 </h4>
                 <div className="space-y-4">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-zinc-500 uppercase">Título da Introdução</label>
+                    <label className="text-[10px] font-bold text-slate-300 uppercase">Título da Introdução</label>
                     <input 
                       type="text"
                       value={manualConfig.introTitle}
@@ -2512,7 +2512,7 @@ export default function App() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-zinc-500 uppercase">Texto de Boas-vindas</label>
+                    <label className="text-[10px] font-bold text-slate-300 uppercase">Texto de Boas-vindas</label>
                     <textarea 
                       value={manualConfig.introContent}
                       onChange={(e) => setManualConfig({ ...manualConfig, introContent: e.target.value })}
@@ -2551,7 +2551,7 @@ export default function App() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-zinc-500 uppercase">Título</label>
+                          <label className="text-[10px] font-bold text-slate-300 uppercase">Título</label>
                           <input 
                             type="text"
                             value={item.title}
@@ -2564,7 +2564,7 @@ export default function App() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-zinc-500 uppercase">Ícone (Lucide Name)</label>
+                          <label className="text-[10px] font-bold text-slate-300 uppercase">Ícone (Lucide Name)</label>
                           <select 
                             value={item.icon}
                             onChange={(e) => {
@@ -2587,7 +2587,7 @@ export default function App() {
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-zinc-500 uppercase">Descrição</label>
+                        <label className="text-[10px] font-bold text-slate-300 uppercase">Descrição</label>
                         <textarea 
                           value={item.description}
                           onChange={(e) => {
@@ -2753,7 +2753,7 @@ export default function App() {
             </div>
             <div className="p-6 space-y-4">
               <div className="space-y-1 relative">
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wide">Descrição do Produto</label>
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wide">Descrição do Produto</label>
                 <input 
                   type="text"
                   value={productName}
@@ -2803,7 +2803,7 @@ export default function App() {
                 )}
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wide">Nome do Representante / Fornecedor</label>
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wide">Nome do Representante / Fornecedor</label>
                 <input 
                   type="text"
                   value={representativeName}
@@ -2882,7 +2882,7 @@ export default function App() {
                       <div className="flex justify-between items-start mb-3">
                         <div className="space-y-1">
                           <h4 className="font-bold text-slate-100 line-clamp-1">{calc.productName}</h4>
-                          <div className="flex items-center gap-2 text-[10px] text-slate-500 uppercase font-bold">
+                          <div className="flex items-center gap-2 text-[10px] text-slate-400 uppercase font-bold">
                             <Calendar className="w-3 h-3" />
                             {calc.createdAt?.toDate().toLocaleDateString('pt-BR')} {calc.createdAt?.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                           </div>
@@ -2917,11 +2917,11 @@ export default function App() {
                       
                       <div className="grid grid-cols-2 gap-4 mb-4">
                         <div className="bg-brand-muted p-2 rounded border border-brand-border">
-                          <div className="text-[9px] text-slate-500 uppercase font-bold">Venda</div>
+                          <div className="text-[9px] text-slate-400 uppercase font-bold">Venda</div>
                           <div className="text-sm font-mono font-bold text-slate-100">{formatCurrency(calc.salesPrice)}</div>
                         </div>
                         <div className="bg-brand-muted p-2 rounded border border-brand-border">
-                          <div className="text-[9px] text-slate-500 uppercase font-bold">Margem</div>
+                          <div className="text-[9px] text-slate-400 uppercase font-bold">Margem</div>
                           <div className="text-sm font-mono font-bold text-brand-primary">{calc.profitMargin.toFixed(2)}%</div>
                         </div>
                       </div>
@@ -3006,13 +3006,13 @@ export default function App() {
                 <div className="space-y-6">
                   {/* Add/Edit Form */}
                   <div className="bg-brand-black border border-brand-border rounded-xl p-4">
-                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                       {editingProduct?.id ? <Edit2 className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
                       {editingProduct?.id ? 'Editar Produto' : 'Novo Produto'}
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase">Nome do Produto</label>
+                        <label className="text-[10px] font-bold text-slate-300 uppercase">Nome do Produto</label>
                         <input 
                           type="text"
                           value={editingProduct?.name || ''}
@@ -3022,7 +3022,7 @@ export default function App() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase">Fornecedor</label>
+                        <label className="text-[10px] font-bold text-slate-300 uppercase">Fornecedor</label>
                         <input 
                           type="text"
                           value={editingProduct?.supplierName || ''}
@@ -3032,7 +3032,7 @@ export default function App() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase">Custo Base (R$)</label>
+                        <label className="text-[10px] font-bold text-slate-300 uppercase">Custo Base (R$)</label>
                         <input 
                           type="text"
                           value={editingProduct?.baseCost ? formatCurrency(editingProduct.baseCost).replace('R$ ', '') : ''}
@@ -3065,7 +3065,7 @@ export default function App() {
 
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4 pt-4 border-t border-brand-border">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500 uppercase">ICMS Compra (%)</label>
+                        <label className="text-[9px] font-bold text-slate-300 uppercase">ICMS Compra (%)</label>
                         <input 
                           type="number"
                           value={editingProduct?.icmsPurchaseRate || 0}
@@ -3074,7 +3074,7 @@ export default function App() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500 uppercase">ICMS Frete (%)</label>
+                        <label className="text-[9px] font-bold text-slate-300 uppercase">ICMS Frete (%)</label>
                         <input 
                           type="number"
                           value={editingProduct?.icmsFreightRate || 0}
@@ -3083,7 +3083,7 @@ export default function App() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500 uppercase">ICMS Venda (%)</label>
+                        <label className="text-[9px] font-bold text-slate-300 uppercase">ICMS Venda (%)</label>
                         <input 
                           type="number"
                           value={editingProduct?.icmsSaleRate || 0}
@@ -3092,7 +3092,7 @@ export default function App() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500 uppercase">PIS Venda (%)</label>
+                        <label className="text-[9px] font-bold text-slate-300 uppercase">PIS Venda (%)</label>
                         <input 
                           type="number"
                           step="0.001"
@@ -3102,7 +3102,7 @@ export default function App() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500 uppercase">COFINS Venda (%)</label>
+                        <label className="text-[9px] font-bold text-slate-300 uppercase">COFINS Venda (%)</label>
                         <input 
                           type="number"
                           step="0.001"
