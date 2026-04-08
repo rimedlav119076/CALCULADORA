@@ -315,21 +315,21 @@ BRLIcon.displayName = 'BRLIcon';
 const Dashboard = ({ savedCalculations, products, isPro, onUpgrade }: { savedCalculations: any[], products: any[], isPro: boolean, onUpgrade: () => void }) => {
   if (!isPro) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-6 bg-zinc-50 min-h-[600px]">
-        <div className="bg-amber-500/10 p-6 rounded-3xl">
-          <LayoutDashboard className="w-16 h-16 text-amber-600" />
+      <div className="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-6 bg-brand-bg min-h-[600px]">
+        <div className="bg-brand-primary/10 p-6 rounded-3xl">
+          <LayoutDashboard className="w-16 h-16 text-brand-primary" />
         </div>
         <div className="max-w-md space-y-2">
-          <h3 className="text-2xl font-black text-zinc-900 uppercase tracking-tighter">Dashboard Exclusivo PRO</h3>
-          <p className="text-zinc-500 text-sm leading-relaxed">
+          <h3 className="text-2xl font-black text-slate-100 uppercase tracking-tighter">Dashboard Exclusivo PRO</h3>
+          <p className="text-slate-500 text-sm leading-relaxed">
             Tenha acesso a métricas avançadas, gráficos de lucratividade e análise detalhada do seu faturamento.
           </p>
         </div>
         <button 
           onClick={onUpgrade}
-          className="bg-zinc-950 hover:bg-zinc-800 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-xl shadow-zinc-950/20 active:scale-95 flex items-center gap-3"
+          className="bg-brand-primary hover:bg-brand-primary-hover text-brand-black px-8 py-4 rounded-2xl font-bold transition-all shadow-xl shadow-brand-primary/20 active:scale-95 flex items-center gap-3"
         >
-          <Package className="w-5 h-5 text-amber-500" />
+          <Package className="w-5 h-5" />
           DESBLOQUEAR AGORA
         </button>
       </div>
@@ -384,11 +384,11 @@ const Dashboard = ({ savedCalculations, products, isPro, onUpgrade }: { savedCal
   if (!stats) {
     return (
       <div className="p-12 text-center space-y-4">
-        <div className="bg-zinc-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
-          <LayoutDashboard className="w-8 h-8 text-zinc-400" />
+        <div className="bg-brand-muted w-16 h-16 rounded-full flex items-center justify-center mx-auto">
+          <LayoutDashboard className="w-8 h-8 text-slate-400" />
         </div>
-        <h3 className="text-lg font-bold text-zinc-900">Nenhum dado disponível</h3>
-        <p className="text-zinc-500 max-w-xs mx-auto">Salve alguns cálculos para começar a ver as estatísticas da sua operação.</p>
+        <h3 className="text-lg font-bold text-slate-100">Nenhum dado disponível</h3>
+        <p className="text-slate-500 max-w-xs mx-auto">Salve alguns cálculos para começar a ver as estatísticas da sua operação.</p>
       </div>
     );
   }
@@ -396,57 +396,57 @@ const Dashboard = ({ savedCalculations, products, isPro, onUpgrade }: { savedCal
   return (
     <div className="p-6 space-y-8 animate-in fade-in duration-500">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-2">
-          <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Total de Simulações</div>
-          <div className="text-3xl font-bold text-zinc-900">{stats.totalCalculations}</div>
-          <div className="text-xs text-zinc-500">Histórico completo</div>
+        <div className="bg-brand-card p-6 rounded-2xl border border-brand-border shadow-sm space-y-2">
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total de Simulações</div>
+          <div className="text-3xl font-bold text-slate-100">{stats.totalCalculations}</div>
+          <div className="text-xs text-slate-500">Histórico completo</div>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-2">
-          <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Margem Média</div>
-          <div className="text-3xl font-bold text-amber-600">{stats.avgProfitMargin.toFixed(2)}%</div>
-          <div className="text-xs text-zinc-500">Lucro líquido médio</div>
+        <div className="bg-brand-card p-6 rounded-2xl border border-brand-border shadow-sm space-y-2">
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Margem Média</div>
+          <div className="text-3xl font-bold text-brand-primary">{stats.avgProfitMargin.toFixed(2)}%</div>
+          <div className="text-xs text-slate-500">Lucro líquido médio</div>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-2">
-          <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Volume de Vendas</div>
-          <div className="text-3xl font-bold text-green-600">{formatCurrency(stats.totalSalesValue)}</div>
-          <div className="text-xs text-zinc-500">Soma de todos os preços calculados</div>
+        <div className="bg-brand-card p-6 rounded-2xl border border-brand-border shadow-sm space-y-2">
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Volume de Vendas</div>
+          <div className="text-3xl font-bold text-brand-primary">{formatCurrency(stats.totalSalesValue)}</div>
+          <div className="text-xs text-slate-500">Soma de todos os preços calculados</div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Top Products Chart */}
-        <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-6">
-          <h3 className="font-bold text-zinc-900 flex items-center gap-2">
-            <Package className="w-5 h-5 text-amber-500" />
+        <div className="bg-brand-card p-6 rounded-2xl border border-brand-border shadow-sm space-y-6">
+          <h3 className="font-bold text-slate-100 flex items-center gap-2">
+            <Package className="w-5 h-5 text-brand-primary" />
             Produtos Mais Calculados
           </h3>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats.topProducts} layout="vertical" margin={{ left: 40, right: 40 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f4f4f5" />
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#2D3748" />
                 <XAxis type="number" hide />
                 <YAxis 
                   dataKey="name" 
                   type="category" 
                   width={100} 
-                  tick={{ fontSize: 10, fill: '#71717a' }}
+                  tick={{ fontSize: 10, fill: '#A0AEC0' }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <Tooltip 
-                  cursor={{ fill: '#f8fafc' }}
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  cursor={{ fill: '#2D3748' }}
+                  contentStyle={{ backgroundColor: '#10141A', borderRadius: '12px', border: '1px solid #2D3748', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.5)' }}
                 />
-                <Bar dataKey="count" fill="#d97706" radius={[0, 4, 4, 0]} barSize={20} />
+                <Bar dataKey="count" fill="#0BC5EA" radius={[0, 4, 4, 0]} barSize={20} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Margin Distribution Chart */}
-        <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-6">
-          <h3 className="font-bold text-zinc-900 flex items-center gap-2">
-            <Percent className="w-5 h-5 text-amber-500" />
+        <div className="bg-brand-card p-6 rounded-2xl border border-brand-border shadow-sm space-y-6">
+          <h3 className="font-bold text-slate-100 flex items-center gap-2">
+            <Percent className="w-5 h-5 text-brand-primary" />
             Distribuição de Margens
           </h3>
           <div className="h-[300px] w-full">
@@ -462,19 +462,19 @@ const Dashboard = ({ savedCalculations, products, isPro, onUpgrade }: { savedCal
                   dataKey="count"
                 >
                   {stats.marginRanges.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={['#f59e0b', '#d97706', '#b45309', '#78350f'][index % 4]} />
+                    <Cell key={`cell-${index}`} fill={['#0BC5EA', '#00B5D8', '#0987A0', '#065666'][index % 4]} />
                   ))}
                 </Pie>
                 <Tooltip 
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  contentStyle={{ backgroundColor: '#10141A', borderRadius: '12px', border: '1px solid #2D3748', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.5)' }}
                 />
               </PieChart>
             </ResponsiveContainer>
           </div>
           <div className="flex justify-center gap-4 flex-wrap">
             {stats.marginRanges.map((range, i) => (
-              <div key={i} className="flex items-center gap-2 text-[10px] font-medium text-zinc-500">
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#f59e0b', '#d97706', '#b45309', '#78350f'][i % 4] }}></div>
+              <div key={i} className="flex items-center gap-2 text-[10px] font-medium text-slate-500">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#0BC5EA', '#00B5D8', '#0987A0', '#065666'][i % 4] }}></div>
                 {range.name}
               </div>
             ))}
@@ -523,27 +523,27 @@ const SettingsModal = ({
 
   if (!isPro) {
     return (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-zinc-200">
-          <div className="bg-zinc-950 p-6 text-center space-y-4">
-            <div className="bg-amber-500/20 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto">
-              <Settings className="w-8 h-8 text-amber-500" />
+      <div className="fixed inset-0 bg-brand-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="bg-brand-card rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-brand-border">
+          <div className="bg-brand-black p-6 text-center space-y-4">
+            <div className="bg-brand-primary/20 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto">
+              <Settings className="w-8 h-8 text-brand-primary" />
             </div>
             <h3 className="text-xl font-black text-white uppercase tracking-tighter">Configurações PRO</h3>
-            <p className="text-zinc-400 text-sm">
+            <p className="text-slate-400 text-sm">
               Defina alíquotas padrão e automatize seus cálculos. Funcionalidade exclusiva para assinantes PRO.
             </p>
             <div className="flex flex-col gap-3 pt-4">
               <button 
                 onClick={onUpgrade}
-                className="w-full bg-amber-600 hover:bg-amber-500 text-white py-3 rounded-xl font-bold transition-all shadow-lg shadow-amber-500/20 active:scale-95 flex items-center justify-center gap-2"
+                className="w-full bg-brand-primary hover:bg-brand-primary-hover text-brand-black py-3 rounded-xl font-bold transition-all shadow-lg shadow-brand-primary/20 active:scale-95 flex items-center justify-center gap-2"
               >
                 <Package className="w-4 h-4" />
                 QUERO SER PRO
               </button>
               <button 
                 onClick={onClose}
-                className="w-full bg-zinc-800 text-zinc-400 hover:text-white py-3 rounded-xl font-bold transition-colors"
+                className="w-full bg-brand-muted text-slate-400 hover:text-white py-3 rounded-xl font-bold transition-colors"
               >
                 Voltar
               </button>
@@ -555,80 +555,80 @@ const SettingsModal = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-zinc-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden border border-zinc-200 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
-        <div className="p-6 border-b border-zinc-100 flex items-center justify-between bg-zinc-50">
+    <div className="fixed inset-0 bg-brand-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="bg-brand-card w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden border border-brand-border flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+        <div className="p-6 border-b border-brand-border flex items-center justify-between bg-brand-black">
           <div className="flex items-center gap-3">
-            <div className="bg-amber-100 p-2 rounded-xl">
-              <Settings className="w-6 h-6 text-amber-600" />
+            <div className="bg-brand-primary/20 p-2 rounded-xl">
+              <Settings className="w-6 h-6 text-brand-primary" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-zinc-900">Configurações Padrão</h2>
-              <p className="text-xs text-zinc-500">Defina as alíquotas que serão usadas em novos cálculos.</p>
+              <h2 className="text-xl font-bold text-slate-100">Configurações Padrão</h2>
+              <p className="text-xs text-slate-500">Defina as alíquotas que serão usadas em novos cálculos.</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-zinc-200 rounded-full transition-colors">
-            <RotateCcw className="w-5 h-5 text-zinc-400" />
+          <button onClick={onClose} className="p-2 hover:bg-brand-muted rounded-full transition-colors">
+            <RotateCcw className="w-5 h-5 text-slate-400" />
           </button>
         </div>
 
         <div className="p-6 overflow-y-auto space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Créditos de Compra</h3>
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Créditos de Compra</h3>
               <div className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-zinc-500 uppercase">ICMS Compra (%)</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">ICMS Compra (%)</label>
                   <input 
                     type="number" 
                     value={localSettings.defaultIcmsPurchaseRate} 
                     onChange={(e) => setLocalSettings({ ...localSettings, defaultIcmsPurchaseRate: Number(e.target.value) })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+                    className="w-full bg-brand-black border border-brand-border rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-brand-primary outline-none text-slate-100"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-zinc-500 uppercase">ICMS Frete (%)</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">ICMS Frete (%)</label>
                   <input 
                     type="number" 
                     value={localSettings.defaultIcmsFreightRate} 
                     onChange={(e) => setLocalSettings({ ...localSettings, defaultIcmsFreightRate: Number(e.target.value) })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+                    className="w-full bg-brand-black border border-brand-border rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-brand-primary outline-none text-slate-100"
                   />
                 </div>
               </div>
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Impostos de Venda</h3>
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Impostos de Venda</h3>
               <div className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-zinc-500 uppercase">ICMS Venda (%)</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">ICMS Venda (%)</label>
                   <input 
                     type="number" 
                     value={localSettings.defaultIcmsSaleRate} 
                     onChange={(e) => setLocalSettings({ ...localSettings, defaultIcmsSaleRate: Number(e.target.value) })}
-                    className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+                    className="w-full bg-brand-black border border-brand-border rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-brand-primary outline-none text-slate-100"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-zinc-500 uppercase">PIS (%)</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">PIS (%)</label>
                     <input 
                       type="number" 
                       step="0.001"
                       value={localSettings.defaultPisSaleRate} 
                       onChange={(e) => setLocalSettings({ ...localSettings, defaultPisSaleRate: Number(e.target.value) })}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+                      className="w-full bg-brand-black border border-brand-border rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-brand-primary outline-none text-slate-100"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-zinc-500 uppercase">COFINS (%)</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">COFINS (%)</label>
                     <input 
                       type="number" 
                       step="0.001"
                       value={localSettings.defaultCofinsSaleRate} 
                       onChange={(e) => setLocalSettings({ ...localSettings, defaultCofinsSaleRate: Number(e.target.value) })}
-                      className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+                      className="w-full bg-brand-black border border-brand-border rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-brand-primary outline-none text-slate-100"
                     />
                   </div>
                 </div>
@@ -636,16 +636,16 @@ const SettingsModal = ({
             </div>
           </div>
 
-          <div className="pt-4 border-t border-zinc-100 space-y-4">
-            <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Comercial</h3>
+          <div className="pt-4 border-t border-brand-border space-y-4">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Comercial</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-zinc-500 uppercase">Comissão (%)</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase">Comissão (%)</label>
                 <input 
                   type="number" 
                   value={localSettings.defaultCommissionRate} 
                   onChange={(e) => setLocalSettings({ ...localSettings, defaultCommissionRate: Number(e.target.value) })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+                  className="w-full bg-brand-black border border-brand-border rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-brand-primary outline-none text-slate-100"
                 />
               </div>
               <div className="space-y-1">
@@ -1707,31 +1707,31 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-zinc-100 p-4 md:p-8 flex items-center justify-center font-sans">
-        <div className="w-full max-w-5xl bg-white rounded-2xl shadow-xl overflow-hidden border border-zinc-200">
+      <div className="min-h-screen bg-brand-bg p-4 md:p-8 flex items-center justify-center font-sans">
+        <div className="w-full max-w-5xl bg-brand-card rounded-2xl shadow-xl overflow-hidden border border-brand-border">
           
           {/* Header */}
-          <div className="bg-zinc-950 text-white p-4 md:p-6 flex flex-col gap-6">
+          <div className="bg-brand-black text-white p-4 md:p-6 flex flex-col gap-6">
             {/* Top Row: Title and User */}
             <div className="flex flex-col sm:flex-row items-center justify-between w-full gap-4 sm:gap-0">
               <div className="flex flex-col items-center sm:items-start">
                 <h1 className="text-xl md:text-2xl font-black tracking-tighter text-white uppercase italic">
-                  CALCULADORA <span className="text-amber-500">PREÇO VENDA</span>
+                  NIVOR <span className="text-brand-primary">CALCULADORA</span>
                 </h1>
-                <div className="h-1 w-12 bg-amber-500 rounded-full mt-1 hidden sm:block"></div>
+                <div className="h-1 w-12 bg-brand-primary rounded-full mt-1 hidden sm:block"></div>
               </div>
               
               {user ? (
-                <div className="flex items-center gap-2 bg-zinc-900 px-3 py-1.5 rounded-full border border-zinc-800">
+                <div className="flex items-center gap-2 bg-brand-black px-3 py-1.5 rounded-full border border-brand-border">
                   {userPlan === 'PRO' ? (
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/10 rounded-md border border-amber-500/20">
-                      <Package className="w-3 h-3 text-amber-500" />
-                      <span className="text-[10px] font-black text-amber-500 uppercase tracking-tighter">PRO</span>
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-brand-primary rounded-md border border-brand-primary">
+                      <Package className="w-3 h-3 text-brand-black" />
+                      <span className="text-[10px] font-black text-brand-black uppercase tracking-tighter">PRO</span>
                     </div>
                   ) : (
                     <button 
                       onClick={() => setIsUpgradeModalOpen(true)}
-                      className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-md text-[10px] font-black transition-all active:scale-95 animate-pulse"
+                      className="flex items-center gap-1.5 bg-brand-primary hover:bg-brand-primary-hover text-brand-black px-2.5 py-1 rounded-md text-[10px] font-black transition-all active:scale-95 animate-pulse"
                     >
                       <Package className="w-3 h-3" />
                       SEJA PRO
@@ -1739,10 +1739,10 @@ export default function App() {
                   )}
                   <button 
                     onClick={() => setIsManualModalOpen(true)}
-                    className="flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 py-1 rounded-md text-[10px] font-black transition-all active:scale-95 border border-zinc-700"
+                    className="flex items-center gap-1.5 bg-brand-muted hover:bg-brand-muted/80 text-white px-2.5 py-1 rounded-md text-[10px] font-black transition-all active:scale-95 border border-brand-border"
                     title="Manual do Usuário"
                   >
-                    <HelpCircle className="w-3 h-3 text-amber-500" />
+                    <HelpCircle className="w-3 h-3 text-brand-primary" />
                     MANUAL
                   </button>
 
@@ -1757,19 +1757,19 @@ export default function App() {
                     </button>
                   )}
 
-                  <div className="w-[1px] h-4 bg-zinc-800 mx-1"></div>
+                  <div className="w-[1px] h-4 bg-brand-border mx-1"></div>
                   <div className="flex items-center gap-2">
                     <img 
                       src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || 'User'}`} 
                       alt="User" 
-                      className="w-6 h-6 rounded-full border border-zinc-700"
+                      className="w-6 h-6 rounded-full border border-brand-border"
                       referrerPolicy="no-referrer"
                     />
-                    <span className="text-xs font-medium text-zinc-300 hidden sm:inline">{user.displayName?.split(' ')[0]}</span>
+                    <span className="text-xs font-medium text-slate-300 hidden sm:inline">{user.displayName?.split(' ')[0]}</span>
                   </div>
                   <button 
                     onClick={handleLogout}
-                    className="p-1 text-zinc-500 hover:text-red-400 transition-colors ml-1"
+                    className="p-1 text-slate-500 hover:text-red-400 transition-colors ml-1"
                     title="Sair"
                   >
                     <LogOut className="w-4 h-4" />
@@ -1778,7 +1778,7 @@ export default function App() {
               ) : (
                 <button 
                   onClick={handleLogin}
-                  className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-zinc-700 active:scale-95"
+                  className="flex items-center gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-brand-border active:scale-95"
                 >
                   <LogIn className="w-4 h-4" />
                   <span>Entrar</span>
@@ -1790,51 +1790,51 @@ export default function App() {
             <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 justify-center sm:justify-end w-full">
               <button 
                 onClick={() => requirePro(() => setIsDashboardOpen(!isDashboardOpen))}
-                className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-all border active:scale-95 w-full sm:w-auto whitespace-nowrap ${isDashboardOpen ? 'bg-amber-600 border-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700'}`}
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-all border active:scale-95 w-full sm:w-auto whitespace-nowrap ${isDashboardOpen ? 'bg-brand-primary border-brand-primary text-brand-black shadow-lg shadow-brand-primary/20' : 'bg-brand-muted border-brand-border text-white hover:bg-brand-muted/80'}`}
                 title={isDashboardOpen ? "Voltar para Calculadora" : "Ver Dashboard"}
               >
-                {isDashboardOpen ? <Calculator className="w-3.5 h-3.5 md:w-4 md:h-4" /> : <LayoutDashboard className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500" />}
+                {isDashboardOpen ? <Calculator className="w-3.5 h-3.5 md:w-4 md:h-4" /> : <LayoutDashboard className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary" />}
                 <span>{isDashboardOpen ? "Calculadora" : "Dashboard"}</span>
-                {!isPro && <span className="ml-1 bg-amber-500 text-white px-1 rounded-[4px] text-[8px]">PRO</span>}
+                {!isPro && <span className="ml-1 bg-brand-primary text-brand-black px-1 rounded-[4px] text-[8px]">PRO</span>}
               </button>
 
               <button 
                 onClick={() => requirePro(() => setIsSettingsModalOpen(true))}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95 w-full sm:w-auto whitespace-nowrap"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-brand-border active:scale-95 w-full sm:w-auto whitespace-nowrap"
                 title="Configurações Padrão"
               >
-                <Settings className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500" />
+                <Settings className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary" />
                 <span>Config</span>
-                {!isPro && <span className="ml-1 bg-amber-500 text-white px-1 rounded-[4px] text-[8px]">PRO</span>}
+                {!isPro && <span className="ml-1 bg-brand-primary text-brand-black px-1 rounded-[4px] text-[8px]">PRO</span>}
               </button>
 
               <button 
                 onClick={() => requirePro(() => setIsProductsModalOpen(true))}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95 w-full sm:w-auto whitespace-nowrap"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-brand-border active:scale-95 w-full sm:w-auto whitespace-nowrap"
                 title="Gerenciar Produtos"
               >
-                <Package className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500" />
+                <Package className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary" />
                 <span>Produtos</span>
-                {!isPro && <span className="ml-1 bg-amber-500 text-white px-1 rounded-[4px] text-[8px]">PRO</span>}
+                {!isPro && <span className="ml-1 bg-brand-primary text-brand-black px-1 rounded-[4px] text-[8px]">PRO</span>}
               </button>
 
               <button 
                 onClick={() => requirePro(() => setIsHistoryModalOpen(true))}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95 w-full sm:w-auto whitespace-nowrap"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-brand-border active:scale-95 w-full sm:w-auto whitespace-nowrap"
                 title="Ver Histórico"
               >
-                <History className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500" />
+                <History className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary" />
                 <span>Histórico</span>
-                {!isPro && <span className="ml-1 bg-amber-500 text-white px-1 rounded-[4px] text-[8px]">PRO</span>}
+                {!isPro && <span className="ml-1 bg-brand-primary text-brand-black px-1 rounded-[4px] text-[8px]">PRO</span>}
               </button>
 
               <button 
                 onClick={handleReset}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95 w-full sm:w-auto whitespace-nowrap"
-                title="Resetar valores"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-brand-border active:scale-95 w-full sm:w-auto whitespace-nowrap"
+                title="Reset valores"
               >
-                <RotateCcw className="w-3.5 h-3.5 md:w-4 md:h-4 text-zinc-400" />
-                <span>Resetar</span>
+                <RotateCcw className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary" />
+                <span>Reset</span>
               </button>
 
               <button 
@@ -1848,22 +1848,22 @@ export default function App() {
 
               <button 
                 onClick={() => requirePro(handleExportPDF)}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95 w-full sm:w-auto whitespace-nowrap"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-brand-border active:scale-95 w-full sm:w-auto whitespace-nowrap"
                 title="Exportar PDF"
               >
-                <Download className="w-3.5 h-3.5 md:w-4 md:h-4 text-amber-500" />
+                <Download className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary" />
                 <span>PDF</span>
-                {!isPro && <span className="ml-1 bg-amber-500 text-white px-1 rounded-[4px] text-[8px]">PRO</span>}
+                {!isPro && <span className="ml-1 bg-brand-primary text-brand-black px-1 rounded-[4px] text-[8px]">PRO</span>}
               </button>
 
               <button 
                 onClick={() => requirePro(handleExportExcel)}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-zinc-700 active:scale-95 w-full sm:w-auto whitespace-nowrap"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-brand-border active:scale-95 w-full sm:w-auto whitespace-nowrap"
                 title="Exportar Excel"
               >
-                <Download className="w-3.5 h-3.5 md:w-4 md:h-4 text-green-500" />
+                <Download className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary" />
                 <span>EXCEL</span>
-                {!isPro && <span className="ml-1 bg-amber-500 text-white px-1 rounded-[4px] text-[8px]">PRO</span>}
+                {!isPro && <span className="ml-1 bg-brand-primary text-brand-black px-1 rounded-[4px] text-[8px]">PRO</span>}
               </button>
             </div>
           </div>
@@ -1877,22 +1877,21 @@ export default function App() {
             />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2">
-              {/* LEFT COLUMN: COMPRA (Zinc/Grey Theme) */}
-              <div className="p-6 bg-zinc-50 border-r border-zinc-200 relative">
+              {/* LEFT COLUMN: COMPRA (Refined Dark Mode) */}
+              <div className="p-6 bg-brand-muted/30 border-r border-brand-border relative">
             {/* Vertical Label Strip */}
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-zinc-700 rounded-tl-none"></div>
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-primary rounded-tl-none"></div>
 
             <div className="pl-4 space-y-6">
               <div className="space-y-4">
-                <h2 className="text-zinc-800 font-bold text-lg border-b border-zinc-300 pb-2 flex items-center justify-between gap-2">
+                <h2 className="text-slate-100 font-bold text-lg border-b border-brand-border pb-2 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <BRLIcon className="w-6 h-6 text-zinc-600" />
                     Custos de Aquisição
                   </div>
                   {isPro ? (
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="flex items-center gap-1.5 bg-zinc-200 hover:bg-zinc-300 text-zinc-700 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all border border-zinc-300 active:scale-95"
+                      className="flex items-center gap-1.5 bg-brand-muted hover:bg-brand-muted/80 text-slate-200 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all border border-brand-border active:scale-95"
                       title="Importar XML da NFe"
                     >
                       <FileUp className="w-3 h-3" />
@@ -1901,12 +1900,12 @@ export default function App() {
                   ) : (
                     <button
                       onClick={() => requirePro(() => fileInputRef.current?.click())}
-                      className="flex items-center gap-1.5 bg-amber-100 hover:bg-amber-200 text-amber-700 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all border border-amber-200 active:scale-95 group"
+                      className="flex items-center gap-1.5 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary px-2.5 py-1 rounded-md text-[10px] font-bold transition-all border border-brand-primary/30 active:scale-95 group"
                       title="Funcionalidade PRO"
                     >
                       <FileUp className="w-3 h-3" />
                       IMPORTAR XML
-                      <span className="ml-1 bg-amber-500 text-white px-1 rounded-[4px] text-[8px]">PRO</span>
+                      <span className="ml-1 bg-brand-primary text-brand-black px-1 rounded-[4px] text-[8px]">PRO</span>
                     </button>
                   )}
                 </h2>
@@ -1927,7 +1926,7 @@ export default function App() {
                       value={productName}
                       onChange={(e) => setProductName(e.target.value)}
                       placeholder="Ex: Smartphone Samsung"
-                      className="w-full bg-white border border-zinc-300 rounded-lg py-2 px-3 outline-none focus:ring-2 focus:ring-amber-500 text-zinc-800 text-sm transition-all"
+                      className="w-full bg-brand-black border border-brand-border rounded-lg py-2 px-3 outline-none focus:ring-2 focus:ring-brand-primary text-slate-100 text-sm transition-all"
                     />
                   </div>
                   <div className="space-y-1">
@@ -1937,7 +1936,7 @@ export default function App() {
                       value={representativeName}
                       onChange={(e) => setRepresentativeName(e.target.value)}
                       placeholder="Ex: Distribuidora XYZ"
-                      className="w-full bg-white border border-zinc-300 rounded-lg py-2 px-3 outline-none focus:ring-2 focus:ring-amber-500 text-zinc-800 text-sm transition-all"
+                      className="w-full bg-brand-black border border-brand-border rounded-lg py-2 px-3 outline-none focus:ring-2 focus:ring-brand-primary text-slate-100 text-sm transition-all"
                     />
                   </div>
                 </div>
@@ -1972,9 +1971,9 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="space-y-4 pt-4 border-t border-dashed border-zinc-300">
-                <h2 className="text-zinc-800 font-bold text-lg border-b border-zinc-300 pb-2 flex items-center gap-2">
-                  <Percent className="w-5 h-5 text-zinc-600" />
+              <div className="space-y-4 pt-4 border-t border-dashed border-brand-border">
+                <h2 className="text-slate-100 font-bold text-lg border-b border-brand-border pb-2 flex items-center gap-2">
+                  <Percent className="w-5 h-5 text-brand-primary" />
                   Créditos de Impostos
                 </h2>
                 
@@ -1993,15 +1992,15 @@ export default function App() {
                   />
                 </div>
 
-                <div className="bg-zinc-100 p-3 rounded-lg border border-zinc-200 flex justify-between items-center text-sm text-zinc-800">
+                <div className="bg-brand-black p-3 rounded-lg border border-brand-border flex justify-between items-center text-sm text-slate-200">
                   <span>Total Crédito ICMS:</span>
-                  <span className="font-mono font-bold">{formatCurrency(icmsCreditValue)}</span>
+                  <span className="font-mono font-bold text-brand-primary">{formatCurrency(icmsCreditValue)}</span>
                 </div>
 
                 <div className="pt-2">
-                  <div className="bg-zinc-800 text-white p-4 rounded-xl shadow-lg transform transition-all hover:scale-[1.02] border border-zinc-700">
+                  <div className="bg-brand-black text-white p-4 rounded-xl shadow-lg transform transition-all hover:scale-[1.02] border border-brand-border">
                     <label className="block text-xs font-bold uppercase tracking-wider opacity-80 mb-1">(=) Custo Real do Produto</label>
-                    <div className="text-3xl font-mono font-bold tracking-tight text-white">
+                    <div className="text-3xl font-mono font-bold tracking-tight text-brand-primary">
                       {formatCurrency(realCost)}
                     </div>
                   </div>
@@ -2010,18 +2009,17 @@ export default function App() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: VENDA (Amber/Gold Theme) */}
-          <div className="p-6 bg-[#fffbf2] relative">
+          {/* RIGHT COLUMN: VENDA (Refined Dark Mode) */}
+          <div className="p-6 bg-brand-card relative">
             {/* Vertical Label Strip */}
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-200 lg:hidden"></div> {/* Mobile divider */}
-            <div className="absolute right-0 top-0 bottom-0 w-8 bg-amber-600 hidden lg:flex items-center justify-center">
-              <span className="text-white font-bold tracking-widest text-sm rotate-90 whitespace-nowrap">VENDA / MARKUP</span>
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-primary/20 lg:hidden"></div> {/* Mobile divider */}
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-brand-primary hidden lg:flex items-center justify-center">
+              <span className="text-brand-black font-bold tracking-widest text-sm rotate-90 whitespace-nowrap">VENDA / MARKUP</span>
             </div>
 
             <div className="pr-0 lg:pr-8 space-y-6">
               <div className="space-y-4">
-                <h2 className="text-amber-900 font-bold text-lg border-b border-amber-200 pb-2 flex items-center gap-2">
-                  <BRLIcon className="w-5 h-5 text-amber-700" />
+                <h2 className="text-slate-100 font-bold text-lg border-b border-brand-border pb-2 flex items-center gap-2">
                   Preço Venda (Markup)
                 </h2>
 
@@ -2068,14 +2066,14 @@ export default function App() {
                   />
                 </div>
 
-                <div className="bg-amber-50 p-4 rounded-lg border border-amber-100 space-y-2">
-                  <div className="flex justify-between items-center text-sm text-amber-900">
+                <div className="bg-brand-primary/10 p-4 rounded-lg border border-brand-primary/20 space-y-2">
+                  <div className="flex justify-between items-center text-sm text-slate-100">
                     <span>Soma das Deduções:</span>
-                    <span className="font-mono font-bold">{deductionsRate.toFixed(2)}%</span>
+                    <span className="font-mono font-bold text-brand-primary">{deductionsRate.toFixed(2)}%</span>
                   </div>
-                  <div className="w-full bg-amber-200 h-2 rounded-full overflow-hidden">
+                  <div className="w-full bg-brand-primary/20 h-2 rounded-full overflow-hidden">
                     <div 
-                      className={`h-full ${deductionsRate > 100 ? 'bg-red-500' : 'bg-amber-500'}`}
+                      className={`h-full ${deductionsRate > 100 ? 'bg-red-500' : 'bg-brand-primary'}`}
                       style={{ width: `${Math.min(deductionsRate, 100)}%` }}
                     ></div>
                   </div>
@@ -2088,23 +2086,23 @@ export default function App() {
                 </div>
 
                 <div className="pt-4">
-                  <div className="bg-amber-600 text-white p-6 rounded-xl shadow-lg transform transition-all hover:scale-[1.02] border border-amber-500">
+                  <div className="bg-brand-primary text-brand-black p-6 rounded-xl shadow-lg transform transition-all hover:scale-[1.02] border border-brand-primary">
                     <div className="flex justify-between items-end mb-2">
-                      <label className="block text-xs font-bold uppercase tracking-wider opacity-90 text-amber-50">Valor Total de Venda</label>
-                      <span className="text-xs bg-amber-700 px-2 py-1 rounded text-amber-50 font-mono border border-amber-500">
+                      <label className="block text-xs font-bold uppercase tracking-wider opacity-90 text-brand-black">Valor Total de Venda</label>
+                      <span className="text-xs bg-brand-primary/80 px-2 py-1 rounded text-brand-black font-mono border border-brand-primary">
                         Markup: {markupMultiplier.toFixed(4)}x
                       </span>
                     </div>
-                    <div className="text-4xl font-mono font-bold tracking-tight text-white">
+                    <div className="text-4xl font-mono font-bold tracking-tight text-brand-black">
                       {deductionsRate >= 100 ? "Erro" : formatCurrency(salesPrice)}
                     </div>
-                    <div className="mt-4 pt-4 border-t border-amber-500/50 grid grid-cols-2 gap-4 text-sm opacity-90">
+                    <div className="mt-4 pt-4 border-t border-brand-black/20 grid grid-cols-2 gap-4 text-sm opacity-90">
                       <div>
-                        <span className="block text-xs opacity-80 text-amber-100">Lucro Líquido (R$)</span>
+                        <span className="block text-xs opacity-80 text-brand-black/70">Lucro Líquido (R$)</span>
                         <span className="font-mono font-bold">{formatCurrency(salesPrice * (profitMargin / 100))}</span>
                       </div>
                       <div className="text-right">
-                        <span className="block text-xs opacity-80 text-amber-100">Impostos/Desp. (R$)</span>
+                        <span className="block text-xs opacity-80 text-brand-black/70">Impostos/Desp. (R$)</span>
                         <span className="font-mono font-bold">{formatCurrency(salesPrice * ((icmsSaleRate + pisSaleRate + cofinsSaleRate + commissionRate) / 100) + saleExpensesValue)}</span>
                       </div>
                     </div>
@@ -2113,22 +2111,22 @@ export default function App() {
               </div>
 
               {/* Summary Table */}
-              <div className="bg-white rounded-lg border border-zinc-200 p-4 shadow-sm mb-6">
-                <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Resumo da Operação</h3>
+              <div className="bg-brand-black rounded-lg border border-brand-border p-4 shadow-sm mb-6">
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Resumo da Operação</h3>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between border-b border-zinc-100 pb-1">
-                    <span className="text-zinc-600">Preço Venda</span>
-                    <span className="font-mono font-bold text-zinc-900">{formatCurrency(salesPrice)}</span>
+                  <div className="flex justify-between border-b border-brand-border pb-1">
+                    <span className="text-slate-400">Preço Venda</span>
+                    <span className="font-mono font-bold text-slate-100">{formatCurrency(salesPrice)}</span>
                   </div>
-                  <div className="flex justify-between border-b border-zinc-100 pb-1 text-red-600">
+                  <div className="flex justify-between border-b border-brand-border pb-1 text-red-400">
                     <span>(-) Custo Real</span>
                     <span className="font-mono">{realCost > 0 ? '-' : ''}{formatCurrency(realCost)}</span>
                   </div>
-                  <div className="flex justify-between border-b border-zinc-100 pb-1 text-red-600">
+                  <div className="flex justify-between border-b border-brand-border pb-1 text-red-400">
                     <span>(-) Impostos/Comissões</span>
                     <span className="font-mono">{(salesPrice * ((icmsSaleRate + pisSaleRate + cofinsSaleRate + commissionRate) / 100) + saleExpensesValue) > 0 ? '-' : ''}{formatCurrency(salesPrice * ((icmsSaleRate + pisSaleRate + cofinsSaleRate + commissionRate) / 100) + saleExpensesValue)}</span>
                   </div>
-                  <div className="flex justify-between pt-1 text-green-600 font-bold">
+                  <div className="flex justify-between pt-1 text-brand-primary font-bold">
                     <span>(=) Lucro Líquido</span>
                     <span className="font-mono">{formatCurrency(salesPrice * (profitMargin / 100))}</span>
                   </div>
@@ -2140,8 +2138,8 @@ export default function App() {
                     disabled={isSaving}
                     className={`w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all active:scale-95 border ${
                       saveSuccess 
-                        ? 'bg-green-50 text-green-600 border-green-200' 
-                        : 'bg-zinc-900 text-white border-zinc-800 hover:bg-zinc-800'
+                        ? 'bg-green-500/10 text-green-500 border-green-500/20' 
+                        : 'bg-brand-primary text-brand-black border-brand-primary hover:bg-brand-primary-hover'
                     }`}
                   >
                     {isSaving ? (
@@ -2290,22 +2288,22 @@ export default function App() {
       )}
       {/* Upgrade Modal */}
       {isUpgradeModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-[110] animate-in fade-in duration-300">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-zinc-200 flex flex-col">
-            <div className="relative h-48 bg-zinc-950 flex items-center justify-center overflow-hidden">
+        <div className="fixed inset-0 bg-brand-black/80 backdrop-blur-md flex items-center justify-center p-4 z-[110] animate-in fade-in duration-300">
+          <div className="bg-brand-card rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-brand-border flex flex-col">
+            <div className="relative h-48 bg-brand-black flex items-center justify-center overflow-hidden">
               <div className="absolute inset-0 opacity-20">
-                <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,#f59e0b_0%,transparent_50%)]"></div>
+                <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,var(--color-brand-primary)_0%,transparent_50%)]"></div>
               </div>
               <div className="relative z-10 text-center">
-                <div className="inline-flex p-3 bg-amber-500 rounded-2xl shadow-xl shadow-amber-500/20 mb-4">
-                  <Package className="w-8 h-8 text-zinc-950" />
+                <div className="inline-flex p-3 bg-brand-primary rounded-2xl shadow-xl shadow-brand-primary/20 mb-4">
+                  <Package className="w-8 h-8 text-brand-black" />
                 </div>
-                <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Seja Markup PRO</h3>
-                <p className="text-amber-500 font-bold text-sm">Desbloqueie o potencial máximo da sua empresa</p>
+                <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Seja NIVOR PRO</h3>
+                <p className="text-brand-primary font-bold text-sm">Desbloqueie o potencial máximo da sua empresa</p>
               </div>
               <button 
                 onClick={() => setIsUpgradeModalOpen(false)}
-                className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors p-2"
+                className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors p-2"
               >
                 <RotateCcw className="w-5 h-5" />
               </button>
@@ -2320,44 +2318,44 @@ export default function App() {
                   { icon: <Save className="w-5 h-5" />, title: "Suporte Prioritário", desc: "Atendimento exclusivo para assinantes PRO." }
                 ].map((item, i) => (
                   <div key={i} className="flex gap-4 items-start">
-                    <div className="bg-amber-50 p-2 rounded-lg text-amber-600 shrink-0">
+                    <div className="bg-brand-primary/10 p-2 rounded-lg text-brand-primary shrink-0">
                       {item.icon}
                     </div>
                     <div>
-                      <h4 className="font-bold text-zinc-900 text-sm">{item.title}</h4>
-                      <p className="text-zinc-500 text-xs leading-relaxed">{item.desc}</p>
+                      <h4 className="font-bold text-slate-100 text-sm">{item.title}</h4>
+                      <p className="text-slate-500 text-xs leading-relaxed">{item.desc}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
                 <div className="flex flex-col gap-4">
-                  <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+                  <div className="flex items-center justify-between p-4 bg-brand-black rounded-2xl border border-brand-border">
                     <div>
-                      <span className="text-2xl font-black text-zinc-900">R$ 36,90</span>
-                      <span className="text-zinc-500 text-xs font-medium"> / mês</span>
-                      <span className="block text-[10px] font-bold text-zinc-400 uppercase">Assinatura Mensal</span>
+                      <span className="text-2xl font-black text-slate-100">R$ 36,90</span>
+                      <span className="text-slate-500 text-xs font-medium"> / mês</span>
+                      <span className="block text-[10px] font-bold text-slate-400 uppercase">Assinatura Mensal</span>
                     </div>
                     <button
                       onClick={() => handleUpgrade('monthly')}
                       disabled={isUpgrading}
-                      className="bg-zinc-950 hover:bg-zinc-800 text-white px-6 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 disabled:opacity-50"
+                      className="bg-brand-primary hover:bg-brand-primary-hover text-brand-black px-6 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 disabled:opacity-50"
                     >
                       {isUpgrading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'ASSINAR MENSAL'}
                     </button>
                   </div>
 
-                  <div className="flex items-center justify-between p-4 bg-amber-50 rounded-2xl border border-amber-200 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 bg-amber-500 text-white text-[8px] font-black px-2 py-0.5 rounded-bl-lg uppercase tracking-tighter">Melhor Valor</div>
+                  <div className="flex items-center justify-between p-4 bg-brand-primary/10 rounded-2xl border border-brand-primary/20 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 bg-brand-primary text-brand-black text-[8px] font-black px-2 py-0.5 rounded-bl-lg uppercase tracking-tighter">Melhor Valor</div>
                     <div>
-                      <span className="text-2xl font-black text-zinc-900">R$ 360,00</span>
-                      <span className="text-zinc-500 text-xs font-medium"> / ano</span>
-                      <span className="block text-[10px] font-bold text-amber-600 uppercase">Plano Anual à Vista</span>
+                      <span className="text-2xl font-black text-slate-100">R$ 360,00</span>
+                      <span className="text-slate-500 text-xs font-medium"> / ano</span>
+                      <span className="block text-[10px] font-bold text-brand-primary uppercase">Plano Anual à Vista</span>
                     </div>
                     <button
                       onClick={() => handleUpgrade('annual')}
                       disabled={isUpgrading}
-                      className="bg-amber-600 hover:bg-amber-500 text-white px-6 py-2.5 rounded-xl font-bold text-xs transition-all shadow-lg shadow-amber-500/20 active:scale-95 disabled:opacity-50"
+                      className="bg-brand-primary hover:bg-brand-primary-hover text-brand-black px-6 py-2.5 rounded-xl font-bold text-xs transition-all shadow-lg shadow-brand-primary/20 active:scale-95 disabled:opacity-50"
                     >
                       {isUpgrading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'ASSINAR ANUAL'}
                     </button>
@@ -2370,21 +2368,21 @@ export default function App() {
 
       {/* Manual Modal */}
       {isManualModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-[110] animate-in fade-in duration-300">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden border border-zinc-200 flex flex-col">
-            <div className="bg-zinc-950 p-6 text-white flex items-center justify-between shrink-0">
+        <div className="fixed inset-0 bg-brand-black/80 backdrop-blur-md flex items-center justify-center p-4 z-[110] animate-in fade-in duration-300">
+          <div className="bg-brand-card rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden border border-brand-border flex flex-col">
+            <div className="bg-brand-black p-6 text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
-                <div className="bg-amber-500 p-2 rounded-xl">
-                  <HelpCircle className="w-6 h-6 text-zinc-950" />
+                <div className="bg-brand-primary p-2 rounded-xl">
+                  <HelpCircle className="w-6 h-6 text-brand-black" />
                 </div>
                 <div>
                   <h3 className="text-xl font-black uppercase tracking-tighter">Manual do Usuário</h3>
-                  <p className="text-amber-500 text-[10px] font-bold uppercase tracking-widest">NIVOR Calculadora</p>
+                  <p className="text-brand-primary text-[10px] font-bold uppercase tracking-widest">NIVOR Calculadora</p>
                 </div>
               </div>
               <button 
                 onClick={() => setIsManualModalOpen(false)}
-                className="text-zinc-500 hover:text-white transition-colors p-2 hover:bg-zinc-800 rounded-full"
+                className="text-slate-500 hover:text-white transition-colors p-2 hover:bg-brand-muted rounded-full"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -2393,8 +2391,8 @@ export default function App() {
             <div className="flex-1 overflow-y-auto p-6 space-y-8">
               {/* Introduction */}
               <div className="space-y-2">
-                <h4 className="text-lg font-black text-zinc-900 uppercase tracking-tight border-b-2 border-amber-500 inline-block">{manualConfig.introTitle}</h4>
-                <p className="text-zinc-600 text-sm leading-relaxed whitespace-pre-wrap">
+                <h4 className="text-lg font-black text-slate-100 uppercase tracking-tight border-b-2 border-brand-primary inline-block">{manualConfig.introTitle}</h4>
+                <p className="text-slate-400 text-sm leading-relaxed whitespace-pre-wrap">
                   {manualConfig.introContent}
                 </p>
               </div>
@@ -2855,36 +2853,36 @@ export default function App() {
             <div className="flex-1 overflow-auto p-6">
               {!isPro ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center space-y-6">
-                  <div className="bg-amber-500/10 p-6 rounded-3xl">
-                    <History className="w-16 h-16 text-amber-600" />
+                  <div className="bg-brand-primary/10 p-6 rounded-3xl">
+                    <History className="w-16 h-16 text-brand-primary" />
                   </div>
                   <div className="max-w-md space-y-2">
-                    <h3 className="text-2xl font-black text-zinc-900 uppercase tracking-tighter">Histórico de Simulações PRO</h3>
-                    <p className="text-zinc-500 text-sm leading-relaxed">
+                    <h3 className="text-2xl font-black text-slate-100 uppercase tracking-tighter">Histórico de Simulações PRO</h3>
+                    <p className="text-slate-500 text-sm leading-relaxed">
                       Acesse todos os seus cálculos salvos, compare simulações e mantenha um registro completo das suas operações.
                     </p>
                   </div>
                   <button 
                     onClick={() => setIsUpgradeModalOpen(true)}
-                    className="bg-zinc-950 hover:bg-zinc-800 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-xl shadow-zinc-950/20 active:scale-95 flex items-center gap-3"
+                    className="bg-brand-primary hover:bg-brand-primary-hover text-brand-black px-8 py-4 rounded-2xl font-bold transition-all shadow-xl shadow-brand-primary/20 active:scale-95 flex items-center gap-3"
                   >
-                    <Package className="w-5 h-5 text-amber-500" />
+                    <Package className="w-5 h-5" />
                     DESBLOQUEAR AGORA
                   </button>
                 </div>
               ) : !user ? (
                 <div className="text-center py-12">
-                  <History className="w-12 h-12 text-zinc-300 mx-auto mb-4" />
-                  <p className="text-zinc-500">Nenhum cálculo salvo ainda.</p>
+                  <History className="w-12 h-12 text-slate-700 mx-auto mb-4" />
+                  <p className="text-slate-500">Nenhum cálculo salvo ainda.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {savedCalculations.map((calc) => (
-                    <div key={calc.id} className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 hover:border-amber-500/50 transition-all group">
+                    <div key={calc.id} className="bg-brand-black border border-brand-border rounded-xl p-4 hover:border-brand-primary/50 transition-all group">
                       <div className="flex justify-between items-start mb-3">
                         <div className="space-y-1">
-                          <h4 className="font-bold text-zinc-900 line-clamp-1">{calc.productName}</h4>
-                          <div className="flex items-center gap-2 text-[10px] text-zinc-500 uppercase font-bold">
+                          <h4 className="font-bold text-slate-100 line-clamp-1">{calc.productName}</h4>
+                          <div className="flex items-center gap-2 text-[10px] text-slate-500 uppercase font-bold">
                             <Calendar className="w-3 h-3" />
                             {calc.createdAt?.toDate().toLocaleDateString('pt-BR')} {calc.createdAt?.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                           </div>
@@ -2894,13 +2892,13 @@ export default function App() {
                             <div className="flex items-center gap-1 animate-in fade-in slide-in-from-right-2">
                               <button 
                                 onClick={() => setDeletingId(null)}
-                                className="text-[10px] font-bold text-zinc-400 hover:text-zinc-600 px-2 py-1"
+                                className="text-[10px] font-bold text-slate-500 hover:text-slate-300 px-2 py-1"
                               >
                                 Cancelar
                               </button>
                               <button 
                                 onClick={() => handleDeleteCalculation(calc.id)}
-                                className="text-[10px] font-bold bg-red-50 text-red-600 hover:bg-red-100 px-2 py-1 rounded"
+                                className="text-[10px] font-bold bg-red-500/10 text-red-500 hover:bg-red-500/20 px-2 py-1 rounded"
                               >
                                 Confirmar Exclusão
                               </button>
@@ -2908,7 +2906,7 @@ export default function App() {
                           ) : (
                             <button 
                               onClick={() => setDeletingId(calc.id)}
-                              className="text-zinc-400 hover:text-red-500 p-1 transition-colors"
+                              className="text-slate-500 hover:text-red-500 p-1 transition-colors"
                               title="Excluir cálculo"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -2918,26 +2916,26 @@ export default function App() {
                       </div>
                       
                       <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div className="bg-white p-2 rounded border border-zinc-100">
-                          <div className="text-[9px] text-zinc-400 uppercase font-bold">Venda</div>
-                          <div className="text-sm font-mono font-bold text-zinc-800">{formatCurrency(calc.salesPrice)}</div>
+                        <div className="bg-brand-muted p-2 rounded border border-brand-border">
+                          <div className="text-[9px] text-slate-500 uppercase font-bold">Venda</div>
+                          <div className="text-sm font-mono font-bold text-slate-100">{formatCurrency(calc.salesPrice)}</div>
                         </div>
-                        <div className="bg-white p-2 rounded border border-zinc-100">
-                          <div className="text-[9px] text-zinc-400 uppercase font-bold">Margem</div>
-                          <div className="text-sm font-mono font-bold text-amber-600">{calc.profitMargin.toFixed(2)}%</div>
+                        <div className="bg-brand-muted p-2 rounded border border-brand-border">
+                          <div className="text-[9px] text-slate-500 uppercase font-bold">Margem</div>
+                          <div className="text-sm font-mono font-bold text-brand-primary">{calc.profitMargin.toFixed(2)}%</div>
                         </div>
                       </div>
 
                       {calc.representativeName && (
-                        <div className="flex items-center gap-2 text-xs text-zinc-600 mb-4 bg-zinc-100/50 p-2 rounded">
-                          <UserIcon className="w-3 h-3 text-zinc-400" />
+                        <div className="flex items-center gap-2 text-xs text-slate-400 mb-4 bg-brand-muted/50 p-2 rounded">
+                          <UserIcon className="w-3 h-3 text-slate-500" />
                           <span className="line-clamp-1">{calc.representativeName}</span>
                         </div>
                       )}
 
                       <button 
                         onClick={() => handleLoadCalculation(calc)}
-                        className="w-full bg-zinc-900 text-white py-2 rounded-lg text-xs font-bold hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2"
+                        className="w-full bg-brand-primary text-brand-black py-2 rounded-lg text-xs font-bold hover:bg-brand-primary-hover transition-colors flex items-center justify-center gap-2"
                       >
                         <RefreshCw className="w-3 h-3" />
                         Carregar Simulação
@@ -2948,10 +2946,10 @@ export default function App() {
               )}
             </div>
             
-            <div className="p-4 border-t border-zinc-100 bg-zinc-50 shrink-0">
+            <div className="p-4 border-t border-brand-border bg-brand-black shrink-0">
               <button 
                 onClick={() => setIsHistoryModalOpen(false)}
-                className="w-full bg-zinc-200 hover:bg-zinc-300 text-zinc-700 py-2 rounded-lg font-bold text-sm transition-colors"
+                className="w-full bg-brand-muted hover:bg-brand-muted/80 text-slate-300 py-2 rounded-lg font-bold text-sm transition-colors border border-brand-border"
               >
                 Fechar
               </button>
@@ -2961,11 +2959,11 @@ export default function App() {
       )}
       {/* Products Management Modal */}
       {isProductsModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden border border-zinc-200 flex flex-col">
-            <div className="bg-zinc-950 p-4 text-white flex items-center justify-between shrink-0">
+        <div className="fixed inset-0 bg-brand-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-brand-card rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden border border-brand-border flex flex-col">
+            <div className="bg-brand-black p-4 text-white flex items-center justify-between shrink-0">
               <h3 className="font-bold uppercase tracking-wider text-sm flex items-center gap-2">
-                <Package className="w-4 h-4 text-amber-500" />
+                <Package className="w-4 h-4 text-brand-primary" />
                 Gestão de Produtos
               </h3>
               <button 
@@ -2973,7 +2971,7 @@ export default function App() {
                   setIsProductsModalOpen(false);
                   setEditingProduct(null);
                 }}
-                className="text-zinc-400 hover:text-white transition-colors"
+                className="text-slate-500 hover:text-white transition-colors"
               >
                 <RotateCcw className="w-4 h-4" />
               </button>
@@ -2982,59 +2980,59 @@ export default function App() {
             <div className="flex-1 overflow-auto p-6">
               {!isPro ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center space-y-6">
-                  <div className="bg-amber-500/10 p-6 rounded-3xl">
-                    <Package className="w-16 h-16 text-amber-600" />
+                  <div className="bg-brand-primary/10 p-6 rounded-3xl">
+                    <Package className="w-16 h-16 text-brand-primary" />
                   </div>
                   <div className="max-w-md space-y-2">
-                    <h3 className="text-2xl font-black text-zinc-900 uppercase tracking-tighter">Gestão de Produtos PRO</h3>
-                    <p className="text-zinc-500 text-sm leading-relaxed">
+                    <h3 className="text-2xl font-black text-slate-100 uppercase tracking-tighter">Gestão de Produtos PRO</h3>
+                    <p className="text-slate-500 text-sm leading-relaxed">
                       Cadastre seus produtos, gerencie estoques e tenha acesso rápido aos custos de aquisição para agilizar seus cálculos.
                     </p>
                   </div>
                   <button 
                     onClick={() => setIsUpgradeModalOpen(true)}
-                    className="bg-zinc-950 hover:bg-zinc-800 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-xl shadow-zinc-950/20 active:scale-95 flex items-center gap-3"
+                    className="bg-brand-primary hover:bg-brand-primary-hover text-brand-black px-8 py-4 rounded-2xl font-bold transition-all shadow-xl shadow-brand-primary/20 active:scale-95 flex items-center gap-3"
                   >
-                    <Package className="w-5 h-5 text-amber-500" />
+                    <Package className="w-5 h-5" />
                     DESBLOQUEAR AGORA
                   </button>
                 </div>
               ) : !user ? (
                 <div className="text-center py-12">
-                  <AlertCircle className="w-12 h-12 text-zinc-300 mx-auto mb-4" />
-                  <p className="text-zinc-500">Faça login para gerenciar seus produtos.</p>
+                  <AlertCircle className="w-12 h-12 text-slate-700 mx-auto mb-4" />
+                  <p className="text-slate-500">Faça login para gerenciar seus produtos.</p>
                 </div>
               ) : (
                 <div className="space-y-6">
                   {/* Add/Edit Form */}
-                  <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4">
-                    <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <div className="bg-brand-black border border-brand-border rounded-xl p-4">
+                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
                       {editingProduct?.id ? <Edit2 className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
                       {editingProduct?.id ? 'Editar Produto' : 'Novo Produto'}
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-zinc-400 uppercase">Nome do Produto</label>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase">Nome do Produto</label>
                         <input 
                           type="text"
                           value={editingProduct?.name || ''}
                           onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
                           placeholder="Ex: Fertilizante 07-28-14"
-                          className="w-full bg-white border border-zinc-300 rounded-lg py-2 px-3 outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                          className="w-full bg-brand-muted border border-brand-border rounded-lg py-2 px-3 outline-none focus:ring-2 focus:ring-brand-primary text-sm text-slate-100"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-zinc-400 uppercase">Fornecedor</label>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase">Fornecedor</label>
                         <input 
                           type="text"
                           value={editingProduct?.supplierName || ''}
                           onChange={(e) => setEditingProduct({ ...editingProduct, supplierName: e.target.value })}
                           placeholder="Ex: Fertipar"
-                          className="w-full bg-white border border-zinc-300 rounded-lg py-2 px-3 outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                          className="w-full bg-brand-muted border border-brand-border rounded-lg py-2 px-3 outline-none focus:ring-2 focus:ring-brand-primary text-sm text-slate-100"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-zinc-400 uppercase">Custo Base (R$)</label>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase">Custo Base (R$)</label>
                         <input 
                           type="text"
                           value={editingProduct?.baseCost ? formatCurrency(editingProduct.baseCost).replace('R$ ', '') : ''}
@@ -3043,21 +3041,21 @@ export default function App() {
                             setEditingProduct({ ...editingProduct, baseCost: Number(val) / 100 });
                           }}
                           placeholder="0,00"
-                          className="w-full bg-white border border-zinc-300 rounded-lg py-2 px-3 outline-none focus:ring-2 focus:ring-amber-500 text-sm font-mono"
+                          className="w-full bg-brand-muted border border-brand-border rounded-lg py-2 px-3 outline-none focus:ring-2 focus:ring-brand-primary text-sm font-mono text-slate-100"
                         />
                       </div>
                       <div className="flex gap-2">
                         <button 
                           onClick={() => handleSaveProduct(editingProduct)}
                           disabled={!editingProduct?.name || isSavingProduct}
-                          className="flex-1 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white py-2 rounded-lg font-bold text-sm transition-colors"
+                          className="flex-1 bg-brand-primary hover:bg-brand-primary-hover disabled:opacity-50 text-brand-black py-2 rounded-lg font-bold text-sm transition-colors"
                         >
                           {isSavingProduct ? 'Salvando...' : editingProduct?.id ? 'Atualizar' : 'Cadastrar'}
                         </button>
                         {editingProduct && (
                           <button 
                             onClick={() => setEditingProduct(null)}
-                            className="bg-zinc-200 hover:bg-zinc-300 text-zinc-600 px-4 py-2 rounded-lg font-bold text-sm transition-colors"
+                            className="bg-brand-muted hover:bg-brand-muted/80 text-slate-300 px-4 py-2 rounded-lg font-bold text-sm transition-colors border border-brand-border"
                           >
                             Limpar
                           </button>
@@ -3065,52 +3063,52 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4 pt-4 border-t border-zinc-200">
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4 pt-4 border-t border-brand-border">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-zinc-400 uppercase">ICMS Compra (%)</label>
+                        <label className="text-[9px] font-bold text-slate-500 uppercase">ICMS Compra (%)</label>
                         <input 
                           type="number"
                           value={editingProduct?.icmsPurchaseRate || 0}
                           onChange={(e) => setEditingProduct({ ...editingProduct, icmsPurchaseRate: Number(e.target.value) })}
-                          className="w-full bg-white border border-zinc-300 rounded-lg py-1.5 px-3 outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                          className="w-full bg-brand-muted border border-brand-border rounded-lg py-1.5 px-3 outline-none focus:ring-2 focus:ring-brand-primary text-sm text-slate-100"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-zinc-400 uppercase">ICMS Frete (%)</label>
+                        <label className="text-[9px] font-bold text-slate-500 uppercase">ICMS Frete (%)</label>
                         <input 
                           type="number"
                           value={editingProduct?.icmsFreightRate || 0}
                           onChange={(e) => setEditingProduct({ ...editingProduct, icmsFreightRate: Number(e.target.value) })}
-                          className="w-full bg-white border border-zinc-300 rounded-lg py-1.5 px-3 outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                          className="w-full bg-brand-muted border border-brand-border rounded-lg py-1.5 px-3 outline-none focus:ring-2 focus:ring-brand-primary text-sm text-slate-100"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-zinc-400 uppercase">ICMS Venda (%)</label>
+                        <label className="text-[9px] font-bold text-slate-500 uppercase">ICMS Venda (%)</label>
                         <input 
                           type="number"
                           value={editingProduct?.icmsSaleRate || 0}
                           onChange={(e) => setEditingProduct({ ...editingProduct, icmsSaleRate: Number(e.target.value) })}
-                          className="w-full bg-white border border-zinc-300 rounded-lg py-1.5 px-3 outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                          className="w-full bg-brand-muted border border-brand-border rounded-lg py-1.5 px-3 outline-none focus:ring-2 focus:ring-brand-primary text-sm text-slate-100"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-zinc-400 uppercase">PIS Venda (%)</label>
+                        <label className="text-[9px] font-bold text-slate-500 uppercase">PIS Venda (%)</label>
                         <input 
                           type="number"
                           step="0.001"
                           value={editingProduct?.pisSaleRate || 0.165}
                           onChange={(e) => setEditingProduct({ ...editingProduct, pisSaleRate: Number(e.target.value) })}
-                          className="w-full bg-white border border-zinc-300 rounded-lg py-1.5 px-3 outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                          className="w-full bg-brand-muted border border-brand-border rounded-lg py-1.5 px-3 outline-none focus:ring-2 focus:ring-brand-primary text-sm text-slate-100"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-zinc-400 uppercase">COFINS Venda (%)</label>
+                        <label className="text-[9px] font-bold text-slate-500 uppercase">COFINS Venda (%)</label>
                         <input 
                           type="number"
                           step="0.001"
                           value={editingProduct?.cofinsSaleRate || 0.76}
                           onChange={(e) => setEditingProduct({ ...editingProduct, cofinsSaleRate: Number(e.target.value) })}
-                          className="w-full bg-white border border-zinc-300 rounded-lg py-1.5 px-3 outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+                          className="w-full bg-brand-muted border border-brand-border rounded-lg py-1.5 px-3 outline-none focus:ring-2 focus:ring-brand-primary text-sm text-slate-100"
                         />
                       </div>
                     </div>
@@ -3119,25 +3117,25 @@ export default function App() {
                   {/* Products List */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {products.length === 0 ? (
-                      <div className="col-span-full text-center py-8 text-zinc-400 text-sm italic">
+                      <div className="col-span-full text-center py-8 text-slate-500 text-sm italic">
                         Nenhum produto cadastrado no catálogo.
                       </div>
                     ) : (
                       products.map((product) => (
-                        <div key={product.id} className="bg-white border border-zinc-200 rounded-xl p-4 hover:border-amber-500/50 transition-all group relative">
+                        <div key={product.id} className="bg-brand-black border border-brand-border rounded-xl p-4 hover:border-brand-primary/50 transition-all group relative">
                           <div className="flex justify-between items-start mb-2">
-                            <h4 className="font-bold text-zinc-900 line-clamp-1 pr-8">{product.name}</h4>
+                            <h4 className="font-bold text-slate-100 line-clamp-1 pr-8">{product.name}</h4>
                             <div className="absolute top-4 right-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button 
                                 onClick={() => setEditingProduct(product)}
-                                className="text-zinc-400 hover:text-amber-600 p-1"
+                                className="text-slate-500 hover:text-brand-primary p-1"
                                 title="Editar"
                               >
                                 <Edit2 className="w-3.5 h-3.5" />
                               </button>
                               <button 
                                 onClick={() => setDeletingProductId(product.id)}
-                                className="text-zinc-400 hover:text-red-500 p-1"
+                                className="text-slate-500 hover:text-red-500 p-1"
                                 title="Excluir"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -3146,11 +3144,11 @@ export default function App() {
                           </div>
                           
                           <div className="flex flex-col gap-1 mb-4">
-                            <div className="text-xs font-mono font-bold text-zinc-600">
-                              Custo: <span className="text-zinc-900">{formatCurrency(product.baseCost || 0)}</span>
+                            <div className="text-xs font-mono font-bold text-slate-400">
+                              Custo: <span className="text-slate-100">{formatCurrency(product.baseCost || 0)}</span>
                             </div>
                             {product.supplierName && (
-                              <div className="text-[10px] text-zinc-500 flex items-center gap-1">
+                              <div className="text-[10px] text-slate-500 flex items-center gap-1">
                                 <UserIcon className="w-3 h-3" />
                                 <span className="font-medium">{product.supplierName}</span>
                               </div>
@@ -3161,13 +3159,13 @@ export default function App() {
                             <div className="flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
                               <button 
                                 onClick={() => handleDeleteProduct(product.id)}
-                                className="flex-1 bg-red-50 text-red-600 py-1.5 rounded-lg text-[10px] font-bold hover:bg-red-100"
+                                className="flex-1 bg-red-500/10 text-red-500 py-1.5 rounded-lg text-[10px] font-bold hover:bg-red-500/20"
                               >
                                 Confirmar
                               </button>
                               <button 
                                 onClick={() => setDeletingProductId(null)}
-                                className="flex-1 bg-zinc-100 text-zinc-500 py-1.5 rounded-lg text-[10px] font-bold hover:bg-zinc-200"
+                                className="flex-1 bg-brand-muted text-slate-500 py-1.5 rounded-lg text-[10px] font-bold hover:bg-brand-muted/80 border border-brand-border"
                               >
                                 Cancelar
                               </button>
@@ -3175,7 +3173,7 @@ export default function App() {
                           ) : (
                             <button 
                               onClick={() => handleSelectProductForCalculator(product)}
-                              className="w-full bg-zinc-900 text-white py-2 rounded-lg text-[10px] font-bold hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2"
+                              className="w-full bg-brand-primary text-brand-black py-2 rounded-lg text-[10px] font-bold hover:bg-brand-primary-hover transition-colors flex items-center justify-center gap-2"
                             >
                               <Calculator className="w-3 h-3" />
                               Usar na Calculadora
@@ -3189,13 +3187,13 @@ export default function App() {
               )}
             </div>
             
-            <div className="p-4 border-t border-zinc-100 bg-zinc-50 shrink-0">
+            <div className="p-4 border-t border-brand-border bg-brand-black shrink-0">
               <button 
                 onClick={() => {
                   setIsProductsModalOpen(false);
                   setEditingProduct(null);
                 }}
-                className="w-full bg-zinc-200 hover:bg-zinc-300 text-zinc-700 py-2 rounded-lg font-bold text-sm transition-colors"
+                className="w-full bg-brand-muted hover:bg-brand-muted/80 text-slate-300 py-2 rounded-lg font-bold text-sm transition-colors border border-brand-border"
               >
                 Fechar
               </button>
@@ -3320,44 +3318,44 @@ const FloatingCalculator = React.memo(({ isOpen, onClose }: { isOpen: boolean, o
 
   return (
     <div className="fixed inset-0 sm:inset-auto sm:bottom-4 sm:right-4 flex items-center justify-center sm:block z-[200] animate-in fade-in zoom-in duration-200">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl w-72 overflow-hidden flex flex-col">
-        <div className="bg-zinc-800 p-3 flex items-center justify-between border-b border-zinc-700">
+      <div className="bg-brand-black border border-brand-border rounded-2xl shadow-2xl w-72 overflow-hidden flex flex-col">
+        <div className="bg-brand-muted p-3 flex items-center justify-between border-b border-brand-border">
           <div className="flex items-center gap-2">
-            <Calculator className="w-4 h-4 text-amber-500" />
+            <Calculator className="w-4 h-4 text-brand-primary" />
             <span className="text-white text-xs font-bold uppercase tracking-wider">Calculadora</span>
           </div>
-          <button onClick={onClose} className="text-zinc-400 hover:text-white transition-colors">
+          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="p-4 bg-zinc-950 text-right">
-          <div className="text-zinc-500 text-[10px] h-4 mb-1 font-mono">{equation}</div>
+        <div className="p-4 bg-brand-black text-right">
+          <div className="text-slate-500 text-[10px] h-4 mb-1 font-mono">{equation}</div>
           <div className="text-white text-3xl font-mono font-bold truncate">{display}</div>
         </div>
 
-        <div className="p-2 grid grid-cols-4 gap-1 bg-zinc-900">
-          <button onClick={clear} className="col-span-2 p-3 bg-zinc-800 text-amber-500 rounded-lg font-bold hover:bg-zinc-700 transition-colors">AC</button>
-          <button onClick={() => handleOperator('/')} className="p-3 bg-zinc-800 text-amber-500 rounded-lg font-bold hover:bg-zinc-700 transition-colors">÷</button>
-          <button onClick={() => handleOperator('*')} className="p-3 bg-zinc-800 text-amber-500 rounded-lg font-bold hover:bg-zinc-700 transition-colors">×</button>
+        <div className="p-2 grid grid-cols-4 gap-1 bg-brand-black">
+          <button onClick={clear} className="col-span-2 p-3 bg-brand-muted text-brand-primary rounded-lg font-bold hover:bg-brand-muted/80 transition-colors">AC</button>
+          <button onClick={() => handleOperator('/')} className="p-3 bg-brand-muted text-brand-primary rounded-lg font-bold hover:bg-brand-muted/80 transition-colors">÷</button>
+          <button onClick={() => handleOperator('*')} className="p-3 bg-brand-muted text-brand-primary rounded-lg font-bold hover:bg-brand-muted/80 transition-colors">×</button>
 
           {[7, 8, 9].map(n => (
-            <button key={n} onClick={() => handleNumber(String(n))} className="p-3 bg-zinc-800 text-white rounded-lg font-bold hover:bg-zinc-700 transition-colors">{n}</button>
+            <button key={n} onClick={() => handleNumber(String(n))} className="p-3 bg-brand-muted text-white rounded-lg font-bold hover:bg-brand-muted/80 transition-colors">{n}</button>
           ))}
-          <button onClick={() => handleOperator('-')} className="p-3 bg-zinc-800 text-amber-500 rounded-lg font-bold hover:bg-zinc-700 transition-colors">−</button>
+          <button onClick={() => handleOperator('-')} className="p-3 bg-brand-muted text-brand-primary rounded-lg font-bold hover:bg-brand-muted/80 transition-colors">−</button>
 
           {[4, 5, 6].map(n => (
-            <button key={n} onClick={() => handleNumber(String(n))} className="p-3 bg-zinc-800 text-white rounded-lg font-bold hover:bg-zinc-700 transition-colors">{n}</button>
+            <button key={n} onClick={() => handleNumber(String(n))} className="p-3 bg-brand-muted text-white rounded-lg font-bold hover:bg-brand-muted/80 transition-colors">{n}</button>
           ))}
-          <button onClick={() => handleOperator('+')} className="p-3 bg-zinc-800 text-amber-500 rounded-lg font-bold hover:bg-zinc-700 transition-colors">+</button>
+          <button onClick={() => handleOperator('+')} className="p-3 bg-brand-muted text-brand-primary rounded-lg font-bold hover:bg-brand-muted/80 transition-colors">+</button>
 
           {[1, 2, 3].map(n => (
-            <button key={n} onClick={() => handleNumber(String(n))} className="p-3 bg-zinc-800 text-white rounded-lg font-bold hover:bg-zinc-700 transition-colors">{n}</button>
+            <button key={n} onClick={() => handleNumber(String(n))} className="p-3 bg-brand-muted text-white rounded-lg font-bold hover:bg-brand-muted/80 transition-colors">{n}</button>
           ))}
-          <button onClick={calculate} className="row-span-2 p-3 bg-amber-600 text-white rounded-lg font-bold hover:bg-amber-500 transition-colors shadow-lg shadow-amber-600/20">=</button>
+          <button onClick={calculate} className="row-span-2 p-3 bg-brand-primary text-brand-black rounded-lg font-bold hover:bg-brand-primary-hover transition-colors shadow-lg shadow-brand-primary/20">=</button>
 
-          <button onClick={() => handleNumber('0')} className="col-span-2 p-3 bg-zinc-800 text-white rounded-lg font-bold hover:bg-zinc-700 transition-colors">0</button>
-          <button onClick={() => handleNumber(',')} className="p-3 bg-zinc-800 text-white rounded-lg font-bold hover:bg-zinc-700 transition-colors">,</button>
+          <button onClick={() => handleNumber('0')} className="col-span-2 p-3 bg-brand-muted text-white rounded-lg font-bold hover:bg-brand-muted/80 transition-colors">0</button>
+          <button onClick={() => handleNumber(',')} className="p-3 bg-brand-muted text-white rounded-lg font-bold hover:bg-brand-muted/80 transition-colors">,</button>
         </div>
       </div>
     </div>
