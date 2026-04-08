@@ -2513,21 +2513,21 @@ export default function App() {
                 </h4>
                 <div className="space-y-4">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-300 uppercase">Título da Introdução</label>
+                    <label className="text-[10px] font-bold text-black uppercase">Título da Introdução</label>
                     <input 
                       type="text"
                       value={manualConfig.introTitle}
                       onChange={(e) => setManualConfig({ ...manualConfig, introTitle: e.target.value })}
-                      className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                      className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-sm text-black focus:ring-2 focus:ring-red-500 outline-none"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-300 uppercase">Texto de Boas-vindas</label>
+                    <label className="text-[10px] font-bold text-black uppercase">Texto de Boas-vindas</label>
                     <textarea 
                       value={manualConfig.introContent}
                       onChange={(e) => setManualConfig({ ...manualConfig, introContent: e.target.value })}
                       rows={3}
-                      className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-red-500 outline-none resize-none"
+                      className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-sm text-black focus:ring-2 focus:ring-red-500 outline-none resize-none"
                     />
                   </div>
                 </div>
@@ -2561,7 +2561,7 @@ export default function App() {
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-slate-300 uppercase">Título</label>
+                          <label className="text-[10px] font-bold text-black uppercase">Título</label>
                           <input 
                             type="text"
                             value={item.title}
@@ -2570,11 +2570,11 @@ export default function App() {
                               newItems[index].title = e.target.value;
                               setManualConfig({ ...manualConfig, items: newItems });
                             }}
-                            className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                            className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-sm text-black focus:ring-2 focus:ring-red-500 outline-none"
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-slate-300 uppercase">Ícone (Lucide Name)</label>
+                          <label className="text-[10px] font-bold text-black uppercase">Ícone (Lucide Name)</label>
                           <select 
                             value={item.icon}
                             onChange={(e) => {
@@ -2582,7 +2582,7 @@ export default function App() {
                               newItems[index].icon = e.target.value;
                               setManualConfig({ ...manualConfig, items: newItems });
                             }}
-                            className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                            className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-sm text-black focus:ring-2 focus:ring-red-500 outline-none"
                           >
                             <option value="Calculator">Calculadora</option>
                             <option value="LayoutDashboard">Dashboard</option>
@@ -2597,7 +2597,7 @@ export default function App() {
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-300 uppercase">Descrição</label>
+                        <label className="text-[10px] font-bold text-black uppercase">Descrição</label>
                         <textarea 
                           value={item.description}
                           onChange={(e) => {
@@ -2606,7 +2606,7 @@ export default function App() {
                             setManualConfig({ ...manualConfig, items: newItems });
                           }}
                           rows={3}
-                          className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-red-500 outline-none resize-none"
+                          className="w-full bg-white border border-zinc-200 rounded-xl py-2 px-3 text-sm text-black focus:ring-2 focus:ring-red-500 outline-none resize-none"
                         />
                       </div>
                     </div>
@@ -2638,31 +2638,31 @@ export default function App() {
                 </h4>
                 <div className="space-y-4">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-amber-700 uppercase">Título do Contato</label>
+                    <label className="text-[10px] font-bold text-black uppercase">Título do Contato</label>
                     <input 
                       type="text"
                       value={manualConfig.contactTitle}
                       onChange={(e) => setManualConfig({ ...manualConfig, contactTitle: e.target.value })}
-                      className="w-full bg-white border border-amber-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                      className="w-full bg-white border border-amber-200 rounded-xl py-2 px-3 text-sm text-black focus:ring-2 focus:ring-red-500 outline-none"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-amber-700 uppercase">Mensagem de Suporte</label>
+                    <label className="text-[10px] font-bold text-black uppercase">Mensagem de Suporte</label>
                     <textarea 
                       value={manualConfig.contactContent}
                       onChange={(e) => setManualConfig({ ...manualConfig, contactContent: e.target.value })}
                       rows={3}
-                      className="w-full bg-white border border-amber-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-red-500 outline-none resize-none"
+                      className="w-full bg-white border border-amber-200 rounded-xl py-2 px-3 text-sm text-black focus:ring-2 focus:ring-red-500 outline-none resize-none"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-amber-700 uppercase">E-mail de Suporte</label>
+                    <label className="text-[10px] font-bold text-black uppercase">E-mail de Suporte</label>
                     <input 
                       type="email"
                       value={manualConfig.supportEmail}
                       onChange={(e) => setManualConfig({ ...manualConfig, supportEmail: e.target.value })}
                       placeholder="exemplo@email.com"
-                      className="w-full bg-white border border-amber-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                      className="w-full bg-white border border-amber-200 rounded-xl py-2 px-3 text-sm text-black focus:ring-2 focus:ring-red-500 outline-none"
                     />
                   </div>
                 </div>
