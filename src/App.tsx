@@ -226,7 +226,7 @@ const NumberInput = React.memo(({
 
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
-      <label className={`text-[10px] sm:text-xs font-bold uppercase tracking-wide ${labelClassName}`}>{label}</label>
+      <label className={`text-[8px] sm:text-[9px] font-bold uppercase tracking-wide ${labelClassName}`}>{label}</label>
       <div className={`relative flex items-center bg-white border border-zinc-300 rounded-md shadow-sm focus-within:ring-2 focus-within:ring-amber-500 focus-within:border-amber-500 ${disabled ? 'bg-zinc-100 opacity-80' : ''}`}>
         {prefix && <span className="pl-2 sm:pl-3 text-slate-400 text-[10px] sm:text-sm font-medium">{prefix}</span>}
         <input
@@ -239,7 +239,7 @@ const NumberInput = React.memo(({
           onFocus={handleFocus}
           onBlur={handleBlur}
           disabled={disabled}
-          className="w-full py-1.5 sm:py-2 px-2 sm:px-3 text-right outline-none bg-transparent font-mono text-zinc-800 font-medium text-xs sm:text-sm"
+          className="w-full py-1.5 sm:py-2 px-2 sm:px-3 text-right outline-none bg-transparent font-mono text-zinc-800 font-medium text-[11px] sm:text-xs"
           placeholder={placeholder}
         />
         {suffix && <span className="pr-2 sm:pr-3 text-slate-400 text-[10px] sm:text-sm font-medium">{suffix}</span>}
@@ -267,7 +267,7 @@ const PercentInputRow = React.memo(({
   const calculatedValue = useMemo(() => baseValue * (percent / 100), [baseValue, percent]);
 
   return (
-    <div className="grid grid-cols-2 gap-2 sm:gap-4">
+    <div className="grid grid-cols-2 gap-1 sm:gap-2">
       <div>
         <NumberInput 
           label={label} 
@@ -578,7 +578,7 @@ const SettingsModal = ({
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Créditos de Compra</h3>
               <div className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-300 uppercase">ICMS Compra (%)</label>
+                  <label className="text-[9px] font-bold text-slate-300 uppercase">ICMS Compra (%)</label>
                   <input 
                     type="number" 
                     value={localSettings.defaultIcmsPurchaseRate} 
@@ -587,7 +587,7 @@ const SettingsModal = ({
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-300 uppercase">ICMS Frete (%)</label>
+                  <label className="text-[9px] font-bold text-slate-300 uppercase">ICMS Frete (%)</label>
                   <input 
                     type="number" 
                     value={localSettings.defaultIcmsFreightRate} 
@@ -602,7 +602,7 @@ const SettingsModal = ({
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Impostos de Venda</h3>
               <div className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-300 uppercase">ICMS Venda (%)</label>
+                  <label className="text-[9px] font-bold text-slate-300 uppercase">ICMS Venda (%)</label>
                   <input 
                     type="number" 
                     value={localSettings.defaultIcmsSaleRate} 
@@ -612,7 +612,7 @@ const SettingsModal = ({
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-300 uppercase">PIS (%)</label>
+                    <label className="text-[9px] font-bold text-slate-300 uppercase">PIS (%)</label>
                     <input 
                       type="number" 
                       step="0.001"
@@ -622,7 +622,7 @@ const SettingsModal = ({
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-300 uppercase">COFINS (%)</label>
+                    <label className="text-[9px] font-bold text-slate-300 uppercase">COFINS (%)</label>
                     <input 
                       type="number" 
                       step="0.001"
@@ -640,7 +640,7 @@ const SettingsModal = ({
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Comercial</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-300 uppercase">Comissão (%)</label>
+                <label className="text-[9px] font-bold text-slate-300 uppercase">Comissão (%)</label>
                 <input 
                   type="number" 
                   value={localSettings.defaultCommissionRate} 
@@ -649,7 +649,7 @@ const SettingsModal = ({
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-300 uppercase">Margem de Lucro (%)</label>
+                <label className="text-[9px] font-bold text-slate-300 uppercase">Margem de Lucro (%)</label>
                 <input 
                   type="number" 
                   value={localSettings.defaultProfitMargin} 
@@ -1930,7 +1930,7 @@ export default function App() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-300 uppercase tracking-wide px-1">Nome do Produto</label>
+                    <label className="text-[9px] font-bold text-slate-300 uppercase tracking-wide px-1">Nome do Produto</label>
                     <input 
                       type="text"
                       value={productName}
@@ -1940,7 +1940,7 @@ export default function App() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-300 uppercase tracking-wide px-1">Fornecedor / Representante</label>
+                    <label className="text-[9px] font-bold text-slate-300 uppercase tracking-wide px-1">Fornecedor / Representante</label>
                     <input 
                       type="text"
                       value={representativeName}
@@ -2009,7 +2009,7 @@ export default function App() {
 
                 <div className="pt-2">
                   <div className="bg-brand-black text-white p-4 rounded-xl shadow-lg transform transition-all hover:scale-[1.02] border border-brand-border">
-                    <label className="block text-xs font-bold uppercase tracking-wider opacity-80 mb-1">(=) Custo Real do Produto</label>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider opacity-80 mb-1">(=) Custo Real do Produto</label>
                     <div className="text-3xl font-mono font-bold tracking-tight text-brand-primary">
                       {formatCurrency(realCost)}
                     </div>
@@ -2040,7 +2040,7 @@ export default function App() {
                     onChange={setIcmsSaleRate} 
                     baseValue={salesPrice}
                   />
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <PercentInputRow 
                       label="PIS Venda (%)" 
                       percent={pisSaleRate} 
@@ -2098,7 +2098,7 @@ export default function App() {
                 <div className="pt-4">
                   <div className="bg-brand-primary text-brand-black p-6 rounded-xl shadow-lg transform transition-all hover:scale-[1.02] border border-brand-primary">
                     <div className="flex justify-between items-end mb-2">
-                      <label className="block text-xs font-bold uppercase tracking-wider opacity-90 text-brand-black">Valor Total de Venda</label>
+                      <label className="block text-[10px] font-bold uppercase tracking-wider opacity-90 text-brand-black">Valor Total de Venda</label>
                       <span className="text-xs bg-brand-primary/80 px-2 py-1 rounded text-brand-black font-mono border border-brand-primary">
                         Markup: {markupMultiplier.toFixed(4)}x
                       </span>
@@ -2193,7 +2193,7 @@ export default function App() {
                     </div>
                     <div className="w-full">
                       <div className="flex flex-col gap-1 bg-zinc-800 rounded-lg p-1">
-                        <label className="text-[10px] font-bold text-slate-300 uppercase tracking-wide px-1">
+                        <label className="text-[9px] font-bold text-slate-300 uppercase tracking-wide px-1">
                           {negotiationResults?.label || "Resultado Sugerido"}
                         </label>
                         <div className="py-2 px-3 text-right font-mono text-amber-400 font-bold text-lg">
@@ -2763,7 +2763,7 @@ export default function App() {
             </div>
             <div className="p-6 space-y-4">
               <div className="space-y-1 relative">
-                <label className="text-xs font-bold text-slate-300 uppercase tracking-wide">Descrição do Produto</label>
+                <label className="text-[10px] font-bold text-slate-300 uppercase tracking-wide">Descrição do Produto</label>
                 <input 
                   type="text"
                   value={productName}
@@ -2813,7 +2813,7 @@ export default function App() {
                 )}
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-300 uppercase tracking-wide">Nome do Representante / Fornecedor</label>
+                <label className="text-[10px] font-bold text-slate-300 uppercase tracking-wide">Nome do Representante / Fornecedor</label>
                 <input 
                   type="text"
                   value={representativeName}
@@ -3089,7 +3089,7 @@ export default function App() {
 
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4 pt-4 border-t border-brand-border">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-300 uppercase">ICMS Compra (%)</label>
+                        <label className="text-[8px] font-bold text-slate-300 uppercase">ICMS Compra (%)</label>
                         <input 
                           type="number"
                           value={editingProduct?.icmsPurchaseRate || 0}
@@ -3098,7 +3098,7 @@ export default function App() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-300 uppercase">ICMS Frete (%)</label>
+                        <label className="text-[8px] font-bold text-slate-300 uppercase">ICMS Frete (%)</label>
                         <input 
                           type="number"
                           value={editingProduct?.icmsFreightRate || 0}
@@ -3107,7 +3107,7 @@ export default function App() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-300 uppercase">ICMS Venda (%)</label>
+                        <label className="text-[8px] font-bold text-slate-300 uppercase">ICMS Venda (%)</label>
                         <input 
                           type="number"
                           value={editingProduct?.icmsSaleRate || 0}
@@ -3116,7 +3116,7 @@ export default function App() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-300 uppercase">PIS Venda (%)</label>
+                        <label className="text-[8px] font-bold text-slate-300 uppercase">PIS Venda (%)</label>
                         <input 
                           type="number"
                           step="0.001"
@@ -3126,7 +3126,7 @@ export default function App() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-300 uppercase">COFINS Venda (%)</label>
+                        <label className="text-[8px] font-bold text-slate-300 uppercase">COFINS Venda (%)</label>
                         <input 
                           type="number"
                           step="0.001"
