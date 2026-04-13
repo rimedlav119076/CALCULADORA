@@ -24,6 +24,9 @@ function getMP() {
     if (accessToken === 'MERCADO_PAGO_ACCESS_TOKEN' || accessToken === 'YOUR_ACCESS_TOKEN') {
       throw new Error('O valor da chave MERCADO_PAGO_ACCESS_TOKEN parece ser um texto de exemplo. Você deve colar o seu Token de Acesso real (que começa com APP_USR-).');
     }
+    if (!accessToken.startsWith('APP_USR-')) {
+      console.warn('AVISO: O Token de Acesso do Mercado Pago geralmente começa com "APP_USR-". Verifique se você copiou o token de PRODUÇÃO corretamente.');
+    }
     mpClient = new MercadoPagoConfig({ accessToken });
   }
   return mpClient;
