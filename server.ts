@@ -84,10 +84,20 @@ app.use(express.json());
 
 // Health check route
 app.get('/api/health', (req, res) => {
+  const serviceAccountVar = process.env.FIREBASE_SERVICE_ACCOUNT;
+  
+  console.log('HEALTH CHECK DIAGNOSTIC:');
+  console.log('- FIREBASE_SERVICE_ACCOUNT exists?', !!serviceAccountVar);
+  if (serviceAccountVar) {
+    console.log('- FIREBASE_SERVICE_ACCOUNT length:', serviceAccountVar.length);
+    console.log('- FIREBASE_SERVICE_ACCOUNT starts with {?', serviceAccountVar.trim().startsWith('{'));
+  }
+
   res.json({ 
     status: 'ok', 
     env: process.env.NODE_ENV,
     hasMpToken: !!process.env.MERCADO_PAGO_ACCESS_TOKEN,
+    hasFirebaseKey: !!serviceAccountVar,
     timestamp: new Date().toISOString()
   });
 });
