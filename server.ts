@@ -44,6 +44,12 @@ function getDb() {
     if (!admin.apps.length) {
       const serviceAccountVar = process.env.FIREBASE_SERVICE_ACCOUNT;
       
+      console.log('DIAGNOSTIC: FIREBASE_SERVICE_ACCOUNT exists?', !!serviceAccountVar);
+      if (serviceAccountVar) {
+        console.log('DIAGNOSTIC: FIREBASE_SERVICE_ACCOUNT length:', serviceAccountVar.length);
+        console.log('DIAGNOSTIC: FIREBASE_SERVICE_ACCOUNT starts with {?', serviceAccountVar.trim().startsWith('{'));
+      }
+
       if (serviceAccountVar) {
         try {
           const serviceAccount = JSON.parse(serviceAccountVar);
