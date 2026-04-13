@@ -158,6 +158,11 @@ app.post('/api/create-preference', async (req, res) => {
       },
     });
 
+    console.log('SUCCESS: Preference Created!');
+    console.log('Preference ID:', result.id);
+    console.log('Init Point:', result.init_point);
+    console.log('Payer Email:', email);
+
     res.json({ id: result.id, init_point: result.init_point });
   } catch (error: any) {
     console.error('Mercado Pago Preference Error:', error);
