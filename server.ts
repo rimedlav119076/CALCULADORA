@@ -42,15 +42,34 @@ function getDb() {
   
   try {
     if (!admin.apps.length) {
-      admin.initializeApp({
-        projectId: 'gen-lang-client-0624434095'
-      });
+      const serviceAccountVar = process.env.FIREBASE_SERVICE_ACCOUNT;
+      
+      if (serviceAccountVar) {
+        try {
+          const serviceAccount = JSON.parse(serviceAccountVar);
+          admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount)
+          });
+          console.log('Firebase Admin initialized using Service Account from environment variable');
+        } catch (parseError) {
+          console.error('Error parsing FIREBASE_SERVICE_ACCOUNT JSON:', parseError);
+          // Fallback to default init if parsing fails
+          admin.initializeApp({
+            projectId: 'gen-lang-client-0624434095'
+          });
+        }
+      } else {
+        // Default initialization for environments with Application Default Credentials (like Cloud Run)
+        admin.initializeApp({
+          projectId: 'gen-lang-client-0624434095'
+        });
+        console.log('Firebase Admin initialized using default credentials (Project ID)');
+      }
     }
     db = getFirestore('ai-studio-c4d6b3fe-53ca-4e86-923e-a0918eb8fade');
     return db;
   } catch (error) {
     console.error('CRITICAL: Firebase Admin Init Error:', error);
-    // Return a mock or null to prevent total crash if payment is the goal
     return null;
   }
 }
