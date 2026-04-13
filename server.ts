@@ -44,32 +44,24 @@ function getDb() {
     if (!admin.apps.length) {
       const serviceAccountVar = process.env.FIREBASE_SERVICE_ACCOUNT;
       
-      console.log('DIAGNOSTIC: FIREBASE_SERVICE_ACCOUNT exists?', !!serviceAccountVar);
-      if (serviceAccountVar) {
-        console.log('DIAGNOSTIC: FIREBASE_SERVICE_ACCOUNT length:', serviceAccountVar.length);
-        console.log('DIAGNOSTIC: FIREBASE_SERVICE_ACCOUNT starts with {?', serviceAccountVar.trim().startsWith('{'));
-      }
-
       if (serviceAccountVar) {
         try {
           const serviceAccount = JSON.parse(serviceAccountVar);
           admin.initializeApp({
             credential: admin.credential.cert(serviceAccount)
           });
-          console.log('Firebase Admin initialized using Service Account from environment variable');
+          console.log('Firebase Admin initialized using Service Account');
         } catch (parseError) {
           console.error('Error parsing FIREBASE_SERVICE_ACCOUNT JSON:', parseError);
-          // Fallback to default init if parsing fails
           admin.initializeApp({
             projectId: 'gen-lang-client-0624434095'
           });
         }
       } else {
-        // Default initialization for environments with Application Default Credentials (like Cloud Run)
         admin.initializeApp({
           projectId: 'gen-lang-client-0624434095'
         });
-        console.log('Firebase Admin initialized using default credentials (Project ID)');
+        console.log('Firebase Admin initialized using default credentials');
       }
     }
     db = getFirestore('ai-studio-c4d6b3fe-53ca-4e86-923e-a0918eb8fade');
@@ -84,20 +76,11 @@ app.use(express.json());
 
 // Health check route
 app.get('/api/health', (req, res) => {
-  const serviceAccountVar = process.env.FIREBASE_SERVICE_ACCOUNT;
-  
-  console.log('HEALTH CHECK DIAGNOSTIC:');
-  console.log('- FIREBASE_SERVICE_ACCOUNT exists?', !!serviceAccountVar);
-  if (serviceAccountVar) {
-    console.log('- FIREBASE_SERVICE_ACCOUNT length:', serviceAccountVar.length);
-    console.log('- FIREBASE_SERVICE_ACCOUNT starts with {?', serviceAccountVar.trim().startsWith('{'));
-  }
-
   res.json({ 
     status: 'ok', 
     env: process.env.NODE_ENV,
     hasMpToken: !!process.env.MERCADO_PAGO_ACCESS_TOKEN,
-    hasFirebaseKey: !!serviceAccountVar,
+    hasFirebaseKey: !!process.env.FIREBASE_SERVICE_ACCOUNT,
     timestamp: new Date().toISOString()
   });
 });
