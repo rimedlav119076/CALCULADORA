@@ -52,5 +52,11 @@
     "title": "Resetar",
     "description": "Limpa todos os campos da calculadora atual para iniciar uma nova simulação do zero.",
     "icon": "RotateCcw"
+  },
+  {
+    "id": "assinatura-pro",
+    "title": "Aviso de Assinatura (PRO)",
+    "description": "Usuários PRO recebem um aviso discreto ao acessar o sistema informando quantos dias faltam para o vencimento da assinatura, facilitando o planejamento da renovação.",
+    "icon": "Calendar"
   }
 ]

@@ -102,26 +102,36 @@ app.post('/api/webhook', async (req, res) => {
         const paymentDetails = await payment.get({ id: paymentId });
 
         if (paymentDetails.status === 'approved') {
-          const userId = paymentDetails.external_reference;
+          // external_reference is "userId:planType"
+          const ref = paymentDetails.external_reference;
           
-    if (userId) {
-      try {
-        const firestore = getDb();
-        if (firestore) {
-          await firestore.collection('users').doc(userId).update({
-            plan: 'PRO',
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-            paymentId: paymentId,
-            paymentMethod: paymentDetails.payment_method_id
-          });
-          console.log(`User ${userId} upgraded to PRO via Mercado Pago payment ${paymentId}`);
-        } else {
-          console.error('Could not update user: Firestore not initialized');
-        }
-      } catch (dbError) {
-        console.error('Database update error after payment:', dbError);
-      }
-    }
+          if (ref) {
+            const [userId, planType] = ref.split(':');
+            
+            try {
+              const firestore = getDb();
+              if (firestore) {
+                // Calculate expiration date
+                const days = planType === 'annual' ? 365 : 30;
+                const expiresAt = new Date();
+                expiresAt.setDate(expiresAt.getDate() + days);
+
+                await firestore.collection('users').doc(userId).update({
+                  plan: 'PRO',
+                  expiresAt: admin.firestore.Timestamp.fromDate(expiresAt),
+                  updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                  paymentId: paymentId,
+                  paymentMethod: paymentDetails.payment_method_id,
+                  planType: planType || 'monthly'
+                });
+                console.log(`User ${userId} upgraded to PRO (${planType}) until ${expiresAt.toISOString()}`);
+              } else {
+                console.error('Could not update user: Firestore not initialized');
+              }
+            } catch (dbError) {
+              console.error('Database update error after payment:', dbError);
+            }
+          }
         }
       } catch (error) {
         console.error('Error processing Mercado Pago payment:', error);
@@ -151,6 +161,9 @@ app.post('/api/create-preference', async (req, res) => {
     const host = req.headers.host;
     const baseUrl = process.env.APP_URL || `${protocol}://${host}`;
     
+    // Determine plan type from title or price
+    const planType = price > 100 ? 'annual' : 'monthly';
+
     const result = await preference.create({
       body: {
         items: [
@@ -165,7 +178,7 @@ app.post('/api/create-preference', async (req, res) => {
         payer: {
           email: email,
         },
-        external_reference: userId,
+        external_reference: `${userId}:${planType}`,
         back_urls: {
           success: `${baseUrl}/?payment=success`,
           failure: `${baseUrl}/?payment=failure`,

@@ -86,7 +86,8 @@ const ManualIcon = ({ name, className }: { name: string, className?: string }) =
     History,
     FileUp,
     Download,
-    RotateCcw
+    RotateCcw,
+    Calendar
   };
   const Icon = icons[name] || HelpCircle;
   return <Icon className={className} />;
@@ -147,6 +148,50 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     return this.props.children;
   }
 }
+
+// Subscription Alert Component
+const SubscriptionAlert = React.memo(({ 
+  days, 
+  onClose 
+}: { 
+  days: number, 
+  onClose: () => void 
+}) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 5000);
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
+
+  return (
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-top duration-500">
+      <div className="bg-brand-primary text-brand-black px-4 py-2 rounded-full shadow-2xl flex items-center gap-3 border border-brand-primary/20">
+        <div className="bg-brand-black/10 p-1 rounded-full">
+          <Calendar className="w-4 h-4" />
+        </div>
+        <p className="text-[11px] font-bold uppercase tracking-tight">
+          Sua assinatura PRO vence em <span className="underline">{days} {days === 1 ? 'dia' : 'dias'}</span>. Renove agora!
+        </p>
+        <button 
+          onClick={onClose}
+          className="hover:bg-brand-black/10 p-1 rounded-full transition-colors"
+        >
+          <X className="w-3 h-3" />
+        </button>
+      </div>
+    </div>
+  );
+});
+
+SubscriptionAlert.displayName = 'SubscriptionAlert';
 
 // Input Component - Memoized to prevent unnecessary re-renders
 const NumberInput = React.memo(({ 
@@ -717,6 +762,7 @@ export default function App() {
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
   const [isManualAdminModalOpen, setIsManualAdminModalOpen] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
+  const [subscriptionAlert, setSubscriptionAlert] = useState<{ isOpen: boolean, days: number }>({ isOpen: false, days: 0 });
 
   // State - Save Modal
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
@@ -779,7 +825,6 @@ export default function App() {
     introTitle: "Bem-vindo!",
     introContent: "Este guia rápido ajudará você a entender todas as ferramentas disponíveis no aplicativo para otimizar a precificação dos seus produtos.",
     items: manualData,
-    contactTitle: "Dúvidas ou Sugestões?",
     contactContent: "Estamos sempre buscando melhorar! Se você tiver alguma pergunta sobre os cálculos ou sugestões de novas funcionalidades, entre em contato conosco.",
     supportEmail: "adm.valdemir@gmail.com"
   });
@@ -839,7 +884,33 @@ export default function App() {
           
           if (docSnap.exists()) {
             const userData = docSnap.data();
-            setUserPlan(userData.plan || 'FREE');
+            
+            // Expiration Logic
+            const now = new Date();
+            const expiresAt = userData.expiresAt?.toDate();
+            
+            if (expiresAt && expiresAt < now && userData.plan === 'PRO') {
+              // Plan expired! Update Firestore and local state
+              setUserPlan('FREE');
+              updateDoc(userDocRef, { 
+                plan: 'FREE',
+                expiredAt: Timestamp.now() 
+              }).catch(err => console.error("Error downgrading expired user:", err));
+              
+              showToast("Sua assinatura PRO expirou. Retornando ao plano gratuito.", "info");
+            } else {
+              setUserPlan(userData.plan || 'FREE');
+              
+              // Show expiration alert if PRO and not the admin
+              if (userData.plan === 'PRO' && currentUser.email !== 'adm.valdemir@gmail.com' && expiresAt) {
+                const diffTime = expiresAt.getTime() - now.getTime();
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays > 0 && diffDays <= 5) {
+                  setSubscriptionAlert({ isOpen: true, days: diffDays });
+                }
+              }
+            }
           } else {
             // Create user doc if not exists
             setDoc(userDocRef, {
@@ -1358,10 +1429,29 @@ export default function App() {
     const unsubscribe = onSnapshot(manualDocRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
+        let items = data.items || manualData;
+        
+        // Ensure "assinatura-pro" is always present if for some reason it's missing from the DB
+        const hasAssinaturaPro = items.some((item: any) => item.id === 'assinatura-pro');
+        if (!hasAssinaturaPro) {
+          const proItem = manualData.find(i => i.id === 'assinatura-pro') || {
+            "id": "assinatura-pro",
+            "title": "Aviso de Assinatura (PRO)",
+            "description": "Usuários PRO recebem um aviso discreto ao acessar o sistema informando quantos dias faltam para o vencimento da assinatura, facilitando o planejamento da renovação.",
+            "icon": "Calendar"
+          };
+          items = [...items, proItem];
+          
+          // If admin, auto-update Firestore to persist for everyone
+          if (isAdmin) {
+            updateDoc(manualDocRef, { items }).catch(err => console.error("Error auto-updating manual:", err));
+          }
+        }
+
         setManualConfig({
           introTitle: data.introTitle || "Bem-vindo!",
           introContent: data.introContent || "Este guia rápido ajudará você a entender todas as ferramentas disponíveis no aplicativo para otimizar a precificação dos seus produtos.",
-          items: data.items || manualData,
+          items,
           contactTitle: data.contactTitle || "Dúvidas ou Sugestões?",
           contactContent: data.contactContent || "Estamos sempre buscando melhorar! Se você tiver alguma pergunta sobre os cálculos ou sugestões de novas funcionalidades, entre em contato conosco.",
           supportEmail: data.supportEmail || "adm.valdemir@gmail.com"
@@ -2360,6 +2450,14 @@ export default function App() {
           </div>
         </div>
       )}
+      {/* Subscription Alert */}
+      {subscriptionAlert.isOpen && (
+        <SubscriptionAlert 
+          days={subscriptionAlert.days} 
+          onClose={() => setSubscriptionAlert({ ...subscriptionAlert, isOpen: false })} 
+        />
+      )}
+
       {/* Upgrade Modal */}
       {isUpgradeModalOpen && (
         <div className="fixed inset-0 bg-brand-black/80 backdrop-blur-md flex items-center justify-center p-4 z-[110] animate-in fade-in duration-300">
