@@ -1870,30 +1870,32 @@ export default function App() {
                 <div className="h-1 w-12 bg-brand-primary rounded-full mt-1 hidden sm:block"></div>
               </div>
               
-              {user ? (
-                <div className="flex items-center gap-2 bg-brand-black px-3 py-1.5 rounded-full border border-brand-border">
-                  {userPlan === 'PRO' ? (
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-brand-primary rounded-md border border-brand-primary">
-                      <Package className="w-3 h-3 text-brand-black" />
-                      <span className="text-[10px] font-black text-brand-black uppercase tracking-tighter">PRO</span>
-                    </div>
-                  ) : (
-                    <button 
-                      onClick={() => setIsUpgradeModalOpen(true)}
-                      className="flex items-center gap-1.5 bg-brand-primary hover:bg-brand-primary-hover text-brand-black px-2.5 py-1 rounded-md text-[10px] font-black transition-all active:scale-95 animate-pulse"
-                    >
-                      <Package className="w-3 h-3" />
-                      SEJA PRO
-                    </button>
-                  )}
-                  <button 
-                    onClick={() => setIsManualModalOpen(true)}
-                    className="flex items-center gap-1.5 bg-brand-muted hover:bg-brand-muted/80 text-white px-2.5 py-1 rounded-md text-[10px] font-black transition-all active:scale-95 border border-brand-border"
-                    title="Manual do Usuário"
-                  >
-                    <HelpCircle className="w-3 h-3 text-brand-primary" />
-                    MANUAL
-                  </button>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setIsManualModalOpen(true)}
+                  className="flex items-center gap-1.5 bg-brand-muted hover:bg-brand-muted/80 text-white px-3 py-2 rounded-lg text-[10px] font-black transition-all active:scale-95 border border-brand-border"
+                  title="Manual do Usuário"
+                >
+                  <HelpCircle className="w-4 h-4 text-brand-primary" />
+                  MANUAL
+                </button>
+
+                {user ? (
+                  <div className="flex items-center gap-2 bg-brand-black px-3 py-1.5 rounded-full border border-brand-border">
+                    {userPlan === 'PRO' ? (
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 bg-brand-primary rounded-md border border-brand-primary">
+                        <Package className="w-3 h-3 text-brand-black" />
+                        <span className="text-[10px] font-black text-brand-black uppercase tracking-tighter">PRO</span>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={() => setIsUpgradeModalOpen(true)}
+                        className="flex items-center gap-1.5 bg-brand-primary hover:bg-brand-primary-hover text-brand-black px-2.5 py-1 rounded-md text-[10px] font-black transition-all active:scale-95 animate-pulse"
+                      >
+                        <Package className="w-3 h-3" />
+                        SEJA PRO
+                      </button>
+                    )}
 
                   {isAdmin && (
                     <button 
@@ -1934,8 +1936,9 @@ export default function App() {
                 </button>
               )}
             </div>
+          </div>
 
-            {/* Bottom Row: Navigation Actions */}
+          {/* Bottom Row: Navigation Actions */}
             <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 justify-center sm:justify-end w-full">
               <button 
                 onClick={() => requirePro(() => setIsDashboardOpen(!isDashboardOpen))}
