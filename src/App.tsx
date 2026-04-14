@@ -226,9 +226,9 @@ const NumberInput = React.memo(({
 
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
-      <label className={`text-[8px] sm:text-[9px] font-bold uppercase tracking-wide ${labelClassName}`}>{label}</label>
-      <div className={`relative flex items-center bg-white border border-zinc-300 rounded-md shadow-sm focus-within:ring-2 focus-within:ring-amber-500 focus-within:border-amber-500 ${disabled ? 'bg-zinc-100 opacity-80' : ''}`}>
-        {prefix && <span className="pl-2 sm:pl-3 text-slate-400 text-[10px] sm:text-sm font-medium">{prefix}</span>}
+      {label && <label className={`text-[8px] sm:text-[9px] font-bold uppercase tracking-wide ${labelClassName}`}>{label}</label>}
+      <div className={`relative flex items-center bg-brand-black border border-brand-border rounded-lg shadow-sm focus-within:ring-2 focus-within:ring-brand-primary focus-within:border-brand-primary ${disabled ? 'bg-brand-muted opacity-80' : ''}`}>
+        {prefix && <span className="pl-2 sm:pl-3 text-slate-500 text-[10px] sm:text-sm font-medium">{prefix}</span>}
         <input
           type="text"
           inputMode="decimal"
@@ -239,10 +239,10 @@ const NumberInput = React.memo(({
           onFocus={handleFocus}
           onBlur={handleBlur}
           disabled={disabled}
-          className="w-full py-1.5 sm:py-2 px-2 sm:px-3 text-right outline-none bg-transparent font-mono text-zinc-800 font-medium text-[11px] sm:text-xs"
+          className="w-full py-1.5 sm:py-2 px-2 sm:px-3 text-right outline-none bg-transparent font-mono text-slate-100 font-medium text-[11px] sm:text-xs"
           placeholder={placeholder}
         />
-        {suffix && <span className="pr-2 sm:pr-3 text-slate-400 text-[10px] sm:text-sm font-medium">{suffix}</span>}
+        {suffix && <span className="pr-2 sm:pr-3 text-slate-500 text-[10px] sm:text-sm font-medium">{suffix}</span>}
       </div>
     </div>
   );
@@ -267,19 +267,18 @@ const PercentInputRow = React.memo(({
   const calculatedValue = useMemo(() => baseValue * (percent / 100), [baseValue, percent]);
 
   return (
-    <div className="grid grid-cols-2 gap-1 sm:gap-2">
-      <div>
+    <div className="flex flex-col gap-1">
+      <label className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wide text-slate-300 px-1">{label}</label>
+      <div className="grid grid-cols-2 gap-1 sm:gap-2">
         <NumberInput 
-          label={label} 
+          label="" 
           value={percent} 
           onChange={onChange} 
           prefix="" 
           suffix="%" 
         />
-      </div>
-      <div className="flex flex-col">
         <NumberInput 
-          label="Valor Calc." 
+          label="" 
           value={calculatedValue} 
           onChange={onValueChange}
           disabled={!onValueChange} 
@@ -506,6 +505,8 @@ const SettingsModal = ({
   const [localSettings, setLocalSettings] = useState<any>({
     defaultIcmsPurchaseRate: 0,
     defaultIcmsFreightRate: 0,
+    defaultPisPurchaseRate: 0,
+    defaultCofinsPurchaseRate: 0,
     defaultIcmsSaleRate: 0,
     defaultPisSaleRate: 0.165,
     defaultCofinsSaleRate: 0.76,
@@ -592,6 +593,26 @@ const SettingsModal = ({
                     type="number" 
                     value={localSettings.defaultIcmsFreightRate} 
                     onChange={(e) => setLocalSettings({ ...localSettings, defaultIcmsFreightRate: Number(e.target.value) })}
+                    className="w-full bg-brand-black border border-brand-border rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-brand-primary outline-none text-slate-100"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-slate-300 uppercase">PIS Compra (%)</label>
+                  <input 
+                    type="number" 
+                    step="0.001"
+                    value={localSettings.defaultPisPurchaseRate} 
+                    onChange={(e) => setLocalSettings({ ...localSettings, defaultPisPurchaseRate: Number(e.target.value) })}
+                    className="w-full bg-brand-black border border-brand-border rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-brand-primary outline-none text-slate-100"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-slate-300 uppercase">COFINS Compra (%)</label>
+                  <input 
+                    type="number" 
+                    step="0.001"
+                    value={localSettings.defaultCofinsPurchaseRate} 
+                    onChange={(e) => setLocalSettings({ ...localSettings, defaultCofinsPurchaseRate: Number(e.target.value) })}
                     className="w-full bg-brand-black border border-brand-border rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-brand-primary outline-none text-slate-100"
                   />
                 </div>
@@ -734,6 +755,8 @@ export default function App() {
   // State - Tax Credits (Purchase)
   const [icmsPurchaseRate, setIcmsPurchaseRate] = useState(0); // %
   const [icmsFreightRate, setIcmsFreightRate] = useState(0); // %
+  const [pisPurchaseRate, setPisPurchaseRate] = useState(0); // %
+  const [cofinsPurchaseRate, setCofinsPurchaseRate] = useState(0); // %
 
   // State - Sale Markup
   const [icmsSaleRate, setIcmsSaleRate] = useState(0); // %
@@ -979,19 +1002,25 @@ export default function App() {
 
   // Memoized Calculations
   // This is significantly more performant as it avoids cascading state updates
-  const { totalCost, icmsCreditValue, realCost } = useMemo(() => {
+  const { totalCost, icmsCreditValue, pisCreditValue, cofinsCreditValue, totalCreditValue, realCost } = useMemo(() => {
     const cost = purchasePrice + freight + otherExpenses;
-    const creditProduct = purchasePrice * (icmsPurchaseRate / 100);
-    const creditFreight = freight * (icmsFreightRate / 100);
-    const totalCredit = creditProduct + creditFreight;
+    
+    const creditIcms = (purchasePrice * (icmsPurchaseRate / 100)) + (freight * (icmsFreightRate / 100));
+    const creditPis = (purchasePrice * (pisPurchaseRate / 100));
+    const creditCofins = (purchasePrice * (cofinsPurchaseRate / 100));
+    
+    const totalCredit = creditIcms + creditPis + creditCofins;
     const rCost = cost - totalCredit;
 
     return {
       totalCost: cost,
-      icmsCreditValue: totalCredit,
+      icmsCreditValue: creditIcms,
+      pisCreditValue: creditPis,
+      cofinsCreditValue: creditCofins,
+      totalCreditValue: totalCredit,
       realCost: rCost
     };
-  }, [purchasePrice, freight, otherExpenses, icmsPurchaseRate, icmsFreightRate]);
+  }, [purchasePrice, freight, otherExpenses, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate]);
 
   const { salesPrice, markupMultiplier, deductionsRate } = useMemo(() => {
     const percentageDeductions = icmsSaleRate + pisSaleRate + cofinsSaleRate + commissionRate + profitMargin;
@@ -1024,6 +1053,8 @@ export default function App() {
 
     const ip = icmsPurchaseRate / 100;
     const ifr = icmsFreightRate / 100;
+    const pp = pisPurchaseRate / 100;
+    const cp = cofinsPurchaseRate / 100;
     const is1 = icmsSaleRate / 100;
     const p = pisSaleRate / 100;
     const cf = cofinsSaleRate / 100;
@@ -1034,7 +1065,7 @@ export default function App() {
     // Focus: Negotiation with supplier (Calculate Ideal Purchase Price)
     if (targetSalesPrice <= salesPrice) {
       const numerator = targetSalesPrice * (1 - (is1 + p + cf + c + m)) - saleExpensesValue - freight * (1 - ifr) - otherExpenses;
-      const denominator = 1 - ip;
+      const denominator = 1 - ip - pp - cp;
       const result = denominator > 0 ? Math.max(0, numerator / denominator) : 0;
       
       return {
@@ -1060,7 +1091,7 @@ export default function App() {
         value: newMarginPercent
       };
     }
-  }, [targetSalesPrice, salesPrice, realCost, freight, otherExpenses, saleExpensesValue, icmsPurchaseRate, icmsFreightRate, icmsSaleRate, pisSaleRate, cofinsSaleRate, commissionRate, profitMargin]);
+  }, [targetSalesPrice, salesPrice, realCost, freight, otherExpenses, saleExpensesValue, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate, icmsSaleRate, pisSaleRate, cofinsSaleRate, commissionRate, profitMargin]);
 
   const handleSaleExpensesRateChange = useCallback((newRate: number) => {
     const otherRates = icmsSaleRate + pisSaleRate + cofinsSaleRate + commissionRate + profitMargin;
@@ -1093,6 +1124,8 @@ export default function App() {
     setOtherExpenses(0);
     setIcmsPurchaseRate(userSettings?.defaultIcmsPurchaseRate || 0);
     setIcmsFreightRate(userSettings?.defaultIcmsFreightRate || 0);
+    setPisPurchaseRate(userSettings?.defaultPisPurchaseRate || 0);
+    setCofinsPurchaseRate(userSettings?.defaultCofinsPurchaseRate || 0);
     setIcmsSaleRate(userSettings?.defaultIcmsSaleRate || 0);
     setPisSaleRate(userSettings?.defaultPisSaleRate || 0.165);
     setCofinsSaleRate(userSettings?.defaultCofinsSaleRate || 0.76);
@@ -1152,7 +1185,9 @@ export default function App() {
       ['Outras Despesas (R$)', '', formatCurrency(otherExpenses)],
       ['Crédito ICMS Compra (%)', `${icmsPurchaseRate.toFixed(2)}%`, formatCurrency(purchasePrice * (icmsPurchaseRate / 100))],
       ['Crédito ICMS Frete (%)', `${icmsFreightRate.toFixed(2)}%`, formatCurrency(freight * (icmsFreightRate / 100))],
-      ['VALOR DO CRÉDITO ICMS (R$)', '', formatCurrency(icmsCreditValue)],
+      ['Crédito PIS Compra (%)', `${pisPurchaseRate.toFixed(3)}%`, formatCurrency(purchasePrice * (pisPurchaseRate / 100))],
+      ['Crédito COFINS Compra (%)', `${cofinsPurchaseRate.toFixed(3)}%`, formatCurrency(purchasePrice * (cofinsPurchaseRate / 100))],
+      ['VALOR TOTAL DOS CRÉDITOS (R$)', '', formatCurrency(totalCreditValue)],
       ['CUSTO REAL DO PRODUTO (R$)', '', formatCurrency(realCost)],
     ];
 
@@ -1229,7 +1264,7 @@ export default function App() {
     });
 
     doc.save(`analise-${productName || 'calculo'}-${dateStr.replace(/\//g, '-')}.pdf`);
-  }, [salesPrice, realCost, icmsSaleRate, pisSaleRate, cofinsSaleRate, commissionRate, saleExpensesValue, profitMargin, purchasePrice, freight, otherExpenses, icmsCreditValue, markupMultiplier, icmsPurchaseRate, icmsFreightRate, expensesRate, productName, representativeName]);
+  }, [salesPrice, realCost, icmsSaleRate, pisSaleRate, cofinsSaleRate, commissionRate, saleExpensesValue, profitMargin, purchasePrice, freight, otherExpenses, totalCreditValue, markupMultiplier, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate, expensesRate, productName, representativeName]);
 
   const handleExportExcel = useCallback(() => {
     const dateStr = new Date().toLocaleDateString('pt-BR');
@@ -1248,7 +1283,9 @@ export default function App() {
       ['Outras Despesas', '', otherExpenses],
       ['Crédito ICMS Compra (%)', icmsPurchaseRate / 100, purchasePrice * (icmsPurchaseRate / 100)],
       ['Crédito ICMS Frete (%)', icmsFreightRate / 100, freight * (icmsFreightRate / 100)],
-      ['Valor Crédito ICMS', '', icmsCreditValue],
+      ['Crédito PIS Compra (%)', pisPurchaseRate / 100, purchasePrice * (pisPurchaseRate / 100)],
+      ['Crédito COFINS Compra (%)', cofinsPurchaseRate / 100, purchasePrice * (cofinsPurchaseRate / 100)],
+      ['Valor Total Créditos', '', totalCreditValue],
       ['CUSTO REAL FINAL', '', realCost],
       [''],
       ['2. FORMAÇÃO DE PREÇO DE VENDA', 'Percentual (%)', 'Valor (R$)'],
@@ -1288,7 +1325,7 @@ export default function App() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Análise");
     XLSX.writeFile(wb, `analise-${productName || 'calculo'}.xlsx`);
-  }, [productName, representativeName, purchasePrice, freight, otherExpenses, icmsPurchaseRate, icmsFreightRate, icmsCreditValue, realCost, icmsSaleRate, pisSaleRate, cofinsSaleRate, expensesRate, commissionRate, profitMargin, markupMultiplier, salesPrice, saleExpensesValue]);
+  }, [productName, representativeName, purchasePrice, freight, otherExpenses, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate, totalCreditValue, realCost, icmsSaleRate, pisSaleRate, cofinsSaleRate, expensesRate, commissionRate, profitMargin, markupMultiplier, salesPrice, saleExpensesValue]);
 
   const handleApplyNegotiation = useCallback(() => {
     if (!negotiationResults || targetSalesPrice <= 0) return;
@@ -1545,6 +1582,8 @@ export default function App() {
             baseCost: purchasePrice,
             icmsPurchaseRate,
             icmsFreightRate,
+            pisPurchaseRate,
+            cofinsPurchaseRate,
             icmsSaleRate,
             pisSaleRate,
             cofinsSaleRate,
@@ -1564,6 +1603,8 @@ export default function App() {
         otherExpenses,
         icmsPurchaseRate,
         icmsFreightRate,
+        pisPurchaseRate,
+        cofinsPurchaseRate,
         icmsSaleRate,
         pisSaleRate,
         cofinsSaleRate,
@@ -1592,7 +1633,7 @@ export default function App() {
     } finally {
       setIsSaving(false);
     }
-  }, [user, productName, selectedProductId, products, representativeName, purchasePrice, freight, otherExpenses, icmsPurchaseRate, icmsFreightRate, icmsSaleRate, saleExpensesValue, commissionRate, profitMargin, salesPrice, realCost, totalCost]);
+  }, [user, productName, selectedProductId, products, representativeName, purchasePrice, freight, otherExpenses, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate, icmsSaleRate, saleExpensesValue, commissionRate, profitMargin, salesPrice, realCost, totalCost, totalCreditValue]);
 
   const filteredCalculations = useMemo(() => {
     if (!historySearch) return savedCalculations;
@@ -1611,6 +1652,8 @@ export default function App() {
     setOtherExpenses(calc.otherExpenses || 0);
     setIcmsPurchaseRate(calc.icmsPurchaseRate || 0);
     setIcmsFreightRate(calc.icmsFreightRate || 0);
+    setPisPurchaseRate(calc.pisPurchaseRate || 0);
+    setCofinsPurchaseRate(calc.cofinsPurchaseRate || 0);
     setIcmsSaleRate(calc.icmsSaleRate || 0);
     setPisSaleRate(calc.pisSaleRate || 0.165);
     setCofinsSaleRate(calc.cofinsSaleRate || 0.76);
@@ -1642,6 +1685,8 @@ export default function App() {
           baseCost: productData.baseCost || 0,
           icmsPurchaseRate: productData.icmsPurchaseRate || 0,
           icmsFreightRate: productData.icmsFreightRate || 0,
+          pisPurchaseRate: productData.pisPurchaseRate || 0,
+          cofinsPurchaseRate: productData.cofinsPurchaseRate || 0,
           icmsSaleRate: productData.icmsSaleRate || 0,
           pisSaleRate: productData.pisSaleRate || 0.165,
           cofinsSaleRate: productData.cofinsSaleRate || 0.76,
@@ -1656,6 +1701,8 @@ export default function App() {
           baseCost: productData.baseCost || 0,
           icmsPurchaseRate: productData.icmsPurchaseRate || 0,
           icmsFreightRate: productData.icmsFreightRate || 0,
+          pisPurchaseRate: productData.pisPurchaseRate || 0,
+          cofinsPurchaseRate: productData.cofinsPurchaseRate || 0,
           icmsSaleRate: productData.icmsSaleRate || 0,
           pisSaleRate: productData.pisSaleRate || 0.165,
           cofinsSaleRate: productData.cofinsSaleRate || 0.76,
@@ -1707,6 +1754,8 @@ export default function App() {
     // Load tax rates if they exist
     if (product.icmsPurchaseRate !== undefined) setIcmsPurchaseRate(product.icmsPurchaseRate);
     if (product.icmsFreightRate !== undefined) setIcmsFreightRate(product.icmsFreightRate);
+    if (product.pisPurchaseRate !== undefined) setPisPurchaseRate(product.pisPurchaseRate);
+    if (product.cofinsPurchaseRate !== undefined) setCofinsPurchaseRate(product.cofinsPurchaseRate);
     if (product.icmsSaleRate !== undefined) setIcmsSaleRate(product.icmsSaleRate);
     if (product.pisSaleRate !== undefined) setPisSaleRate(product.pisSaleRate);
     if (product.cofinsSaleRate !== undefined) setCofinsSaleRate(product.cofinsSaleRate);
@@ -1929,45 +1978,50 @@ export default function App() {
                 />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-slate-300 uppercase tracking-wide px-1">Nome do Produto</label>
-                    <input 
-                      type="text"
-                      value={productName}
-                      onChange={(e) => setProductName(e.target.value)}
-                      placeholder="Ex: Smartphone Samsung"
-                      className="w-full bg-brand-black border border-brand-border rounded-lg py-2 px-3 outline-none focus:ring-2 focus:ring-brand-primary text-slate-100 text-sm transition-all"
-                    />
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wide text-slate-300 px-1">Nome do Produto</label>
+                    <div className="relative flex items-center bg-brand-black border border-brand-border rounded-lg shadow-sm focus-within:ring-2 focus-within:ring-brand-primary focus-within:border-brand-primary">
+                      <input 
+                        type="text"
+                        value={productName}
+                        onChange={(e) => setProductName(e.target.value)}
+                        placeholder="Ex: Smartphone Samsung"
+                        className="w-full py-1.5 sm:py-2 px-2 sm:px-3 outline-none bg-transparent text-slate-100 font-medium text-[11px] sm:text-xs"
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-slate-300 uppercase tracking-wide px-1">Fornecedor / Representante</label>
-                    <input 
-                      type="text"
-                      value={representativeName}
-                      onChange={(e) => setRepresentativeName(e.target.value)}
-                      placeholder="Ex: Distribuidora XYZ"
-                      className="w-full bg-brand-black border border-brand-border rounded-lg py-2 px-3 outline-none focus:ring-2 focus:ring-brand-primary text-slate-100 text-sm transition-all"
-                    />
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wide text-slate-300 px-1">Fornecedor / Representante</label>
+                    <div className="relative flex items-center bg-brand-black border border-brand-border rounded-lg shadow-sm focus-within:ring-2 focus-within:ring-brand-primary focus-within:border-brand-primary">
+                      <input 
+                        type="text"
+                        value={representativeName}
+                        onChange={(e) => setRepresentativeName(e.target.value)}
+                        placeholder="Ex: Distribuidora XYZ"
+                        className="w-full py-1.5 sm:py-2 px-2 sm:px-3 outline-none bg-transparent text-slate-100 font-medium text-[11px] sm:text-xs"
+                      />
+                    </div>
                   </div>
                 </div>
                 
-                <NumberInput 
-                  label="(+) Preço Compra" 
-                  value={purchasePrice} 
-                  onChange={setPurchasePrice} 
-                />
-                
-                <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <NumberInput 
+                    label="(+) Preço Compra" 
+                    value={purchasePrice} 
+                    onChange={setPurchasePrice} 
+                  />
                   <NumberInput 
                     label="(+) Valor Frete" 
                     value={freight} 
                     onChange={setFreight} 
                   />
-                  <NumberInput 
-                    label="(+) Outras Despesas" 
-                    value={otherExpenses} 
-                    onChange={setOtherExpenses} 
-                  />
+                  <div className="sm:col-span-2">
+                    <NumberInput 
+                      label="(+) Outras Despesas" 
+                      value={otherExpenses} 
+                      onChange={setOtherExpenses} 
+                    />
+                  </div>
                 </div>
 
                 <div className="pt-2">
@@ -1987,7 +2041,7 @@ export default function App() {
                   Créditos de Impostos
                 </h2>
                 
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <PercentInputRow 
                     label="(-) ICMS Compra (%)" 
                     percent={icmsPurchaseRate} 
@@ -2000,11 +2054,23 @@ export default function App() {
                     onChange={setIcmsFreightRate} 
                     baseValue={freight}
                   />
+                  <PercentInputRow 
+                    label="(-) PIS Compra (%)" 
+                    percent={pisPurchaseRate} 
+                    onChange={setPisPurchaseRate} 
+                    baseValue={purchasePrice}
+                  />
+                  <PercentInputRow 
+                    label="(-) COFINS Compra (%)" 
+                    percent={cofinsPurchaseRate} 
+                    onChange={setCofinsPurchaseRate} 
+                    baseValue={purchasePrice}
+                  />
                 </div>
 
                 <div className="bg-brand-black p-3 rounded-lg border border-brand-border flex justify-between items-center text-sm text-slate-200">
-                  <span>Total Crédito ICMS:</span>
-                  <span className="font-mono font-bold text-brand-primary">{formatCurrency(icmsCreditValue)}</span>
+                  <span>Total Créditos Impostos:</span>
+                  <span className="font-mono font-bold text-brand-primary">{formatCurrency(totalCreditValue)}</span>
                 </div>
 
                 <div className="pt-2">
@@ -2033,27 +2099,25 @@ export default function App() {
                   Preço Venda (Markup)
                 </h2>
 
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <PercentInputRow 
                     label="ICMS Venda (%)" 
                     percent={icmsSaleRate} 
                     onChange={setIcmsSaleRate} 
                     baseValue={salesPrice}
                   />
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <PercentInputRow 
-                      label="PIS Venda (%)" 
-                      percent={pisSaleRate} 
-                      onChange={setPisSaleRate} 
-                      baseValue={salesPrice}
-                    />
-                    <PercentInputRow 
-                      label="COFINS Venda (%)" 
-                      percent={cofinsSaleRate} 
-                      onChange={setCofinsSaleRate} 
-                      baseValue={salesPrice}
-                    />
-                  </div>
+                  <PercentInputRow 
+                    label="PIS Venda (%)" 
+                    percent={pisSaleRate} 
+                    onChange={setPisSaleRate} 
+                    baseValue={salesPrice}
+                  />
+                  <PercentInputRow 
+                    label="COFINS Venda (%)" 
+                    percent={cofinsSaleRate} 
+                    onChange={setCofinsSaleRate} 
+                    baseValue={salesPrice}
+                  />
                   <PercentInputRow 
                     label="Outras Despesas (%)" 
                     percent={expensesRate} 
@@ -3087,7 +3151,7 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4 pt-4 border-t border-brand-border">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-4 pt-4 border-t border-brand-border">
                       <div className="space-y-1">
                         <label className="text-[8px] font-bold text-slate-300 uppercase">ICMS Compra (%)</label>
                         <input 
@@ -3103,6 +3167,26 @@ export default function App() {
                           type="number"
                           value={editingProduct?.icmsFreightRate || 0}
                           onChange={(e) => setEditingProduct({ ...editingProduct, icmsFreightRate: Number(e.target.value) })}
+                          className="w-full bg-brand-muted border border-brand-border rounded-lg py-1.5 px-3 outline-none focus:ring-2 focus:ring-brand-primary text-sm text-slate-100"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-bold text-slate-300 uppercase">PIS Compra (%)</label>
+                        <input 
+                          type="number"
+                          step="0.001"
+                          value={editingProduct?.pisPurchaseRate || 0}
+                          onChange={(e) => setEditingProduct({ ...editingProduct, pisPurchaseRate: Number(e.target.value) })}
+                          className="w-full bg-brand-muted border border-brand-border rounded-lg py-1.5 px-3 outline-none focus:ring-2 focus:ring-brand-primary text-sm text-slate-100"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-bold text-slate-300 uppercase">COFINS Compra (%)</label>
+                        <input 
+                          type="number"
+                          step="0.001"
+                          value={editingProduct?.cofinsPurchaseRate || 0}
+                          onChange={(e) => setEditingProduct({ ...editingProduct, cofinsPurchaseRate: Number(e.target.value) })}
                           className="w-full bg-brand-muted border border-brand-border rounded-lg py-1.5 px-3 outline-none focus:ring-2 focus:ring-brand-primary text-sm text-slate-100"
                         />
                       </div>
