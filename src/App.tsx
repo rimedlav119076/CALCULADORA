@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { Calculator, DollarSign, Percent, RefreshCw, Info, Download, RotateCcw, LogIn, LogOut, Save, History, CheckCircle2, AlertCircle, Trash2, Calendar, User as UserIcon, Package, Plus, Edit2, Settings, LayoutDashboard, FileUp, X, HelpCircle, Mail, ExternalLink, Search } from 'lucide-react';
+import { Calculator, DollarSign, Percent, RefreshCw, Info, Download, RotateCcw, LogIn, LogOut, Save, History, CheckCircle2, AlertCircle, Trash2, Calendar, User as UserIcon, Package, Plus, Edit2, Settings, LayoutDashboard, FileUp, X, HelpCircle, Mail, ExternalLink, Search, ShieldAlert, Lock, BookOpen, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import manualData from './data/manual.json';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -87,7 +88,9 @@ const ManualIcon = ({ name, className }: { name: string, className?: string }) =
     FileUp,
     Download,
     RotateCcw,
-    Calendar
+    Calendar,
+    Percent,
+    BookOpen
   };
   const Icon = icons[name] || HelpCircle;
   return <Icon className={className} />;
@@ -301,19 +304,23 @@ const PercentInputRow = React.memo(({
   percent, 
   onChange, 
   baseValue,
-  onValueChange
+  onValueChange,
+  className = "",
+  disabled = false
 }: { 
   label: string, 
   percent: number, 
   onChange: (val: number) => void, 
   baseValue: number,
-  onValueChange?: (val: number) => void
+  onValueChange?: (val: number) => void,
+  className?: string,
+  disabled?: boolean
 }) => {
   const calculatedValue = useMemo(() => baseValue * (percent / 100), [baseValue, percent]);
 
   return (
-    <div className="flex flex-col gap-1">
-      <label className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wide text-slate-300 px-1">{label}</label>
+    <div className={`flex flex-col gap-1 ${className}`}>
+      <label className={`text-[8px] sm:text-[9px] font-bold uppercase tracking-wide px-1 ${disabled ? 'text-slate-500' : 'text-slate-300'}`}>{label}</label>
       <div className="grid grid-cols-2 gap-1 sm:gap-2">
         <NumberInput 
           label="" 
@@ -321,14 +328,15 @@ const PercentInputRow = React.memo(({
           onChange={onChange} 
           prefix="" 
           suffix="%" 
+          disabled={disabled}
         />
         <NumberInput 
           label="" 
           value={calculatedValue} 
           onChange={onValueChange}
-          disabled={!onValueChange} 
+          disabled={!onValueChange || disabled} 
           prefix="R$" 
-          className={!onValueChange ? "opacity-80" : ""}
+          className={(!onValueChange || disabled) ? "opacity-80" : ""}
         />
       </div>
     </div>
@@ -371,7 +379,7 @@ const Dashboard = ({ savedCalculations, products, isPro, onUpgrade }: { savedCal
         </div>
         <button 
           onClick={onUpgrade}
-          className="bg-brand-primary hover:bg-brand-primary-hover text-brand-black px-8 py-4 rounded-2xl font-bold transition-all shadow-xl shadow-brand-primary/20 active:scale-95 flex items-center gap-3"
+          className="bg-brand-primary hover:bg-brand-primary-hover text-brand-black px-8 py-4 rounded-2xl font-bold text-[17px] transition-all shadow-xl shadow-brand-primary/20 active:scale-95 flex items-center gap-3"
         >
           <Package className="w-5 h-5" />
           DESBLOQUEAR AGORA
@@ -548,13 +556,20 @@ const SettingsModal = ({
   onUpgrade: () => void;
 }) => {
   const [localSettings, setLocalSettings] = useState<any>({
+    defaultRegimeCompra: 'Real',
+    defaultRegimeVenda: 'Real',
+    defaultSimplesNacionalRate: 0,
     defaultIcmsPurchaseRate: 0,
     defaultIcmsFreightRate: 0,
+    defaultIpi: 0,
     defaultPisPurchaseRate: 0,
     defaultCofinsPurchaseRate: 0,
     defaultIcmsSaleRate: 0,
-    defaultPisSaleRate: 0.165,
-    defaultCofinsSaleRate: 0.76,
+    defaultPisSaleRate: 1.65,
+    defaultCofinsSaleRate: 7.6,
+    defaultIrpjRate: 1.2,
+    defaultCsllRate: 1.08,
+    defaultSaleExpensesRate: 0,
     defaultCommissionRate: 0,
     defaultProfitMargin: 0
   });
@@ -566,39 +581,6 @@ const SettingsModal = ({
   }, [settings, isOpen]);
 
   if (!isOpen) return null;
-
-  if (!isPro) {
-    return (
-      <div className="fixed inset-0 bg-brand-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div className="bg-brand-card rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-brand-border">
-          <div className="bg-brand-black p-6 text-center space-y-4">
-            <div className="bg-brand-primary/20 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto">
-              <Settings className="w-8 h-8 text-brand-primary" />
-            </div>
-            <h3 className="text-xl font-black text-white uppercase tracking-tighter">Configurações PRO</h3>
-            <p className="text-slate-400 text-sm">
-              Defina alíquotas padrão e automatize seus cálculos. Funcionalidade exclusiva para assinantes PRO.
-            </p>
-            <div className="flex flex-col gap-3 pt-4">
-              <button 
-                onClick={onUpgrade}
-                className="w-full bg-brand-primary hover:bg-brand-primary-hover text-brand-black py-3 rounded-xl font-bold transition-all shadow-lg shadow-brand-primary/20 active:scale-95 flex items-center justify-center gap-2"
-              >
-                <Package className="w-4 h-4" />
-                QUERO SER PRO
-              </button>
-              <button 
-                onClick={onClose}
-                className="w-full bg-brand-muted text-slate-400 hover:text-white py-3 rounded-xl font-bold transition-colors"
-              >
-                Voltar
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="fixed inset-0 bg-brand-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
@@ -621,8 +603,46 @@ const SettingsModal = ({
         <div className="p-6 overflow-y-auto space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Créditos de Compra</h3>
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Regime Tributário Padrão</h3>
               <div className="space-y-3">
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-slate-300 uppercase">Venda (Sua Empresa)</label>
+                  <div className="flex gap-2 p-1 bg-brand-black rounded-xl border border-brand-border">
+                    {(['Simples', 'Presumido', 'Real'] as const).map((regime) => (
+                      <button
+                        key={regime}
+                        type="button"
+                        onClick={() => setLocalSettings({ ...localSettings, defaultRegimeVenda: regime })}
+                        className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                          localSettings.defaultRegimeVenda === regime 
+                            ? 'bg-brand-primary text-brand-black' 
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        {regime}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Custos e Créditos de Compra</h3>
+              <div className="space-y-3">
+                {localSettings.defaultRegimeCompra !== 'Simples' && (
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-slate-300 uppercase">IPI Padrão (%)</label>
+                    <input 
+                      type="number" 
+                      value={localSettings.defaultIpi} 
+                      onChange={(e) => setLocalSettings({ ...localSettings, defaultIpi: Number(e.target.value) })}
+                      className="w-full bg-brand-black border border-brand-border rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-brand-primary outline-none text-slate-100"
+                    />
+                  </div>
+                )}
                 <div className="space-y-1">
                   <label className="text-[9px] font-bold text-slate-300 uppercase">ICMS Compra (%)</label>
                   <input 
@@ -665,39 +685,75 @@ const SettingsModal = ({
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Impostos de Venda</h3>
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Deduções de Venda</h3>
               <div className="space-y-3">
-                <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-300 uppercase">ICMS Venda (%)</label>
-                  <input 
-                    type="number" 
-                    value={localSettings.defaultIcmsSaleRate} 
-                    onChange={(e) => setLocalSettings({ ...localSettings, defaultIcmsSaleRate: Number(e.target.value) })}
-                    className="w-full bg-brand-black border border-brand-border rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-brand-primary outline-none text-slate-100"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
+                {localSettings.defaultRegimeVenda === 'Simples' ? (
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-slate-300 uppercase">PIS (%)</label>
+                    <label className="text-[9px] font-bold text-slate-300 uppercase">Simples Nacional (%)</label>
                     <input 
                       type="number" 
-                      step="0.001"
-                      value={localSettings.defaultPisSaleRate} 
-                      onChange={(e) => setLocalSettings({ ...localSettings, defaultPisSaleRate: Number(e.target.value) })}
+                      value={localSettings.defaultSimplesNacionalRate} 
+                      onChange={(e) => setLocalSettings({ ...localSettings, defaultSimplesNacionalRate: Number(e.target.value) })}
                       className="w-full bg-brand-black border border-brand-border rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-brand-primary outline-none text-slate-100"
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-slate-300 uppercase">COFINS (%)</label>
-                    <input 
-                      type="number" 
-                      step="0.001"
-                      value={localSettings.defaultCofinsSaleRate} 
-                      onChange={(e) => setLocalSettings({ ...localSettings, defaultCofinsSaleRate: Number(e.target.value) })}
-                      className="w-full bg-brand-black border border-brand-border rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-brand-primary outline-none text-slate-100"
-                    />
-                  </div>
-                </div>
+                ) : (
+                  <>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-300 uppercase">ICMS Venda (%)</label>
+                      <input 
+                        type="number" 
+                        value={localSettings.defaultIcmsSaleRate} 
+                        onChange={(e) => setLocalSettings({ ...localSettings, defaultIcmsSaleRate: Number(e.target.value) })}
+                        className="w-full bg-brand-black border border-brand-border rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-brand-primary outline-none text-slate-100"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-300 uppercase">PIS (%)</label>
+                        <input 
+                          type="number" 
+                          step="0.001"
+                          value={localSettings.defaultPisSaleRate} 
+                          onChange={(e) => setLocalSettings({ ...localSettings, defaultPisSaleRate: Number(e.target.value) })}
+                          className="w-full bg-brand-black border border-brand-border rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-brand-primary outline-none text-slate-100"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-300 uppercase">COFINS (%)</label>
+                        <input 
+                          type="number" 
+                          step="0.001"
+                          value={localSettings.defaultCofinsSaleRate} 
+                          onChange={(e) => setLocalSettings({ ...localSettings, defaultCofinsSaleRate: Number(e.target.value) })}
+                          className="w-full bg-brand-black border border-brand-border rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-brand-primary outline-none text-slate-100"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-300 uppercase">IRPJ (%)</label>
+                        <input 
+                          type="number" 
+                          step="0.001"
+                          value={localSettings.defaultIrpjRate} 
+                          onChange={(e) => setLocalSettings({ ...localSettings, defaultIrpjRate: Number(e.target.value) })}
+                          className="w-full bg-brand-black border border-brand-border rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-brand-primary outline-none text-slate-100"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-300 uppercase">CSLL (%)</label>
+                        <input 
+                          type="number" 
+                          step="0.001"
+                          value={localSettings.defaultCsllRate} 
+                          onChange={(e) => setLocalSettings({ ...localSettings, defaultCsllRate: Number(e.target.value) })}
+                          className="w-full bg-brand-black border border-brand-border rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-brand-primary outline-none text-slate-100"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -705,6 +761,15 @@ const SettingsModal = ({
           <div className="pt-4 border-t border-brand-border space-y-4">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Comercial</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-1">
+                <label className="text-[9px] font-bold text-slate-300 uppercase">Outras Despesas (%)</label>
+                <input 
+                  type="number" 
+                  value={localSettings.defaultSaleExpensesRate} 
+                  onChange={(e) => setLocalSettings({ ...localSettings, defaultSaleExpensesRate: Number(e.target.value) })}
+                  className="w-full bg-brand-black border border-brand-border rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-brand-primary outline-none text-slate-100"
+                />
+              </div>
               <div className="space-y-1">
                 <label className="text-[9px] font-bold text-slate-300 uppercase">Comissão (%)</label>
                 <input 
@@ -720,26 +785,28 @@ const SettingsModal = ({
                   type="number" 
                   value={localSettings.defaultProfitMargin} 
                   onChange={(e) => setLocalSettings({ ...localSettings, defaultProfitMargin: Number(e.target.value) })}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+                  className="w-full bg-brand-black border border-brand-border rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-brand-primary outline-none text-slate-100"
                 />
               </div>
             </div>
           </div>
         </div>
 
-        <div className="p-6 border-t border-zinc-100 bg-zinc-50 flex gap-3">
+        <div className="p-6 border-t border-brand-border bg-brand-black flex gap-3">
           <button 
             onClick={onClose}
-            className="flex-1 bg-zinc-200 hover:bg-zinc-300 text-zinc-700 py-3 rounded-2xl font-bold text-sm transition-colors"
+            className="flex-1 bg-brand-muted hover:bg-brand-muted/80 text-slate-300 py-3 rounded-xl font-bold text-[17px] transition-colors border border-brand-border"
           >
             Cancelar
           </button>
           <button 
             onClick={() => onSave(localSettings)}
             disabled={isSaving}
-            className="flex-[2] bg-amber-600 hover:bg-amber-500 text-white py-3 rounded-2xl font-bold text-sm transition-all shadow-lg shadow-amber-500/20 active:scale-95 disabled:opacity-50"
+            className="flex-[2] bg-brand-primary hover:bg-brand-primary-hover text-brand-black py-3 rounded-xl font-bold text-[17px] transition-all shadow-lg shadow-brand-primary/20 active:scale-95 flex items-center justify-center gap-2"
           >
-            {isSaving ? 'Salvando...' : 'Salvar Configurações'}
+            {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            SALVAR CONFIGURAÇÕES
+            {!isPro && <span className="bg-amber-500 text-white px-1 rounded-[4px] text-[8px]">PRO</span>}
           </button>
         </div>
       </div>
@@ -752,7 +819,23 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [userPlan, setUserPlan] = useState<'FREE' | 'PRO'>('FREE');
   const isPro = useMemo(() => userPlan === 'PRO', [userPlan]);
-  const isAdmin = useMemo(() => user?.email === 'adm.valdemir@gmail.com', [user]);
+  const AUTHORIZED_EMAILS = useMemo(() => [
+    'adm.valdemir@gmail.com', 
+    'nivor@nivorconsultoria.com.br',
+    // Adicione aqui os e-mails das pessoas que participarão dos testes controlados
+  ], []);
+
+  const isAdmin = useMemo(() => {
+    return user?.email === 'adm.valdemir@gmail.com' || 
+           user?.email === 'nivor@nivorconsultoria.com.br' ||
+           user?.email === 'elisangela@contabens.cnt.br';
+  }, [user]);
+  
+  const isAuthorized = useMemo(() => {
+    if (!user) return false;
+    return AUTHORIZED_EMAILS.includes(user.email || '') || isAdmin;
+  }, [user, AUTHORIZED_EMAILS, isAdmin]);
+
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -794,8 +877,11 @@ export default function App() {
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   // State - Purchase
+  const [regimeCompra, setRegimeCompra] = useState<'Simples' | 'Presumido' | 'Real'>('Real');
   const [purchasePrice, setPurchasePrice] = useState(0);
   const [freight, setFreight] = useState(0);
+  const [ipi, setIpi] = useState(0);
+  const [ipiRate, setIpiRate] = useState(0);
   const [otherExpenses, setOtherExpenses] = useState(0);
   
   // State - Tax Credits (Purchase)
@@ -805,10 +891,15 @@ export default function App() {
   const [cofinsPurchaseRate, setCofinsPurchaseRate] = useState(0); // %
 
   // State - Sale Markup
-  const [icmsSaleRate, setIcmsSaleRate] = useState(0); // %
-  const [pisSaleRate, setPisSaleRate] = useState(0.165); // %
-  const [cofinsSaleRate, setCofinsSaleRate] = useState(0.76); // %
-  const [saleExpensesValue, setSaleExpensesValue] = useState(0); // R$ (Fixed Value)
+  const [regimeVenda, setRegimeVenda] = useState<'Simples' | 'Presumido' | 'Real'>('Real');
+  const [simplesNacionalRate, setSimplesNacionalRate] = useState(0); // % (SN)
+  const [icmsSaleRate, setIcmsSaleRate] = useState(0); // % (i)
+  const [pisSaleRate, setPisSaleRate] = useState(1.65); // % (p)
+  const [cofinsSaleRate, setCofinsSaleRate] = useState(7.6); // % (c)
+  const [irpjRate, setIrpjRate] = useState(1.2); // % (r)
+  const [csllRate, setCsllRate] = useState(1.08); // % (s)
+  const [saleExpensesRate, setSaleExpensesRate] = useState(0); // % (D)
+  const [saleExpensesValue, setSaleExpensesValue] = useState(0); // R$ (Calculated)
   const [commissionRate, setCommissionRate] = useState(0); // %
   const [profitMargin, setProfitMargin] = useState(0); // %
 
@@ -826,9 +917,11 @@ export default function App() {
     introContent: "Este guia rápido ajudará você a entender todas as ferramentas disponíveis no aplicativo para otimizar a precificação dos seus produtos.",
     items: manualData,
     contactContent: "Estamos sempre buscando melhorar! Se você tiver alguma pergunta sobre os cálculos ou sugestões de novas funcionalidades, entre em contato conosco.",
-    supportEmail: "adm.valdemir@gmail.com"
+    supportEmail: "suporte@nivorconsultoria.com.br"
   });
   const [isSavingManual, setIsSavingManual] = useState(false);
+  const [showPurchaseMemo, setShowPurchaseMemo] = useState(false);
+  const [showSalesMemo, setShowSalesMemo] = useState(false);
 
   // Refs
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -867,69 +960,75 @@ export default function App() {
 
   // Auth Listener
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setIsAuthReady(true);
-
-      if (currentUser) {
-        // Ensure user document exists
-        const userDocRef = doc(db, 'users', currentUser.uid);
-        
-        // Listen to user document for plan changes
-        const unsubscribeUser = onSnapshot(userDocRef, (docSnap) => {
-          if (currentUser.email === 'adm.valdemir@gmail.com') {
-            setUserPlan('PRO');
-            return;
-          }
-          
-          if (docSnap.exists()) {
-            const userData = docSnap.data();
-            
-            // Expiration Logic
-            const now = new Date();
-            const expiresAt = userData.expiresAt?.toDate();
-            
-            if (expiresAt && expiresAt < now && userData.plan === 'PRO') {
-              // Plan expired! Update Firestore and local state
-              setUserPlan('FREE');
-              updateDoc(userDocRef, { 
-                plan: 'FREE',
-                expiredAt: Timestamp.now() 
-              }).catch(err => console.error("Error downgrading expired user:", err));
-              
-              showToast("Sua assinatura PRO expirou. Retornando ao plano gratuito.", "info");
-            } else {
-              setUserPlan(userData.plan || 'FREE');
-              
-              // Show expiration alert if PRO and not the admin
-              if (userData.plan === 'PRO' && currentUser.email !== 'adm.valdemir@gmail.com' && expiresAt) {
-                const diffTime = expiresAt.getTime() - now.getTime();
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                
-                if (diffDays > 0 && diffDays <= 5) {
-                  setSubscriptionAlert({ isOpen: true, days: diffDays });
-                }
-              }
-            }
-          } else {
-            // Create user doc if not exists
-            setDoc(userDocRef, {
-              email: currentUser.email,
-              displayName: currentUser.displayName,
-              photoURL: currentUser.photoURL,
-              plan: 'FREE',
-              createdAt: Timestamp.now()
-            });
-          }
-        });
-
-        return () => unsubscribeUser();
-      } else {
-        setUserPlan('FREE');
-      }
     });
     return () => unsubscribe();
   }, []);
+
+  // User Document Listener (Plan, Expiration, Admin)
+  useEffect(() => {
+    if (!user) {
+      setUserPlan('FREE');
+      return;
+    }
+
+    const userDocRef = doc(db, 'users', user.uid);
+    const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+      // Special override for master admin
+      if (isAdmin) {
+        setUserPlan('PRO');
+        return;
+      }
+      
+      if (docSnap.exists()) {
+        const userData = docSnap.data();
+        
+        // Expiration Logic
+        const now = new Date();
+        const expiresAt = userData.expiresAt?.toDate();
+        
+        if (expiresAt && expiresAt < now && userData.plan === 'PRO') {
+          // Plan expired! Update Firestore and local state
+          setUserPlan('FREE');
+          updateDoc(userDocRef, { 
+            plan: 'FREE',
+            expiredAt: Timestamp.now() 
+          }).catch(err => console.error("Error downgrading expired user:", err));
+          
+          showToast("Sua assinatura PRO expirou. Retornando ao plano gratuito.", "info");
+        } else {
+          setUserPlan(userData.plan || 'FREE');
+          
+          // Show expiration alert if PRO and not the admin
+          if (userData.plan === 'PRO' && !isAdmin && expiresAt) {
+            const diffTime = expiresAt.getTime() - now.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays > 0 && diffDays <= 5) {
+              setSubscriptionAlert({ isOpen: true, days: diffDays });
+            }
+          }
+        }
+      } else {
+        // Create user doc if it doesn't exist
+        setDoc(userDocRef, {
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          plan: 'FREE',
+          createdAt: Timestamp.now()
+        }).catch(error => {
+          handleFirestoreError(error, OperationType.WRITE, 'users');
+        });
+      }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, `users/${user.uid}`);
+    });
+
+    return () => unsubscribe();
+  }, [user, showToast]);
 
   // Fetch History
   useEffect(() => {
@@ -951,8 +1050,7 @@ export default function App() {
 
     const q = query(
       collection(db, 'calculations'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where('userId', '==', user.uid)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -983,11 +1081,20 @@ export default function App() {
         
         // Apply defaults if this is a fresh start (no manual values yet)
         // We only do this if the values are currently 0 or default
+        setRegimeCompra(prev => (prev === 'Simples' || !prev) ? (settings.defaultRegimeCompra || 'Real') : prev);
         setIcmsPurchaseRate(prev => prev === 0 ? (settings.defaultIcmsPurchaseRate || 0) : prev);
         setIcmsFreightRate(prev => prev === 0 ? (settings.defaultIcmsFreightRate || 0) : prev);
+        setIpiRate(prev => prev === 0 ? (settings.defaultIpi || 0) : prev);
+        setPisPurchaseRate(prev => prev === 0 ? (settings.defaultPisPurchaseRate || 0) : prev);
+        setCofinsPurchaseRate(prev => prev === 0 ? (settings.defaultCofinsPurchaseRate || 0) : prev);
+        setRegimeVenda(settings.defaultRegimeVenda || 'Real');
+        setSimplesNacionalRate(prev => prev === 0 ? (settings.defaultSimplesNacionalRate || 0) : prev);
         setIcmsSaleRate(prev => prev === 0 ? (settings.defaultIcmsSaleRate || 0) : prev);
-        setPisSaleRate(prev => prev === 0.165 ? (settings.defaultPisSaleRate || 0.165) : prev);
-        setCofinsSaleRate(prev => prev === 0.76 ? (settings.defaultCofinsSaleRate || 0.76) : prev);
+        setPisSaleRate(prev => prev === 1.65 ? (settings.defaultPisSaleRate || 1.65) : prev);
+        setCofinsSaleRate(prev => prev === 7.6 ? (settings.defaultCofinsSaleRate || 7.6) : prev);
+        setIrpjRate(settings.defaultIrpjRate ?? 1.2);
+        setCsllRate(settings.defaultCsllRate ?? 1.08);
+        setSaleExpensesRate(prev => prev === 0 ? (settings.defaultSaleExpensesRate || 0) : prev);
         setCommissionRate(prev => prev === 0 ? (settings.defaultCommissionRate || 0) : prev);
         setProfitMargin(prev => prev === 0 ? (settings.defaultProfitMargin || 0) : prev);
       }
@@ -1072,13 +1179,37 @@ export default function App() {
   }, []);
 
   // Memoized Calculations
-  // This is significantly more performant as it avoids cascading state updates
-  const { totalCost, icmsCreditValue, pisCreditValue, cofinsCreditValue, totalCreditValue, realCost } = useMemo(() => {
-    const cost = purchasePrice + freight + otherExpenses;
+  const { totalCost, icmsCreditValue, pisCreditValue, cofinsCreditValue, totalCreditValue, realCost, pisCofinsCreditBase } = useMemo(() => {
+    // Regra: Custo = Produto + IPI + Frete
+    const cost = purchasePrice + freight + ipi + otherExpenses;
     
-    const creditIcms = (purchasePrice * (icmsPurchaseRate / 100)) + (freight * (icmsFreightRate / 100));
-    const creditPis = (purchasePrice * (pisPurchaseRate / 100));
-    const creditCofins = (purchasePrice * (cofinsPurchaseRate / 100));
+    let creditIcms = 0;
+    let creditPis = 0;
+    let creditCofins = 0;
+    let creditIcmsForBase = 0;
+
+    if (regimeCompra !== 'Simples') {
+      creditIcmsForBase = (purchasePrice * (icmsPurchaseRate / 100)) + (freight * (icmsFreightRate / 100));
+    }
+
+    // Créditos dependem do Regime do Comprador (Venda) e do Fornecedor (Compra)
+    // Se o comprador (user) é Lucro Real, ele tem direito a PIS/COFINS
+    if (regimeVenda === 'Real') {
+      // Créditos PIS/COFINS
+      // Se Fornecedor é Real/Presumido: Subtrai ICMS da base (Tese do Século)
+      // Se Fornecedor é Simples: Não subtrai ICMS da base
+      
+      // Base PIS/COFINS = (Produto + Frete + IPI + Outras) - ICMS Destacado
+      const basePisCofins = cost - creditIcmsForBase;
+      
+      creditPis = basePisCofins * (pisPurchaseRate / 100);
+      creditCofins = basePisCofins * (cofinsPurchaseRate / 100);
+    }
+
+    // Crédito ICMS (Real ou Presumido)
+    if (regimeVenda === 'Real' || regimeVenda === 'Presumido') {
+      creditIcms = (purchasePrice * (icmsPurchaseRate / 100)) + (freight * (icmsFreightRate / 100));
+    }
     
     const totalCredit = creditIcms + creditPis + creditCofins;
     const rCost = cost - totalCredit;
@@ -1089,117 +1220,393 @@ export default function App() {
       pisCreditValue: creditPis,
       cofinsCreditValue: creditCofins,
       totalCreditValue: totalCredit,
-      realCost: rCost
+      realCost: rCost,
+      pisCofinsCreditBase: regimeVenda === 'Real' ? (cost - creditIcmsForBase) : 0
     };
-  }, [purchasePrice, freight, otherExpenses, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate]);
+  }, [purchasePrice, freight, ipi, otherExpenses, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate, regimeCompra, regimeVenda]);
 
   const { salesPrice, markupMultiplier, deductionsRate } = useMemo(() => {
-    const percentageDeductions = icmsSaleRate + pisSaleRate + cofinsSaleRate + commissionRate + profitMargin;
-    const divisor = 1 - (percentageDeductions / 100);
-    const totalBaseCost = realCost + saleExpensesValue;
+    const totalBaseCost = realCost;
+    let price = 0;
+    let percentageDeductions = 0;
+    let markup = 0;
 
-    if (divisor <= 0) {
-      return { salesPrice: 0, markupMultiplier: 0, deductionsRate: percentageDeductions };
+    if (totalBaseCost <= 0) return { salesPrice: 0, markupMultiplier: 0, deductionsRate: 0 };
+
+    if (regimeVenda === 'Simples') {
+      // PV = custo_real / (1 - (simples + despesas + lucro))
+      const totalRates = (simplesNacionalRate + saleExpensesRate + commissionRate + profitMargin) / 100;
+      percentageDeductions = totalRates * 100;
+      if (totalRates < 1) {
+        price = totalBaseCost / (1 - totalRates);
+        markup = 1 / (1 - totalRates);
+      }
+    } else if (regimeVenda === 'Presumido') {
+      // PV = custo_real / (1 - (icms + (1 - icms) * (pis + cofins) + irpj + csll + despesas + lucro))
+      const i = icmsSaleRate / 100;
+      const p = pisSaleRate / 100;
+      const c = cofinsSaleRate / 100;
+      const r = irpjRate / 100;
+      const s = csllRate / 100;
+      const d = (saleExpensesRate + commissionRate) / 100;
+      const m = profitMargin / 100;
+      
+      const denominator = 1 - (i + (1 - i) * (p + c) + r + s + d + m);
+      percentageDeductions = (1 - denominator) * 100;
+      
+      if (denominator > 0) {
+        price = totalBaseCost / denominator;
+        markup = 1 / denominator;
+      }
+    } else if (regimeVenda === 'Real') {
+      // Iterativo conforme nova fórmula fornecida pelo usuário
+      const iRate = icmsSaleRate / 100;
+      const pRate = pisSaleRate / 100;
+      const cRate = cofinsSaleRate / 100;
+      const dRate = (saleExpensesRate + commissionRate) / 100;
+      const mRate = profitMargin / 100;
+      const irRate = irpjRate / 100;
+      const csRate = csllRate / 100;
+      
+      // PV inicial = custo * (1 + despesas + margem)
+      let pv = totalBaseCost * (1 + dRate + mRate);
+      
+      for (let i = 0; i < 100; i++) {
+        const ICMS = pv * iRate;
+        const PIS = (pv * (1 - iRate)) * pRate;
+        const COFINS = (pv * (1 - iRate)) * cRate;
+        
+        const receita_liquida = pv - ICMS;
+        const despesas_valor = pv * dRate;
+        const lucro_antes_ir = receita_liquida - totalBaseCost - despesas_valor - PIS - COFINS;
+        
+        const base_ir = Math.max(lucro_antes_ir, 0);
+        const IRPJ = base_ir * irRate;
+        const CSLL = base_ir * csRate;
+        
+        const lucro_liquido = lucro_antes_ir - IRPJ - CSLL;
+        const margem_atual = pv > 0 ? lucro_liquido / pv : 0;
+        
+        const erro = mRate - margem_atual;
+        
+        const pv_novo = pv * (1 + erro);
+        
+        if (Math.abs(erro) < 0.0001) {
+          pv = pv_novo;
+          break;
+        }
+        pv = pv_novo;
+      }
+      
+      price = pv;
+      markup = totalBaseCost > 0 ? price / totalBaseCost : 0;
+      percentageDeductions = price > 0 ? ((price - totalBaseCost) / price) * 100 : 0;
     }
-
-    const price = totalBaseCost / divisor;
-    const markup = price / (realCost || 1);
-    const expensesRate = price > 0 ? (saleExpensesValue / price) * 100 : 0;
 
     return {
       salesPrice: price,
       markupMultiplier: markup,
-      deductionsRate: percentageDeductions + expensesRate
+      deductionsRate: percentageDeductions
     };
-  }, [realCost, saleExpensesValue, icmsSaleRate, pisSaleRate, cofinsSaleRate, commissionRate, profitMargin]);
+  }, [realCost, icmsSaleRate, pisSaleRate, cofinsSaleRate, saleExpensesRate, commissionRate, profitMargin, regimeVenda, simplesNacionalRate, irpjRate, csllRate]);
 
-  const expensesRate = useMemo(() => 
-    salesPrice > 0 ? (saleExpensesValue / salesPrice) * 100 : 0,
-    [saleExpensesValue, salesPrice]
-  );
+  // Derived values for UI display
+  const icmsSaleValue = salesPrice * (icmsSaleRate / 100);
+  const pisCofinsBase = (regimeVenda === 'Real' || regimeVenda === 'Presumido') 
+    ? (salesPrice - icmsSaleValue) 
+    : salesPrice;
+  
+  const detailedLair = useMemo(() => {
+    if (regimeVenda !== 'Real') return { revLiq: 0, pisVal: 0, cofinsVal: 0, expensesVal: 0, commissionVal: 0, lair: 0 };
+    const revLiq = salesPrice - icmsSaleValue;
+    const pisVal = pisCofinsBase * (pisSaleRate / 100);
+    const cofinsVal = pisCofinsBase * (cofinsSaleRate / 100);
+    const expensesVal = salesPrice * (saleExpensesRate / 100);
+    const commissionVal = salesPrice * (commissionRate / 100);
+    const lair = Math.max(revLiq - realCost - expensesVal - commissionVal - pisVal - cofinsVal, 0);
+    return { revLiq, pisVal, cofinsVal, expensesVal, commissionVal, lair };
+  }, [salesPrice, icmsSaleValue, pisCofinsBase, pisSaleRate, cofinsSaleRate, realCost, saleExpensesRate, commissionRate, regimeVenda]);
+
+  const lairValue = detailedLair.lair;
+
+  // Base for IRPJ/CSLL depends on regime
+  const irpjCsllBase = regimeVenda === 'Real' ? lairValue : salesPrice;
+
+  const totalDeductionsValue = useMemo(() => {
+    if (regimeVenda === 'Simples') {
+      return salesPrice * ((simplesNacionalRate + saleExpensesRate + commissionRate) / 100);
+    }
+    const icms = salesPrice * (icmsSaleRate / 100);
+    const pis = pisCofinsBase * (pisSaleRate / 100);
+    const cofins = pisCofinsBase * (cofinsSaleRate / 100);
+    const irpj = irpjCsllBase * (irpjRate / 100);
+    const csll = irpjCsllBase * (csllRate / 100);
+    const expenses = salesPrice * (saleExpensesRate / 100);
+    const commission = salesPrice * (commissionRate / 100);
+    return icms + pis + cofins + irpj + csll + expenses + commission;
+  }, [salesPrice, regimeVenda, simplesNacionalRate, saleExpensesRate, commissionRate, icmsSaleRate, pisSaleRate, cofinsSaleRate, irpjRate, csllRate, pisCofinsBase, irpjCsllBase]);
+
+  // Sync saleExpensesValue when salesPrice or saleExpensesRate changes
+  useEffect(() => {
+    setSaleExpensesValue(salesPrice * (saleExpensesRate / 100));
+  }, [salesPrice, saleExpensesRate]);
+
+  // Sync ipi value when purchasePrice or ipiRate changes
+  useEffect(() => {
+    setIpi(purchasePrice * (ipiRate / 100));
+  }, [purchasePrice, ipiRate]);
+
+  const expensesRate = saleExpensesRate;
 
   // Suggested Values for Negotiation
   const negotiationResults = useMemo(() => {
     if (targetSalesPrice <= 0) return null;
 
-    const ip = icmsPurchaseRate / 100;
-    const ifr = icmsFreightRate / 100;
-    const pp = pisPurchaseRate / 100;
-    const cp = cofinsPurchaseRate / 100;
-    const is1 = icmsSaleRate / 100;
-    const p = pisSaleRate / 100;
-    const cf = cofinsSaleRate / 100;
-    const c = commissionRate / 100;
-    const m = profitMargin / 100;
+    // Helper function to calculate sales price for a given purchase price
+    const calculateSalesPriceForPurchase = (pPrice: number) => {
+      const currentIpi = pPrice * (ipiRate / 100);
+      const cost = pPrice + freight + currentIpi + otherExpenses;
+      
+      let cIcms = 0;
+      let cPis = 0;
+      let cCofins = 0;
+
+      // ICMS Credit
+      if (regimeVenda === 'Real' || regimeVenda === 'Presumido') {
+        cIcms = (pPrice * (icmsPurchaseRate / 100)) + (freight * (icmsFreightRate / 100));
+      }
+
+      // PIS/COFINS Credit
+      if (regimeVenda === 'Real') {
+        let creditIcmsForBase = 0;
+        if (regimeCompra !== 'Simples') {
+          creditIcmsForBase = cIcms;
+        }
+        const basePisCofins = cost - creditIcmsForBase;
+        cPis = basePisCofins * (pisPurchaseRate / 100);
+        cCofins = basePisCofins * (cofinsPurchaseRate / 100);
+      }
+      
+      const tCredit = cIcms + cPis + cCofins;
+      const rCost = cost - tCredit;
+
+      if (rCost <= 0) return 0;
+
+      let price = 0;
+      if (regimeVenda === 'Simples') {
+        const totalRates = (simplesNacionalRate + saleExpensesRate + commissionRate + profitMargin) / 100;
+        if (totalRates < 1) price = rCost / (1 - totalRates);
+      } else if (regimeVenda === 'Presumido') {
+        const i = icmsSaleRate / 100;
+        const p = pisSaleRate / 100;
+        const c = cofinsSaleRate / 100;
+        const r = irpjRate / 100;
+        const s = csllRate / 100;
+        const d = (saleExpensesRate + commissionRate) / 100;
+        const m = profitMargin / 100;
+        const denominator = 1 - (i + (1 - i) * (p + c) + r + s + d + m);
+        if (denominator > 0) price = rCost / denominator;
+      } else if (regimeVenda === 'Real') {
+        const iRate = icmsSaleRate / 100;
+        const pRate = pisSaleRate / 100;
+        const cRate = cofinsSaleRate / 100;
+        const dRate = (saleExpensesRate + commissionRate) / 100;
+        const mRate = profitMargin / 100;
+        const irRate = irpjRate / 100;
+        const csRate = csllRate / 100;
+        let pv = rCost * (1 + dRate + mRate);
+        for (let i = 0; i < 100; i++) {
+          const ICMS = pv * iRate;
+          const PIS = (pv * (1 - iRate)) * pRate;
+          const COFINS = (pv * (1 - iRate)) * cRate;
+          const receita_liquida = pv - ICMS;
+          const despesas_valor = pv * dRate;
+          const lucro_antes_ir = receita_liquida - rCost - despesas_valor - PIS - COFINS;
+          const base_ir = Math.max(lucro_antes_ir, 0);
+          const IRPJ = base_ir * irRate;
+          const CSLL = base_ir * csRate;
+          const lucro_liquido = lucro_antes_ir - IRPJ - CSLL;
+          const margem_atual = pv > 0 ? lucro_liquido / pv : 0;
+          const erro = mRate - margem_atual;
+          const pv_novo = pv * (1 + erro);
+          if (Math.abs(erro) < 0.00001) { pv = pv_novo; break; }
+          pv = pv_novo;
+        }
+        price = pv;
+      }
+      return price;
+    };
 
     // Case 1: Target Price is LOWER or EQUAL to current calculated price
     // Focus: Negotiation with supplier (Calculate Ideal Purchase Price)
     if (targetSalesPrice <= salesPrice) {
-      const numerator = targetSalesPrice * (1 - (is1 + p + cf + c + m)) - saleExpensesValue - freight * (1 - ifr) - otherExpenses;
-      const denominator = 1 - ip - pp - cp;
-      const result = denominator > 0 ? Math.max(0, numerator / denominator) : 0;
+      // Iterative search for the ideal purchase price
+      let low = 0;
+      let high = targetSalesPrice * 2;
+      let idealPurchasePrice = 0;
+
+      for (let i = 0; i < 100; i++) {
+        const mid = (low + high) / 2;
+        const currentSalesPrice = calculateSalesPriceForPurchase(mid);
+        
+        if (currentSalesPrice < targetSalesPrice) {
+          low = mid;
+          idealPurchasePrice = mid;
+        } else {
+          high = mid;
+        }
+        
+        if (Math.abs(currentSalesPrice - targetSalesPrice) < 0.0001) break;
+      }
       
       return {
         type: 'purchase',
         label: 'Preço de Compra Ideal',
-        value: result
+        value: idealPurchasePrice
       };
     } 
     
     // Case 2: Target Price is GREATER than current calculated price
     // Focus: Profit Optimization (Calculate Suggested Profit Margin)
     else {
-      const totalBaseCost = realCost + saleExpensesValue;
-      const otherSalesRates = (icmsSaleRate + pisSaleRate + cofinsSaleRate + commissionRate) / 100;
+      const totalBaseCost = realCost;
       
-      // Formula: m = 1 - OtherRates - (Cost / TargetPrice)
-      const newMarginDecimal = 1 - otherSalesRates - (totalBaseCost / targetSalesPrice);
-      const newMarginPercent = Math.max(0, newMarginDecimal * 100);
+      // For profit margin, we can still use a simplified approach or iterative
+      // Given the complexity of Lucro Real, let's use iterative for margin too
+      let low = 0;
+      let high = 100;
+      let suggestedMargin = 0;
+
+      const calculateSalesPriceForMargin = (margin: number) => {
+        const rCost = realCost;
+        let price = 0;
+        if (regimeVenda === 'Simples') {
+          const totalRates = (simplesNacionalRate + saleExpensesRate + commissionRate + margin) / 100;
+          if (totalRates < 1) price = rCost / (1 - totalRates);
+        } else if (regimeVenda === 'Presumido') {
+          const i = icmsSaleRate / 100;
+          const p = pisSaleRate / 100;
+          const c = cofinsSaleRate / 100;
+          const r = irpjRate / 100;
+          const s = csllRate / 100;
+          const d = (saleExpensesRate + commissionRate) / 100;
+          const m = margin / 100;
+          const denominator = 1 - (i + (1 - i) * (p + c) + r + s + d + m);
+          if (denominator > 0) price = rCost / denominator;
+        } else if (regimeVenda === 'Real') {
+          const iRate = icmsSaleRate / 100;
+          const pRate = pisSaleRate / 100;
+          const cRate = cofinsSaleRate / 100;
+          const dRate = (saleExpensesRate + commissionRate) / 100;
+          const mRate = margin / 100;
+          const irRate = irpjRate / 100;
+          const csRate = csllRate / 100;
+          let pv = rCost * (1 + dRate + mRate);
+          for (let i = 0; i < 50; i++) {
+            const ICMS = pv * iRate;
+            const PIS = (pv * (1 - iRate)) * pRate;
+            const COFINS = (pv * (1 - iRate)) * cRate;
+            const receita_liquida = pv - ICMS;
+            const despesas_valor = pv * dRate;
+            const lucro_antes_ir = receita_liquida - rCost - despesas_valor - PIS - COFINS;
+            const base_ir = Math.max(lucro_antes_ir, 0);
+            const IRPJ = base_ir * irRate;
+            const CSLL = base_ir * csRate;
+            const lucro_liquido = lucro_antes_ir - IRPJ - CSLL;
+            const margem_atual = pv > 0 ? lucro_liquido / pv : 0;
+            const erro = mRate - margem_atual;
+            const pv_novo = pv * (1 + erro);
+            if (Math.abs(erro) < 0.0001) { pv = pv_novo; break; }
+            pv = pv_novo;
+          }
+          price = pv;
+        }
+        return price;
+      };
+
+      for (let i = 0; i < 50; i++) {
+        const mid = (low + high) / 2;
+        const currentSalesPrice = calculateSalesPriceForMargin(mid);
+        
+        if (currentSalesPrice < targetSalesPrice) {
+          low = mid;
+          suggestedMargin = mid;
+        } else {
+          high = mid;
+        }
+        
+        if (Math.abs(currentSalesPrice - targetSalesPrice) < 0.01) break;
+      }
 
       return {
         type: 'margin',
         label: 'Margem de Lucro Sugerida',
-        value: newMarginPercent
+        value: suggestedMargin
       };
     }
-  }, [targetSalesPrice, salesPrice, realCost, freight, otherExpenses, saleExpensesValue, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate, icmsSaleRate, pisSaleRate, cofinsSaleRate, commissionRate, profitMargin]);
+  }, [targetSalesPrice, salesPrice, realCost, freight, otherExpenses, ipi, ipiRate, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate, icmsSaleRate, pisSaleRate, cofinsSaleRate, saleExpensesRate, commissionRate, profitMargin, regimeCompra, regimeVenda, simplesNacionalRate, irpjRate, csllRate]);
 
   const handleSaleExpensesRateChange = useCallback((newRate: number) => {
-    const otherRates = icmsSaleRate + pisSaleRate + cofinsSaleRate + commissionRate + profitMargin;
-    const k = 1 - (otherRates / 100);
-    const r = newRate / 100;
-
-    if (k - r <= 0.0001) return;
-
-    const newValue = (r * realCost) / (k - r);
-    setSaleExpensesValue(newValue);
-  }, [icmsSaleRate, pisSaleRate, cofinsSaleRate, commissionRate, profitMargin, realCost]);
-
-  const handleSaleExpensesValueChange = useCallback((val: number) => {
-    setSaleExpensesValue(val);
+    setSaleExpensesRate(newRate);
   }, []);
 
-  const handleProfitMarginValueChange = useCallback((val: number) => {
-    const cost = realCost + saleExpensesValue;
-    const otherRates = (icmsSaleRate + commissionRate) / 100;
-    
-    if (cost + val === 0) return;
+  const handleSaleExpensesValueChange = useCallback((val: number) => {
+    if (salesPrice > 0) {
+      setSaleExpensesRate((val / salesPrice) * 100);
+    }
+  }, [salesPrice]);
 
-    const newMarginDecimal = (val * (1 - otherRates)) / (cost + val);
-    setProfitMargin(newMarginDecimal * 100);
-  }, [realCost, saleExpensesValue, icmsSaleRate, commissionRate]);
+  const handleIpiRateChange = useCallback((rate: number) => {
+    setIpiRate(rate);
+  }, []);
+
+  const handleIpiValueChange = useCallback((val: number) => {
+    if (purchasePrice > 0) {
+      setIpiRate((val / purchasePrice) * 100);
+    } else {
+      setIpi(val);
+    }
+  }, [purchasePrice]);
+
+  const handleProfitMarginValueChange = useCallback((val: number) => {
+    if (salesPrice > 0) {
+      let otherRates = 0;
+      if (regimeVenda === 'Simples') {
+        otherRates = (simplesNacionalRate + saleExpensesRate + commissionRate) / 100;
+      } else {
+        const i = icmsSaleRate / 100;
+        const p = pisSaleRate / 100;
+        const c = cofinsSaleRate / 100;
+        const r = irpjRate / 100;
+        const s = csllRate / 100;
+        const d = saleExpensesRate / 100;
+        const com = commissionRate / 100;
+        otherRates = i + (1 - i) * (p + c) + r + s + d + com;
+      }
+
+      const newMarginDecimal = (val * (1 - otherRates)) / (realCost + val);
+      setProfitMargin(newMarginDecimal * 100);
+    }
+  }, [realCost, simplesNacionalRate, saleExpensesRate, commissionRate, icmsSaleRate, pisSaleRate, cofinsSaleRate, irpjRate, csllRate, regimeVenda, salesPrice]);
 
   const handleReset = useCallback(() => {
+    // Não resetar os regimes (Compra e Venda) conforme solicitado
     setPurchasePrice(0);
     setFreight(0);
+    setIpi(0);
+    setIpiRate(userSettings?.defaultIpi || 0);
     setOtherExpenses(0);
     setIcmsPurchaseRate(userSettings?.defaultIcmsPurchaseRate || 0);
     setIcmsFreightRate(userSettings?.defaultIcmsFreightRate || 0);
     setPisPurchaseRate(userSettings?.defaultPisPurchaseRate || 0);
     setCofinsPurchaseRate(userSettings?.defaultCofinsPurchaseRate || 0);
+    setSimplesNacionalRate(userSettings?.defaultSimplesNacionalRate || 0);
     setIcmsSaleRate(userSettings?.defaultIcmsSaleRate || 0);
-    setPisSaleRate(userSettings?.defaultPisSaleRate || 0.165);
-    setCofinsSaleRate(userSettings?.defaultCofinsSaleRate || 0.76);
+    setPisSaleRate(userSettings?.defaultPisSaleRate || 1.65);
+    setCofinsSaleRate(userSettings?.defaultCofinsSaleRate || 7.6);
+    setIrpjRate(userSettings?.defaultIrpjRate || 1.2);
+    setCsllRate(userSettings?.defaultCsllRate || 1.08);
+    setSaleExpensesRate(userSettings?.defaultSaleExpensesRate || 0);
     setSaleExpensesValue(0);
     setCommissionRate(userSettings?.defaultCommissionRate || 0);
     setProfitMargin(userSettings?.defaultProfitMargin || 0);
@@ -1253,11 +1660,16 @@ export default function App() {
     const acquisitionData = [
       ['Preço de Compra (R$)', '', formatCurrency(purchasePrice)],
       ['Valor do Frete (R$)', '', formatCurrency(freight)],
+      ...(regimeCompra !== 'Simples' ? [['(+) IPI (R$)', '', formatCurrency(ipi)]] : []),
       ['Outras Despesas (R$)', '', formatCurrency(otherExpenses)],
-      ['Crédito ICMS Compra (%)', `${icmsPurchaseRate.toFixed(2)}%`, formatCurrency(purchasePrice * (icmsPurchaseRate / 100))],
-      ['Crédito ICMS Frete (%)', `${icmsFreightRate.toFixed(2)}%`, formatCurrency(freight * (icmsFreightRate / 100))],
-      ['Crédito PIS Compra (%)', `${pisPurchaseRate.toFixed(3)}%`, formatCurrency(purchasePrice * (pisPurchaseRate / 100))],
-      ['Crédito COFINS Compra (%)', `${cofinsPurchaseRate.toFixed(3)}%`, formatCurrency(purchasePrice * (cofinsPurchaseRate / 100))],
+      ...(regimeVenda === 'Real' || regimeVenda === 'Presumido' ? [
+        ['Crédito ICMS Compra (%)', `${icmsPurchaseRate.toFixed(2)}%`, formatCurrency(purchasePrice * (icmsPurchaseRate / 100))],
+        ['Crédito ICMS Frete (%)', `${icmsFreightRate.toFixed(2)}%`, formatCurrency(freight * (icmsFreightRate / 100))],
+      ] : []),
+      ...(regimeVenda === 'Real' ? [
+        ['Crédito PIS Compra (%)', `${pisPurchaseRate.toFixed(3)}%`, formatCurrency(pisCreditValue)],
+        ['Crédito COFINS Compra (%)', `${cofinsPurchaseRate.toFixed(3)}%`, formatCurrency(cofinsCreditValue)],
+      ] : []),
       ['VALOR TOTAL DOS CRÉDITOS (R$)', '', formatCurrency(totalCreditValue)],
       ['CUSTO REAL DO PRODUTO (R$)', '', formatCurrency(realCost)],
     ];
@@ -1284,9 +1696,15 @@ export default function App() {
     currentY += 5;
 
     const salesData = [
-      ['ICMS sobre Venda (%)', `${icmsSaleRate.toFixed(2)}%`, formatCurrency(salesPrice * (icmsSaleRate / 100))],
-      ['PIS sobre Venda (%)', `${pisSaleRate.toFixed(3)}%`, formatCurrency(salesPrice * (pisSaleRate / 100))],
-      ['COFINS sobre Venda (%)', `${cofinsSaleRate.toFixed(3)}%`, formatCurrency(salesPrice * (cofinsSaleRate / 100))],
+      ...(regimeVenda === 'Simples' ? [
+        ['Simples Nacional (%)', `${simplesNacionalRate.toFixed(2)}%`, formatCurrency(salesPrice * (simplesNacionalRate / 100))]
+      ] : [
+        ['ICMS sobre Venda (%)', `${icmsSaleRate.toFixed(2)}%`, formatCurrency(salesPrice * (icmsSaleRate / 100))],
+        ['PIS sobre Venda (%)', `${pisSaleRate.toFixed(3)}%`, formatCurrency(salesPrice * (pisSaleRate / 100))],
+        ['COFINS sobre Venda (%)', `${cofinsSaleRate.toFixed(3)}%`, formatCurrency(salesPrice * (cofinsSaleRate / 100))],
+        ['IRPJ (%)', `${irpjRate.toFixed(3)}%`, formatCurrency(salesPrice * (irpjRate / 100))],
+        ['CSLL (%)', `${csllRate.toFixed(3)}%`, formatCurrency(salesPrice * (csllRate / 100))],
+      ]),
       ['Outras Despesas (%)', `${expensesRate.toFixed(2)}%`, formatCurrency(saleExpensesValue)],
       ['Comissão de Venda (%)', `${commissionRate.toFixed(2)}%`, formatCurrency(salesPrice * (commissionRate / 100))],
       ['Margem de Lucro Desejada (%)', `${profitMargin.toFixed(2)}%`, formatCurrency(salesPrice * (profitMargin / 100))],
@@ -1318,7 +1736,11 @@ export default function App() {
     const summaryData = [
       ['Faturamento Bruto', '', formatCurrency(salesPrice)],
       ['(-) Custo Real da Mercadoria', '', `-${formatCurrency(realCost)}`],
-      ['(-) Impostos e Comissões', '', `-${formatCurrency(salesPrice * ((icmsSaleRate + pisSaleRate + cofinsSaleRate + commissionRate) / 100) + saleExpensesValue)}`],
+      ['(-) Impostos e Comissões', '', `-${formatCurrency(
+        regimeVenda === 'Simples'
+          ? salesPrice * ((simplesNacionalRate + saleExpensesRate + commissionRate) / 100)
+          : salesPrice * ((icmsSaleRate + pisSaleRate + cofinsSaleRate + irpjRate + csllRate + saleExpensesRate + commissionRate) / 100)
+      )}`],
       ['(=) LUCRO LÍQUIDO FINAL', '', formatCurrency(salesPrice * (profitMargin / 100))],
     ];
 
@@ -1335,7 +1757,7 @@ export default function App() {
     });
 
     doc.save(`analise-${productName || 'calculo'}-${dateStr.replace(/\//g, '-')}.pdf`);
-  }, [salesPrice, realCost, icmsSaleRate, pisSaleRate, cofinsSaleRate, commissionRate, saleExpensesValue, profitMargin, purchasePrice, freight, otherExpenses, totalCreditValue, markupMultiplier, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate, expensesRate, productName, representativeName]);
+  }, [salesPrice, realCost, icmsSaleRate, pisSaleRate, cofinsSaleRate, commissionRate, saleExpensesValue, profitMargin, purchasePrice, freight, otherExpenses, totalCreditValue, markupMultiplier, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate, expensesRate, productName, representativeName, regimeCompra, regimeVenda, simplesNacionalRate, irpjRate, csllRate, saleExpensesRate, ipi]);
 
   const handleExportExcel = useCallback(() => {
     const dateStr = new Date().toLocaleDateString('pt-BR');
@@ -1351,52 +1773,66 @@ export default function App() {
       ['1. CUSTOS DE AQUISIÇÃO', 'Percentual (%)', 'Valor (R$)'],
       ['Preço de Compra', '', purchasePrice],
       ['Valor do Frete', '', freight],
+      ...(regimeCompra !== 'Simples' ? [['(+) IPI', '', ipi]] : []),
       ['Outras Despesas', '', otherExpenses],
-      ['Crédito ICMS Compra (%)', icmsPurchaseRate / 100, purchasePrice * (icmsPurchaseRate / 100)],
-      ['Crédito ICMS Frete (%)', icmsFreightRate / 100, freight * (icmsFreightRate / 100)],
-      ['Crédito PIS Compra (%)', pisPurchaseRate / 100, purchasePrice * (pisPurchaseRate / 100)],
-      ['Crédito COFINS Compra (%)', cofinsPurchaseRate / 100, purchasePrice * (cofinsPurchaseRate / 100)],
+      ...(regimeVenda === 'Real' || regimeVenda === 'Presumido' ? [
+        ['Crédito ICMS Compra (%)', `${icmsPurchaseRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, purchasePrice * (icmsPurchaseRate / 100)],
+        ['Crédito ICMS Frete (%)', `${icmsFreightRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, freight * (icmsFreightRate / 100)],
+      ] : []),
+      ...(regimeVenda === 'Real' ? [
+        ['Crédito PIS Compra (%)', `${pisPurchaseRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, pisCreditValue],
+        ['Crédito COFINS Compra (%)', `${cofinsPurchaseRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, cofinsCreditValue],
+      ] : []),
       ['Valor Total Créditos', '', totalCreditValue],
       ['CUSTO REAL FINAL', '', realCost],
       [''],
       ['2. FORMAÇÃO DE PREÇO DE VENDA', 'Percentual (%)', 'Valor (R$)'],
-      ['ICMS sobre Venda (%)', icmsSaleRate / 100, salesPrice * (icmsSaleRate / 100)],
-      ['PIS sobre Venda (%)', pisSaleRate / 100, salesPrice * (pisSaleRate / 100)],
-      ['COFINS sobre Venda (%)', cofinsSaleRate / 100, salesPrice * (cofinsSaleRate / 100)],
-      ['Outras Despesas (%)', expensesRate / 100, saleExpensesValue],
-      ['Comissão de Venda (%)', commissionRate / 100, salesPrice * (commissionRate / 100)],
-      ['Margem de Lucro (%)', profitMargin / 100, salesPrice * (profitMargin / 100)],
+      ...(regimeVenda === 'Simples' ? [
+        ['Simples Nacional (%)', `${simplesNacionalRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, salesPrice * (simplesNacionalRate / 100)]
+      ] : [
+        ['ICMS sobre Venda (%)', `${icmsSaleRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, salesPrice * (icmsSaleRate / 100)],
+        ['PIS sobre Venda (%)', `${pisSaleRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, salesPrice * (pisSaleRate / 100)],
+        ['COFINS sobre Venda (%)', `${cofinsSaleRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, salesPrice * (cofinsSaleRate / 100)],
+        ['IRPJ (%)', `${irpjRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, salesPrice * (irpjRate / 100)],
+        ['CSLL (%)', `${csllRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, salesPrice * (csllRate / 100)],
+      ]),
+      ['Outras Despesas (%)', `${expensesRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, saleExpensesValue],
+      ['Comissão de Venda (%)', `${commissionRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, salesPrice * (commissionRate / 100)],
+      ['Margem de Lucro (%)', `${profitMargin.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, salesPrice * (profitMargin / 100)],
       ['Markup Multiplicador', '', markupMultiplier],
       ['PREÇO DE VENDA CALCULADO', '', salesPrice],
       [''],
       ['3. RESUMO FINANCEIRO', '', 'Valor (R$)'],
       ['Faturamento Bruto', '', salesPrice],
       ['Custo Real Mercadoria', '', realCost],
-      ['Impostos e Comissões', '', (salesPrice * ((icmsSaleRate + pisSaleRate + cofinsSaleRate + commissionRate) / 100) + saleExpensesValue)],
+      ['Impostos e Comissões', '', (
+        regimeVenda === 'Simples'
+          ? salesPrice * ((simplesNacionalRate + saleExpensesRate + commissionRate) / 100)
+          : salesPrice * ((icmsSaleRate + pisSaleRate + cofinsSaleRate + irpjRate + csllRate + saleExpensesRate + commissionRate) / 100)
+      )],
       ['LUCRO LÍQUIDO', '', (salesPrice * (profitMargin / 100))],
     ];
 
     const ws = XLSX.utils.aoa_to_sheet(data);
     
-    // Formatting percentages and currency (basic)
-    // Column B (index 1) for percentages, Column C (index 2) for currency
-    const currencyRows = [9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 21, 22, 23, 25, 28, 29, 30, 31];
-    const percentRows = [12, 13, 18, 19, 20, 21, 22, 23];
+    // Formatting currency (basic) - percentages are now strings for reliability
+    // Column C (index 2) for currency
+    const currencyRows = [];
+    for(let i = 0; i < data.length; i++) {
+      if (typeof data[i][2] === 'number') {
+        currencyRows.push(i + 1);
+      }
+    }
     
     currencyRows.forEach(row => {
       const cell = ws[XLSX.utils.encode_cell({ r: row - 1, c: 2 })];
       if (cell) cell.z = '"R$ "#,##0.00';
     });
-    
-    percentRows.forEach(row => {
-      const cell = ws[XLSX.utils.encode_cell({ r: row - 1, c: 1 })];
-      if (cell) cell.z = '0.00%';
-    });
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Análise");
     XLSX.writeFile(wb, `analise-${productName || 'calculo'}.xlsx`);
-  }, [productName, representativeName, purchasePrice, freight, otherExpenses, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate, totalCreditValue, realCost, icmsSaleRate, pisSaleRate, cofinsSaleRate, expensesRate, commissionRate, profitMargin, markupMultiplier, salesPrice, saleExpensesValue]);
+  }, [productName, representativeName, purchasePrice, freight, otherExpenses, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate, totalCreditValue, realCost, icmsSaleRate, pisSaleRate, cofinsSaleRate, expensesRate, commissionRate, profitMargin, markupMultiplier, salesPrice, saleExpensesValue, regimeCompra, regimeVenda, simplesNacionalRate, irpjRate, csllRate, saleExpensesRate, ipi]);
 
   const handleApplyNegotiation = useCallback(() => {
     if (!negotiationResults || targetSalesPrice <= 0) return;
@@ -1431,21 +1867,22 @@ export default function App() {
         const data = docSnap.data();
         let items = data.items || manualData;
         
-        // Ensure "assinatura-pro" is always present if for some reason it's missing from the DB
-        const hasAssinaturaPro = items.some((item: any) => item.id === 'assinatura-pro');
-        if (!hasAssinaturaPro) {
-          const proItem = manualData.find(i => i.id === 'assinatura-pro') || {
-            "id": "assinatura-pro",
-            "title": "Aviso de Assinatura (PRO)",
-            "description": "Usuários PRO recebem um aviso discreto ao acessar o sistema informando quantos dias faltam para o vencimento da assinatura, facilitando o planejamento da renovação.",
-            "icon": "Calendar"
-          };
-          items = [...items, proItem];
-          
-          // If admin, auto-update Firestore to persist for everyone
-          if (isAdmin) {
-            updateDoc(manualDocRef, { items }).catch(err => console.error("Error auto-updating manual:", err));
+        // IDs of new items to ensure are present
+        const requiredIds = ['assinatura-pro', 'regime-fornecedor', 'config-aliquotas', 'glossario-campos'];
+        let needsUpdate = false;
+        
+        requiredIds.forEach(id => {
+          if (!items.some((item: any) => item.id === id)) {
+            const newItem = manualData.find(i => i.id === id);
+            if (newItem) {
+              items = [...items, newItem];
+              needsUpdate = true;
+            }
           }
+        });
+
+        if (needsUpdate && isAdmin) {
+          updateDoc(manualDocRef, { items }).catch(err => console.error("Error auto-updating manual:", err));
         }
 
         setManualConfig({
@@ -1454,7 +1891,7 @@ export default function App() {
           items,
           contactTitle: data.contactTitle || "Dúvidas ou Sugestões?",
           contactContent: data.contactContent || "Estamos sempre buscando melhorar! Se você tiver alguma pergunta sobre os cálculos ou sugestões de novas funcionalidades, entre em contato conosco.",
-          supportEmail: data.supportEmail || "adm.valdemir@gmail.com"
+          supportEmail: data.supportEmail || "suporte@nivorconsultoria.com.br"
         });
       } else if (isAdmin) {
         // Seed initial data if it doesn't exist and user is admin
@@ -1464,10 +1901,12 @@ export default function App() {
           items: manualData,
           contactTitle: "Dúvidas ou Sugestões?",
           contactContent: "Estamos sempre buscando melhorar! Se você tiver alguma pergunta sobre os cálculos ou sugestões de novas funcionalidades, entre em contato conosco.",
-          supportEmail: "adm.valdemir@gmail.com",
+          supportEmail: "suporte@nivorconsultoria.com.br",
           updatedAt: Timestamp.now() 
         }).catch(err => console.error("Error seeding manual:", err));
       }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'config/manual');
     });
     return () => unsubscribe();
   }, [isAdmin]);
@@ -1669,14 +2108,24 @@ export default function App() {
             userId: user.uid,
             name: productName.trim(),
             supplierName: representativeName.trim(),
+            regimeCompra,
             baseCost: purchasePrice,
+            ipi,
+            ipiRate,
             icmsPurchaseRate,
             icmsFreightRate,
             pisPurchaseRate,
             cofinsPurchaseRate,
+            regimeVenda,
+            simplesNacionalRate,
             icmsSaleRate,
             pisSaleRate,
             cofinsSaleRate,
+            irpjRate,
+            csllRate,
+            saleExpensesRate,
+            commissionRate,
+            profitMargin,
             createdAt: Timestamp.now()
           });
           finalProductId = newProductRef.id;
@@ -1688,16 +2137,24 @@ export default function App() {
         productId: finalProductId,
         productName: productName.trim(),
         representativeName: representativeName.trim(),
+        regimeCompra,
         purchasePrice,
         freight,
+        ipi,
+        ipiRate,
         otherExpenses,
         icmsPurchaseRate,
         icmsFreightRate,
         pisPurchaseRate,
         cofinsPurchaseRate,
+        regimeVenda,
+        simplesNacionalRate,
         icmsSaleRate,
         pisSaleRate,
         cofinsSaleRate,
+        irpjRate,
+        csllRate,
+        saleExpensesRate,
         saleExpensesValue,
         commissionRate,
         profitMargin,
@@ -1723,7 +2180,7 @@ export default function App() {
     } finally {
       setIsSaving(false);
     }
-  }, [user, productName, selectedProductId, products, representativeName, purchasePrice, freight, otherExpenses, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate, icmsSaleRate, saleExpensesValue, commissionRate, profitMargin, salesPrice, realCost, totalCost, totalCreditValue]);
+  }, [user, productName, selectedProductId, products, representativeName, purchasePrice, freight, otherExpenses, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate, icmsSaleRate, saleExpensesRate, saleExpensesValue, commissionRate, profitMargin, salesPrice, realCost, totalCost, totalCreditValue, regimeCompra, regimeVenda, simplesNacionalRate, pisSaleRate, cofinsSaleRate, irpjRate, csllRate, ipi, handleReset]);
 
   const filteredCalculations = useMemo(() => {
     if (!historySearch) return savedCalculations;
@@ -1737,17 +2194,24 @@ export default function App() {
   const handleLoadCalculation = useCallback((calc: any) => {
     setProductName(calc.productName || '');
     setRepresentativeName(calc.representativeName || '');
+    setRegimeCompra(calc.regimeCompra || 'Real');
     setPurchasePrice(calc.purchasePrice || 0);
     setFreight(calc.freight || 0);
+    setIpi(calc.ipi || 0);
+    setIpiRate(calc.ipiRate || (calc.purchasePrice > 0 ? (calc.ipi / calc.purchasePrice) * 100 : 0));
     setOtherExpenses(calc.otherExpenses || 0);
     setIcmsPurchaseRate(calc.icmsPurchaseRate || 0);
     setIcmsFreightRate(calc.icmsFreightRate || 0);
     setPisPurchaseRate(calc.pisPurchaseRate || 0);
     setCofinsPurchaseRate(calc.cofinsPurchaseRate || 0);
+    setRegimeVenda(calc.regimeVenda || 'Real');
+    setSimplesNacionalRate(calc.simplesNacionalRate || 0);
     setIcmsSaleRate(calc.icmsSaleRate || 0);
-    setPisSaleRate(calc.pisSaleRate || 0.165);
-    setCofinsSaleRate(calc.cofinsSaleRate || 0.76);
-    setSaleExpensesValue(calc.saleExpensesValue || 0);
+    setPisSaleRate(calc.pisSaleRate || 1.65);
+    setCofinsSaleRate(calc.cofinsSaleRate || 7.6);
+    setIrpjRate(calc.irpjRate || 1.2);
+    setCsllRate(calc.csllRate || 1.08);
+    setSaleExpensesRate(calc.saleExpensesRate || 0);
     setCommissionRate(calc.commissionRate || 0);
     setProfitMargin(calc.profitMargin || 0);
     setIsHistoryModalOpen(false);
@@ -1772,14 +2236,24 @@ export default function App() {
         await updateDoc(productRef, {
           name: productData.name.trim(),
           supplierName: (productData.supplierName || '').trim(),
+          regimeCompra: productData.regimeCompra || 'Simples',
           baseCost: productData.baseCost || 0,
+          ipi: productData.ipi || 0,
+          ipiRate: productData.ipiRate || 0,
           icmsPurchaseRate: productData.icmsPurchaseRate || 0,
           icmsFreightRate: productData.icmsFreightRate || 0,
           pisPurchaseRate: productData.pisPurchaseRate || 0,
           cofinsPurchaseRate: productData.cofinsPurchaseRate || 0,
+          regimeVenda: productData.regimeVenda || 'Simples',
+          simplesNacionalRate: productData.simplesNacionalRate || 0,
           icmsSaleRate: productData.icmsSaleRate || 0,
-          pisSaleRate: productData.pisSaleRate || 0.165,
-          cofinsSaleRate: productData.cofinsSaleRate || 0.76,
+          pisSaleRate: productData.pisSaleRate || 1.65,
+          cofinsSaleRate: productData.cofinsSaleRate || 7.6,
+          irpjRate: productData.irpjRate || 1.2,
+          csllRate: productData.csllRate || 1.08,
+          saleExpensesRate: productData.saleExpensesRate || 0,
+          commissionRate: productData.commissionRate || 0,
+          profitMargin: productData.profitMargin || 0,
           updatedAt: Timestamp.now()
         });
       } else {
@@ -1788,14 +2262,24 @@ export default function App() {
           userId: user.uid,
           name: productData.name.trim(),
           supplierName: (productData.supplierName || '').trim(),
+          regimeCompra: productData.regimeCompra || 'Simples',
           baseCost: productData.baseCost || 0,
+          ipi: productData.ipi || 0,
+          ipiRate: productData.ipiRate || 0,
           icmsPurchaseRate: productData.icmsPurchaseRate || 0,
           icmsFreightRate: productData.icmsFreightRate || 0,
           pisPurchaseRate: productData.pisPurchaseRate || 0,
           cofinsPurchaseRate: productData.cofinsPurchaseRate || 0,
+          regimeVenda: productData.regimeVenda || 'Simples',
+          simplesNacionalRate: productData.simplesNacionalRate || 0,
           icmsSaleRate: productData.icmsSaleRate || 0,
-          pisSaleRate: productData.pisSaleRate || 0.165,
-          cofinsSaleRate: productData.cofinsSaleRate || 0.76,
+          pisSaleRate: productData.pisSaleRate || 1.65,
+          cofinsSaleRate: productData.cofinsSaleRate || 7.6,
+          irpjRate: productData.irpjRate || 1.2,
+          csllRate: productData.csllRate || 1.08,
+          saleExpensesRate: productData.saleExpensesRate || 0,
+          commissionRate: productData.commissionRate || 0,
+          profitMargin: productData.profitMargin || 0,
           createdAt: Timestamp.now()
         });
       }
@@ -1849,6 +2333,9 @@ export default function App() {
     if (product.icmsSaleRate !== undefined) setIcmsSaleRate(product.icmsSaleRate);
     if (product.pisSaleRate !== undefined) setPisSaleRate(product.pisSaleRate);
     if (product.cofinsSaleRate !== undefined) setCofinsSaleRate(product.cofinsSaleRate);
+    if (product.saleExpensesRate !== undefined) setSaleExpensesRate(product.saleExpensesRate);
+    if (product.commissionRate !== undefined) setCommissionRate(product.commissionRate);
+    if (product.profitMargin !== undefined) setProfitMargin(product.profitMargin);
 
     setSelectedProductId(product.id);
     setIsProductsModalOpen(false);
@@ -1871,14 +2358,16 @@ export default function App() {
               </div>
               
               <div className="flex items-center gap-3">
-                <button 
-                  onClick={() => setIsManualModalOpen(true)}
-                  className="flex items-center gap-1.5 bg-brand-muted hover:bg-brand-muted/80 text-white px-3 py-2 rounded-lg text-[10px] font-black transition-all active:scale-95 border border-brand-border"
-                  title="Manual do Usuário"
-                >
-                  <HelpCircle className="w-4 h-4 text-brand-primary" />
-                  MANUAL
-                </button>
+                {user && isAuthorized && (
+                  <button 
+                    onClick={() => setIsManualModalOpen(true)}
+                    className="flex items-center gap-1.5 bg-brand-muted hover:bg-brand-muted/80 text-white px-3 py-2 rounded-lg text-[11px] font-black transition-all active:scale-95 border border-brand-border"
+                    title="Manual do Usuário"
+                  >
+                    <HelpCircle className="w-4 h-4 text-brand-primary" />
+                    MANUAL
+                  </button>
+                )}
 
                 {user ? (
                   <div className="flex items-center gap-2 bg-brand-black px-3 py-1.5 rounded-full border border-brand-border">
@@ -1890,7 +2379,7 @@ export default function App() {
                     ) : (
                       <button 
                         onClick={() => setIsUpgradeModalOpen(true)}
-                        className="flex items-center gap-1.5 bg-brand-primary hover:bg-brand-primary-hover text-brand-black px-2.5 py-1 rounded-md text-[10px] font-black transition-all active:scale-95 animate-pulse"
+                        className="flex items-center gap-1.5 bg-brand-primary hover:bg-brand-primary-hover text-brand-black px-2.5 py-1 rounded-md text-[11px] font-black transition-all active:scale-95 animate-pulse"
                       >
                         <Package className="w-3 h-3" />
                         SEJA PRO
@@ -1900,7 +2389,7 @@ export default function App() {
                   {isAdmin && (
                     <button 
                       onClick={() => setIsManualAdminModalOpen(true)}
-                      className="flex items-center gap-1.5 bg-red-600 hover:bg-red-500 text-white px-2.5 py-1 rounded-md text-[10px] font-black transition-all active:scale-95 border border-red-700"
+                      className="flex items-center gap-1.5 bg-red-600 hover:bg-red-500 text-white px-2.5 py-1 rounded-md text-[11px] font-black transition-all active:scale-95 border border-red-700"
                       title="Painel Administrativo"
                     >
                       <Settings className="w-3 h-3 text-white" />
@@ -1929,7 +2418,7 @@ export default function App() {
               ) : (
                 <button 
                   onClick={handleLogin}
-                  className="flex items-center gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-brand-border active:scale-95"
+                  className="flex items-center gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-4 py-2 rounded-lg text-[15px] font-medium transition-colors border border-brand-border active:scale-95"
                 >
                   <LogIn className="w-4 h-4" />
                   <span>Entrar</span>
@@ -1938,11 +2427,14 @@ export default function App() {
             </div>
           </div>
 
-          {/* Bottom Row: Navigation Actions */}
-            <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 justify-center sm:justify-end w-full">
+          {user ? (
+            isAuthorized ? (
+              <>
+                {/* Bottom Row: Navigation Actions */}
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 justify-center sm:justify-end w-full px-4 md:px-6 py-4 bg-brand-muted/10 border-b border-brand-border">
               <button 
                 onClick={() => requirePro(() => setIsDashboardOpen(!isDashboardOpen))}
-                className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-all border active:scale-95 w-full sm:w-auto whitespace-nowrap ${isDashboardOpen ? 'bg-brand-primary border-brand-primary text-brand-black shadow-lg shadow-brand-primary/20' : 'bg-brand-muted border-brand-border text-white hover:bg-brand-muted/80'}`}
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[11px] md:text-sm font-bold transition-all border active:scale-95 w-full sm:w-auto whitespace-nowrap ${isDashboardOpen ? 'bg-brand-primary border-brand-primary text-brand-black shadow-lg shadow-brand-primary/20' : 'bg-brand-muted border-brand-border text-white hover:bg-brand-muted/80'}`}
                 title={isDashboardOpen ? "Voltar para Calculadora" : "Ver Dashboard"}
               >
                 {isDashboardOpen ? <Calculator className="w-3.5 h-3.5 md:w-4 md:h-4" /> : <LayoutDashboard className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary" />}
@@ -1952,7 +2444,7 @@ export default function App() {
 
               <button 
                 onClick={() => requirePro(() => setIsSettingsModalOpen(true))}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-brand-border active:scale-95 w-full sm:w-auto whitespace-nowrap"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[11px] md:text-sm font-bold transition-colors border border-brand-border active:scale-95 w-full sm:w-auto whitespace-nowrap"
                 title="Configurações Padrão"
               >
                 <Settings className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary" />
@@ -1962,7 +2454,7 @@ export default function App() {
 
               <button 
                 onClick={() => requirePro(() => setIsProductsModalOpen(true))}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-brand-border active:scale-95 w-full sm:w-auto whitespace-nowrap"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[11px] md:text-sm font-bold transition-colors border border-brand-border active:scale-95 w-full sm:w-auto whitespace-nowrap"
                 title="Gerenciar Produtos"
               >
                 <Package className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary" />
@@ -1972,7 +2464,7 @@ export default function App() {
 
               <button 
                 onClick={() => requirePro(() => setIsHistoryModalOpen(true))}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-brand-border active:scale-95 w-full sm:w-auto whitespace-nowrap"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[11px] md:text-sm font-bold transition-colors border border-brand-border active:scale-95 w-full sm:w-auto whitespace-nowrap"
                 title="Ver Histórico"
               >
                 <History className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary" />
@@ -1982,7 +2474,7 @@ export default function App() {
 
               <button 
                 onClick={handleReset}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-brand-border active:scale-95 w-full sm:w-auto whitespace-nowrap"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[11px] md:text-sm font-bold transition-colors border border-brand-border active:scale-95 w-full sm:w-auto whitespace-nowrap"
                 title="Reset valores"
               >
                 <RotateCcw className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary" />
@@ -1991,7 +2483,7 @@ export default function App() {
 
               <button 
                 onClick={() => setIsFloatingCalculatorOpen(true)}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-amber-600 hover:bg-amber-500 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-all shadow-md hover:shadow-amber-500/20 active:scale-95 border border-amber-500 w-full sm:w-auto whitespace-nowrap"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-amber-600 hover:bg-amber-500 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[11px] md:text-sm font-bold transition-all shadow-md hover:shadow-amber-500/20 active:scale-95 border border-amber-500 w-full sm:w-auto whitespace-nowrap"
                 title="Abrir Calculadora"
               >
                 <Calculator className="w-3.5 h-3.5 md:w-4 md:h-4" />
@@ -2018,9 +2510,8 @@ export default function App() {
                 {!isPro && <span className="ml-1 bg-brand-primary text-brand-black px-1 rounded-[4px] text-[8px]">PRO</span>}
               </button>
             </div>
-          </div>
 
-          {isDashboardOpen ? (
+            {isDashboardOpen ? (
             <Dashboard 
               savedCalculations={savedCalculations} 
               products={products} 
@@ -2043,7 +2534,7 @@ export default function App() {
                   {isPro ? (
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="flex items-center gap-1.5 bg-brand-muted hover:bg-brand-muted/80 text-slate-200 px-2.5 py-1 rounded-md text-[10px] font-bold transition-all border border-brand-border active:scale-95"
+                      className="flex items-center gap-1.5 bg-brand-muted hover:bg-brand-muted/80 text-slate-200 px-2.5 py-1 rounded-md text-[11px] font-bold transition-all border border-brand-border active:scale-95"
                       title="Importar XML da NFe"
                     >
                       <FileUp className="w-3 h-3" />
@@ -2052,7 +2543,7 @@ export default function App() {
                   ) : (
                     <button
                       onClick={() => requirePro(() => fileInputRef.current?.click())}
-                      className="flex items-center gap-1.5 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary px-2.5 py-1 rounded-md text-[10px] font-bold transition-all border border-brand-primary/30 active:scale-95 group"
+                      className="flex items-center gap-1.5 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary px-2.5 py-1 rounded-md text-[11px] font-bold transition-all border border-brand-primary/30 active:scale-95 group"
                       title="Funcionalidade PRO"
                     >
                       <FileUp className="w-3 h-3" />
@@ -2069,6 +2560,25 @@ export default function App() {
                   accept=".xml" 
                   className="hidden" 
                 />
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Regime Tributário do Fornecedor</label>
+                  <div className="flex gap-2 p-1 bg-brand-black rounded-xl border border-brand-border">
+                    {(['Simples', 'Presumido', 'Real'] as const).map((regime) => (
+                      <button
+                        key={regime}
+                        onClick={() => setRegimeCompra(regime)}
+                        className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+                          regimeCompra === regime 
+                            ? 'bg-brand-primary text-brand-black' 
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        {regime}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1">
@@ -2108,7 +2618,17 @@ export default function App() {
                     value={freight} 
                     onChange={setFreight} 
                   />
-                  <div className="sm:col-span-2">
+                  {regimeCompra !== 'Simples' && (
+                    <PercentInputRow 
+                      label="(+) IPI (%)" 
+                      percent={ipiRate} 
+                      onChange={handleIpiRateChange} 
+                      baseValue={purchasePrice}
+                      onValueChange={handleIpiValueChange}
+                      className="sm:col-span-2"
+                    />
+                  )}
+                  <div className={regimeCompra === 'Simples' ? "sm:col-span-1" : "sm:col-span-2"}>
                     <NumberInput 
                       label="(+) Outras Despesas" 
                       value={otherExpenses} 
@@ -2128,50 +2648,111 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="space-y-4 pt-4 border-t border-dashed border-brand-border">
-                <h2 className="text-slate-100 font-bold text-lg border-b border-brand-border pb-2 flex items-center gap-2">
-                  <Percent className="w-5 h-5 text-brand-primary" />
-                  Créditos de Impostos
-                </h2>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <PercentInputRow 
-                    label="(-) ICMS Compra (%)" 
-                    percent={icmsPurchaseRate} 
-                    onChange={setIcmsPurchaseRate} 
-                    baseValue={purchasePrice}
-                  />
-                  <PercentInputRow 
-                    label="(-) ICMS Frete (%)" 
-                    percent={icmsFreightRate} 
-                    onChange={setIcmsFreightRate} 
-                    baseValue={freight}
-                  />
-                  <PercentInputRow 
-                    label="(-) PIS Compra (%)" 
-                    percent={pisPurchaseRate} 
-                    onChange={setPisPurchaseRate} 
-                    baseValue={purchasePrice}
-                  />
-                  <PercentInputRow 
-                    label="(-) COFINS Compra (%)" 
-                    percent={cofinsPurchaseRate} 
-                    onChange={setCofinsPurchaseRate} 
-                    baseValue={purchasePrice}
-                  />
-                </div>
+              {((regimeVenda === 'Real' || regimeVenda === 'Presumido')) && (
+                <div className="space-y-4 pt-4 border-t border-dashed border-brand-border">
+                  <h2 className="text-slate-100 font-bold text-lg border-b border-brand-border pb-2 flex items-center gap-2">
+                    <Percent className="w-5 h-5 text-brand-primary" />
+                    Créditos de Impostos
+                  </h2>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {regimeVenda === 'Real' && (
+                      <div className="sm:col-span-2 bg-brand-black/40 rounded-xl border border-brand-border/50 overflow-hidden mb-2">
+                        <button 
+                          onClick={() => setShowPurchaseMemo(!showPurchaseMemo)}
+                          className="w-full flex items-center justify-between p-3 hover:bg-brand-black/60 transition-colors text-left"
+                        >
+                          <div className="flex items-center gap-2">
+                            <BookOpen className="w-4 h-4 text-brand-primary" />
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                              Memória de Cálculo: Créditos
+                            </span>
+                          </div>
+                          <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${showPurchaseMemo ? 'rotate-180' : ''}`} />
+                        </button>
 
-                <div className="bg-brand-black p-3 rounded-lg border border-brand-border flex justify-between items-center text-sm text-slate-200">
-                  <span>Total Créditos Impostos:</span>
-                  <span className="font-mono font-bold text-brand-primary">{formatCurrency(totalCreditValue)}</span>
-                </div>
+                        <AnimatePresence initial={false}>
+                          {showPurchaseMemo && (
+                            <motion.div 
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.3, ease: "easeInOut" }}
+                            >
+                              <div className="px-3 pb-3 space-y-2 border-t border-brand-border/30 pt-3">
+                                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider pb-1 mb-2">
+                                  Detalhamento dos Créditos ({regimeCompra === 'Simples' ? 'Fornecedor Simples' : 'Fornecedor Fiscal'})
+                                </div>
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+                                  <span className="text-slate-400">ICMS (Produto + Frete):</span>
+                                  <span className="text-right text-slate-200 font-mono">{formatCurrency(icmsCreditValue)}</span>
+                                  
+                                  <span className="text-slate-500 text-[10px] leading-tight pr-4">BASE (Produto + Frete + IPI + Outras Despesas) - ICMS Destacado:</span>
+                                  <span className="text-right text-slate-400 font-mono text-[10px] italic">{formatCurrency(pisCofinsCreditBase)}</span>
+                                  
+                                  <span className="text-slate-400">PIS (Base: {formatCurrency(pisCofinsCreditBase)}):</span>
+                                  <span className="text-right text-slate-200 font-mono">{formatCurrency(pisCreditValue)}</span>
+                                  
+                                  <span className="text-slate-400">COFINS (Base: {formatCurrency(pisCofinsCreditBase)}):</span>
+                                  <span className="text-right text-slate-200 font-mono">{formatCurrency(cofinsCreditValue)}</span>
+                                  
+                                  <div className="col-span-2 border-t border-brand-border/30 mt-1 pt-1 flex justify-between font-bold text-brand-primary">
+                                    <span>TOTAL CRÉDITOS:</span>
+                                    <span>{formatCurrency(totalCreditValue)}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    )}
 
-                <div className="pt-2">
-                  <div className="bg-brand-black text-white p-4 rounded-xl shadow-lg transform transition-all hover:scale-[1.02] border border-brand-border">
-                    <label className="block text-[10px] font-bold uppercase tracking-wider opacity-80 mb-1">(=) Custo Real do Produto</label>
-                    <div className="text-3xl font-mono font-bold tracking-tight text-brand-primary">
-                      {formatCurrency(realCost)}
-                    </div>
+                    {/* ICMS inputs always available if buyer is not Simples */}
+                    <PercentInputRow 
+                      label="(-) ICMS Compra (%)" 
+                      percent={icmsPurchaseRate} 
+                      onChange={setIcmsPurchaseRate} 
+                      baseValue={purchasePrice}
+                    />
+                    <PercentInputRow 
+                      label="(-) ICMS Frete (%)" 
+                      percent={icmsFreightRate} 
+                      onChange={setIcmsFreightRate} 
+                      baseValue={freight}
+                    />
+
+                    {/* PIS/COFINS inputs only if buyer is Real */}
+                    {regimeVenda === 'Real' && (
+                      <>
+                        <PercentInputRow 
+                          label="(-) PIS Compra (%)" 
+                          percent={pisPurchaseRate} 
+                          onChange={setPisPurchaseRate} 
+                          baseValue={pisCofinsCreditBase}
+                        />
+                        <PercentInputRow 
+                          label="(-) COFINS Compra (%)" 
+                          percent={cofinsPurchaseRate} 
+                          onChange={setCofinsPurchaseRate} 
+                          baseValue={pisCofinsCreditBase}
+                        />
+                      </>
+                    )}
+                  </div>
+
+                  <div className="bg-brand-black p-3 rounded-lg border border-brand-border flex justify-between items-center text-sm text-slate-200">
+                    <span>Total Créditos Impostos:</span>
+                    <span className="font-mono font-bold text-brand-primary">{formatCurrency(totalCreditValue)}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-4 border-t border-dashed border-brand-border">
+                <div className="bg-brand-black text-white p-4 rounded-xl shadow-lg transform transition-all hover:scale-[1.02] border border-brand-border">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider opacity-80 mb-1">(=) Custo Real do Produto</label>
+                  <div className="text-3xl font-mono font-bold tracking-tight text-brand-primary">
+                    {formatCurrency(realCost)}
                   </div>
                 </div>
               </div>
@@ -2182,9 +2763,7 @@ export default function App() {
           <div className="p-6 bg-brand-card relative">
             {/* Vertical Label Strip */}
             <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-primary/20 lg:hidden"></div> {/* Mobile divider */}
-            <div className="absolute right-0 top-0 bottom-0 w-8 bg-brand-primary hidden lg:flex items-center justify-center">
-              <span className="text-brand-black font-bold tracking-widest text-sm rotate-90 whitespace-nowrap">VENDA / MARKUP</span>
-            </div>
+            <div className="absolute right-0 top-0 bottom-0 w-1 bg-brand-primary"></div>
 
             <div className="pr-0 lg:pr-8 space-y-6">
               <div className="space-y-4">
@@ -2193,50 +2772,173 @@ export default function App() {
                 </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <PercentInputRow 
-                    label="ICMS Venda (%)" 
-                    percent={icmsSaleRate} 
-                    onChange={setIcmsSaleRate} 
-                    baseValue={salesPrice}
-                  />
-                  <PercentInputRow 
-                    label="PIS Venda (%)" 
-                    percent={pisSaleRate} 
-                    onChange={setPisSaleRate} 
-                    baseValue={salesPrice}
-                  />
-                  <PercentInputRow 
-                    label="COFINS Venda (%)" 
-                    percent={cofinsSaleRate} 
-                    onChange={setCofinsSaleRate} 
-                    baseValue={salesPrice}
-                  />
-                  <PercentInputRow 
-                    label="Outras Despesas (%)" 
-                    percent={expensesRate} 
-                    onChange={handleSaleExpensesRateChange} 
-                    baseValue={salesPrice}
-                    onValueChange={handleSaleExpensesValueChange}
-                  />
-                  <PercentInputRow 
-                    label="Comissão Venda (%)" 
-                    percent={commissionRate} 
-                    onChange={setCommissionRate} 
-                    baseValue={salesPrice}
-                  />
-                  <PercentInputRow 
-                    label="Margem de Lucro (%)" 
-                    percent={profitMargin} 
-                    onChange={setProfitMargin} 
-                    baseValue={salesPrice}
-                    onValueChange={handleProfitMarginValueChange}
-                  />
+                  {regimeVenda === 'Simples' ? (
+                    <>
+                      <PercentInputRow 
+                        label="Alíquota Simples (%)" 
+                        percent={simplesNacionalRate} 
+                        onChange={setSimplesNacionalRate} 
+                        baseValue={salesPrice}
+                        className="sm:col-span-2"
+                      />
+                      <PercentInputRow 
+                        label="Outras Despesas (%)" 
+                        percent={expensesRate} 
+                        onChange={handleSaleExpensesRateChange} 
+                        baseValue={salesPrice}
+                        onValueChange={handleSaleExpensesValueChange}
+                        className="sm:col-span-2"
+                      />
+                      <PercentInputRow 
+                        label="Comissão Venda (%)" 
+                        percent={commissionRate} 
+                        onChange={setCommissionRate} 
+                        baseValue={salesPrice}
+                        className="sm:col-span-2"
+                      />
+                      <PercentInputRow 
+                        label="Margem de Lucro (%)" 
+                        percent={profitMargin} 
+                        onChange={setProfitMargin} 
+                        baseValue={salesPrice}
+                        onValueChange={handleProfitMarginValueChange}
+                        className="sm:col-span-2"
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <PercentInputRow 
+                        label="ICMS Venda (%)" 
+                        percent={icmsSaleRate} 
+                        onChange={setIcmsSaleRate} 
+                        baseValue={salesPrice}
+                        className="sm:col-span-2"
+                      />
+                      <PercentInputRow 
+                        label="Outras Despesas (%)" 
+                        percent={expensesRate} 
+                        onChange={handleSaleExpensesRateChange} 
+                        baseValue={salesPrice}
+                        onValueChange={handleSaleExpensesValueChange}
+                        className="sm:col-span-2"
+                      />
+                      <PercentInputRow 
+                        label="PIS Venda (%)" 
+                        percent={pisSaleRate} 
+                        onChange={setPisSaleRate} 
+                        baseValue={pisCofinsBase}
+                        className="sm:col-span-2"
+                      />
+                      <PercentInputRow 
+                        label="COFINS Venda (%)" 
+                        percent={cofinsSaleRate} 
+                        onChange={setCofinsSaleRate} 
+                        baseValue={pisCofinsBase}
+                        className="sm:col-span-2"
+                      />
+                      <PercentInputRow 
+                        label="Comissão Venda (%)" 
+                        percent={commissionRate} 
+                        onChange={setCommissionRate} 
+                        baseValue={salesPrice}
+                        className="sm:col-span-2"
+                      />
+
+                      {regimeVenda === 'Real' && (
+                        <div className="sm:col-span-2 bg-brand-black/40 rounded-xl border border-brand-border/50 overflow-hidden mb-2">
+                          <button 
+                            onClick={() => setShowSalesMemo(!showSalesMemo)}
+                            className="w-full flex items-center justify-between p-3 hover:bg-brand-black/60 transition-colors text-left"
+                          >
+                            <div className="flex items-center gap-2">
+                              <BookOpen className="w-4 h-4 text-brand-primary" />
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                Memória de Cálculo: LAIR
+                              </span>
+                            </div>
+                            <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${showSalesMemo ? 'rotate-180' : ''}`} />
+                          </button>
+
+                          <AnimatePresence initial={false}>
+                            {showSalesMemo && (
+                              <motion.div 
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.3, ease: "easeInOut" }}
+                              >
+                                <div className="px-3 pb-3 space-y-2 border-t border-brand-border/30 pt-3">
+                                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider pb-1 mb-2">
+                                    Detalhamento da Base IRPJ/CSLL (Lucro Real)
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+                                    <span className="text-slate-400">Receita Líquida (PV - ICMS):</span>
+                                    <span className="text-right text-slate-200 font-mono">{formatCurrency(detailedLair.revLiq)}</span>
+                                    
+                                    <span className="text-slate-500 text-[10px] leading-tight pr-4">Lucro Antes do IR = (Rec. Liq - PIS/COFINS - Custo - Comis. - Desp.):</span>
+                                    <span className="text-right text-slate-400 font-mono text-[10px] italic">{formatCurrency(lairValue)}</span>
+                                    
+                                    <span className="text-slate-400">(-) PIS Venda:</span>
+                                    <span className="text-right text-slate-200 font-mono">{formatCurrency(detailedLair.pisVal)}</span>
+                                    
+                                    <span className="text-slate-400">(-) COFINS Venda:</span>
+                                    <span className="text-right text-slate-200 font-mono">{formatCurrency(detailedLair.cofinsVal)}</span>
+
+                                    <span className="text-slate-400">(-) Custo Real:</span>
+                                    <span className="text-right text-slate-200 font-mono">{formatCurrency(realCost)}</span>
+
+                                    <span className="text-slate-400">(-) Comissão Venda:</span>
+                                    <span className="text-right text-slate-200 font-mono">{formatCurrency(detailedLair.commissionVal)}</span>
+
+                                    <span className="text-slate-400">(-) Outras Despesas:</span>
+                                    <span className="text-right text-slate-200 font-mono">{formatCurrency(detailedLair.expensesVal)}</span>
+                                    
+                                    <div className="col-span-2 border-t border-brand-border/30 mt-1 pt-1 flex justify-between font-bold text-brand-primary">
+                                      <span>BASE IRPJ / CSLL:</span>
+                                      <span>{formatCurrency(lairValue)}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      )}
+
+                      <PercentInputRow 
+                        label="IRPJ (%)" 
+                        percent={irpjRate} 
+                        onChange={setIrpjRate} 
+                        baseValue={irpjCsllBase}
+                        className="sm:col-span-2"
+                        disabled={true}
+                      />
+                      <PercentInputRow 
+                        label="CSLL (%)" 
+                        percent={csllRate} 
+                        onChange={setCsllRate} 
+                        baseValue={irpjCsllBase}
+                        className="sm:col-span-2"
+                        disabled={true}
+                      />
+                      <PercentInputRow 
+                        label="Margem de Lucro (%)" 
+                        percent={profitMargin} 
+                        onChange={setProfitMargin} 
+                        baseValue={salesPrice}
+                        onValueChange={handleProfitMarginValueChange}
+                        className="sm:col-span-2"
+                      />
+                    </>
+                  )}
                 </div>
 
                 <div className="bg-brand-primary/10 p-4 rounded-lg border border-brand-primary/20 space-y-2">
                   <div className="flex justify-between items-center text-sm text-slate-100">
                     <span>Soma das Deduções:</span>
-                    <span className="font-mono font-bold text-brand-primary">{deductionsRate.toFixed(2)}%</span>
+                    <span className="font-mono font-bold text-brand-primary">
+                      {formatCurrency(totalDeductionsValue)} ({((totalDeductionsValue / (salesPrice || 1)) * 100).toFixed(1)}%)
+                    </span>
                   </div>
                   <div className="w-full bg-brand-primary/20 h-2 rounded-full overflow-hidden">
                     <div 
@@ -2263,16 +2965,6 @@ export default function App() {
                     <div className="text-4xl font-mono font-bold tracking-tight text-brand-black">
                       {deductionsRate >= 100 ? "Erro" : formatCurrency(salesPrice)}
                     </div>
-                    <div className="mt-4 pt-4 border-t border-brand-black/20 grid grid-cols-2 gap-4 text-sm opacity-90">
-                      <div>
-                        <span className="block text-xs opacity-80 text-brand-black/70">Lucro Líquido (R$)</span>
-                        <span className="font-mono font-bold">{formatCurrency(salesPrice * (profitMargin / 100))}</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="block text-xs opacity-80 text-brand-black/70">Impostos/Desp. (R$)</span>
-                        <span className="font-mono font-bold">{formatCurrency(salesPrice * ((icmsSaleRate + pisSaleRate + cofinsSaleRate + commissionRate) / 100) + saleExpensesValue)}</span>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -2291,7 +2983,9 @@ export default function App() {
                   </div>
                   <div className="flex justify-between border-b border-brand-border pb-1 text-red-400">
                     <span>(-) Impostos/Comissões</span>
-                    <span className="font-mono">{(salesPrice * ((icmsSaleRate + pisSaleRate + cofinsSaleRate + commissionRate) / 100) + saleExpensesValue) > 0 ? '-' : ''}{formatCurrency(salesPrice * ((icmsSaleRate + pisSaleRate + cofinsSaleRate + commissionRate) / 100) + saleExpensesValue)}</span>
+                    <span className="font-mono">
+                      {(totalDeductionsValue > 0 ? '-' : '') + formatCurrency(totalDeductionsValue)}
+                    </span>
                   </div>
                   <div className="flex justify-between pt-1 text-brand-primary font-bold">
                     <span>(=) Lucro Líquido</span>
@@ -2374,10 +3068,8 @@ export default function App() {
                   )}
                 </div>
               </div>
-
             </div>
           </div>
-
         </div>
       )}
 
@@ -2598,14 +3290,14 @@ export default function App() {
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <a 
-                    href={`mailto:${manualConfig.supportEmail || 'adm.valdemir@gmail.com'}`}
+                    href={`mailto:${manualConfig.supportEmail || 'suporte@nivorconsultoria.com.br'}`}
                     className="flex items-center gap-2 bg-zinc-950 hover:bg-zinc-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-lg shadow-zinc-950/20"
                   >
                     <Mail className="w-4 h-4 text-amber-500" />
                     ENVIAR E-MAIL
                   </a>
                   <a 
-                    href={`https://mail.google.com/mail/?view=cm&fs=1&to=${manualConfig.supportEmail || 'adm.valdemir@gmail.com'}`}
+                    href={`https://mail.google.com/mail/?view=cm&fs=1&to=${manualConfig.supportEmail || 'suporte@nivorconsultoria.com.br'}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 bg-white hover:bg-zinc-50 text-zinc-900 px-4 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 border border-zinc-200 shadow-sm"
@@ -2757,6 +3449,8 @@ export default function App() {
                             <option value="FileUp">Importação</option>
                             <option value="Download">Exportação</option>
                             <option value="RotateCcw">Resetar</option>
+                            <option value="Percent">Porcentagem</option>
+                            <option value="BookOpen">Glossário</option>
                           </select>
                         </div>
                       </div>
@@ -2991,14 +3685,14 @@ export default function App() {
               <div className="pt-4 flex gap-3">
                 <button 
                   onClick={() => setIsSaveModalOpen(false)}
-                  className="flex-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 py-2 rounded-lg font-bold text-sm transition-colors"
+                  className="flex-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 py-2 rounded-lg font-bold text-[15px] transition-colors"
                 >
                   Cancelar
                 </button>
                 <button 
                   onClick={handleConfirmSave}
                   disabled={!productName || isSaving}
-                  className="flex-1 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-2 rounded-lg font-bold text-sm transition-colors shadow-lg shadow-amber-600/20"
+                  className="flex-1 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-2 rounded-lg font-bold text-[15px] transition-colors shadow-lg shadow-amber-600/20"
                 >
                   {isSaving ? 'Salvando...' : 'Confirmar'}
                 </button>
@@ -3010,11 +3704,11 @@ export default function App() {
 
       {/* History Modal */}
       {isHistoryModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden border border-zinc-200 flex flex-col">
-            <div className="bg-zinc-950 p-4 text-white flex items-center justify-between shrink-0">
+        <div className="fixed inset-0 bg-brand-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-brand-card rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden border border-brand-border flex flex-col">
+            <div className="bg-brand-black p-4 text-white flex items-center justify-between shrink-0">
               <h3 className="font-bold uppercase tracking-wider text-sm flex items-center gap-2">
-                <History className="w-4 h-4 text-amber-500" />
+                <History className="w-4 h-4 text-brand-primary" />
                 Histórico de Simulações
               </h3>
               <div className="flex items-center gap-4">
@@ -3026,20 +3720,23 @@ export default function App() {
                       placeholder="Buscar produto ou fornecedor..."
                       value={historySearch}
                       onChange={(e) => setHistorySearch(e.target.value)}
-                      className="bg-zinc-900 border border-zinc-800 rounded-lg pl-9 pr-4 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500 w-64 transition-all"
+                      className="bg-brand-muted border border-brand-border rounded-lg pl-9 pr-4 py-1.5 text-xs text-white focus:outline-none focus:border-brand-primary w-64 transition-all"
                     />
                   </div>
                 )}
                 <button 
-                  onClick={() => setIsHistoryModalOpen(false)}
-                  className="text-zinc-400 hover:text-white transition-colors"
+                  onClick={() => {
+                    setHistorySearch('');
+                    setIsHistoryModalOpen(false);
+                  }}
+                  className="text-slate-500 hover:text-white transition-colors"
                 >
                   <RotateCcw className="w-4 h-4" />
                 </button>
               </div>
             </div>
             
-            <div className="flex-1 overflow-auto p-6">
+            <div className="flex-1 overflow-auto p-6 bg-brand-black/20">
               {!isPro ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center space-y-6">
                   <div className="bg-brand-primary/10 p-6 rounded-3xl">
@@ -3061,8 +3758,24 @@ export default function App() {
                 </div>
               ) : !user ? (
                 <div className="text-center py-12">
-                  <History className="w-12 h-12 text-slate-700 mx-auto mb-4" />
-                  <p className="text-slate-500">Nenhum cálculo salvo ainda.</p>
+                  <History className="w-12 h-12 text-slate-700 mx-auto mb-4 animate-pulse" />
+                  <p className="text-slate-400 font-bold">Identificando usuário...</p>
+                </div>
+              ) : filteredCalculations.length === 0 ? (
+                <div className="text-center py-20 bg-brand-black/40 rounded-2xl border border-brand-border">
+                  <History className="w-16 h-16 text-slate-700 mx-auto mb-6 opacity-20" />
+                  <p className="text-slate-300 font-bold text-lg">Nenhum cálculo encontrado</p>
+                  <p className="text-slate-500 text-sm mt-1 max-w-xs mx-auto">
+                    {historySearch ? `Nenhum resultado para "${historySearch}"` : 'Você ainda não realizou nenhuma simulação.'}
+                  </p>
+                  {historySearch && (
+                    <button 
+                      onClick={() => setHistorySearch('')}
+                      className="mt-6 text-brand-primary hover:underline text-sm font-bold"
+                    >
+                      Limpar busca
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3305,7 +4018,7 @@ export default function App() {
                         <input 
                           type="number"
                           step="0.001"
-                          value={editingProduct?.pisSaleRate || 0.165}
+                          value={editingProduct?.pisSaleRate || 1.65}
                           onChange={(e) => setEditingProduct({ ...editingProduct, pisSaleRate: Number(e.target.value) })}
                           className="w-full bg-brand-muted border border-brand-border rounded-lg py-1.5 px-3 outline-none focus:ring-2 focus:ring-brand-primary text-sm text-slate-100"
                         />
@@ -3315,8 +4028,34 @@ export default function App() {
                         <input 
                           type="number"
                           step="0.001"
-                          value={editingProduct?.cofinsSaleRate || 0.76}
+                          value={editingProduct?.cofinsSaleRate || 7.6}
                           onChange={(e) => setEditingProduct({ ...editingProduct, cofinsSaleRate: Number(e.target.value) })}
+                          className="w-full bg-brand-muted border border-brand-border rounded-lg py-1.5 px-3 outline-none focus:ring-2 focus:ring-brand-primary text-sm text-slate-100"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-bold text-slate-300 uppercase">IPI (%)</label>
+                        <input 
+                          type="number"
+                          value={editingProduct?.ipiRate || 0}
+                          onChange={(e) => {
+                            const rate = Number(e.target.value);
+                            const val = (editingProduct?.baseCost || 0) * (rate / 100);
+                            setEditingProduct({ ...editingProduct, ipiRate: rate, ipi: val });
+                          }}
+                          className="w-full bg-brand-muted border border-brand-border rounded-lg py-1.5 px-3 outline-none focus:ring-2 focus:ring-brand-primary text-sm text-slate-100"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-bold text-slate-300 uppercase">IPI (R$)</label>
+                        <input 
+                          type="number"
+                          value={editingProduct?.ipi || 0}
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            const rate = (editingProduct?.baseCost || 0) > 0 ? (val / editingProduct.baseCost) * 100 : 0;
+                            setEditingProduct({ ...editingProduct, ipi: val, ipiRate: rate });
+                          }}
                           className="w-full bg-brand-muted border border-brand-border rounded-lg py-1.5 px-3 outline-none focus:ring-2 focus:ring-brand-primary text-sm text-slate-100"
                         />
                       </div>
@@ -3368,13 +4107,13 @@ export default function App() {
                             <div className="flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
                               <button 
                                 onClick={() => handleDeleteProduct(product.id)}
-                                className="flex-1 bg-red-500/10 text-red-500 py-1.5 rounded-lg text-[10px] font-bold hover:bg-red-500/20"
+                                className="flex-1 bg-red-500/10 text-red-500 py-1.5 rounded-lg text-[11px] font-bold hover:bg-red-500/20"
                               >
                                 Confirmar
                               </button>
                               <button 
                                 onClick={() => setDeletingProductId(null)}
-                                className="flex-1 bg-brand-muted text-slate-500 py-1.5 rounded-lg text-[10px] font-bold hover:bg-brand-muted/80 border border-brand-border"
+                                className="flex-1 bg-brand-muted text-slate-500 py-1.5 rounded-lg text-[11px] font-bold hover:bg-brand-muted/80 border border-brand-border"
                               >
                                 Cancelar
                               </button>
@@ -3382,7 +4121,7 @@ export default function App() {
                           ) : (
                             <button 
                               onClick={() => handleSelectProductForCalculator(product)}
-                              className="w-full bg-brand-primary text-brand-black py-2 rounded-lg text-[10px] font-bold hover:bg-brand-primary-hover transition-colors flex items-center justify-center gap-2"
+                              className="w-full bg-brand-primary text-brand-black py-2 rounded-lg text-[11px] font-bold hover:bg-brand-primary-hover transition-colors flex items-center justify-center gap-2"
                             >
                               <Calculator className="w-3 h-3" />
                               Usar na Calculadora
@@ -3441,6 +4180,60 @@ export default function App() {
             </div>
           </div>
         )}
+      </>
+    ) : (
+      <div className="flex flex-col items-center justify-center py-24 px-6 text-center animate-in fade-in zoom-in-95 duration-500">
+        <div className="bg-brand-muted/30 p-8 rounded-full mb-8 border border-brand-border shadow-2xl relative">
+          <ShieldAlert className="w-16 h-16 text-red-500 animate-pulse" />
+          <div className="absolute inset-0 bg-red-500/10 rounded-full blur-2xl animate-pulse"></div>
+        </div>
+        <h2 className="text-3xl font-black text-white mb-3 uppercase tracking-tight">Acesso Restrito</h2>
+        <div className="w-12 h-1.5 bg-red-600 rounded-full mb-6"></div>
+        <p className="text-slate-400 max-w-sm mb-10 leading-relaxed text-sm md:text-base">
+          Olá <span className="text-brand-primary font-bold">{user.displayName}</span>.<br /> 
+          Este ambiente é exclusivo para testes controlados. O e-mail <span className="text-slate-200 font-mono text-xs">{user.email}</span> não está na lista de autorização.
+        </p>
+        <div className="flex flex-col gap-4 w-full max-w-xs">
+          <a 
+            href={`mailto:suporte@nivorconsultoria.com.br?subject=Solicitação de Acesso - Calculadora NIVOR&body=Olá Equipe Nivor, solicito liberação de acesso para o e-mail: ${user.email}`}
+            className="bg-brand-primary hover:bg-brand-primary-hover text-brand-black font-black py-4 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 shadow-xl shadow-brand-primary/20"
+          >
+            SOLICITAR LIBERAÇÃO
+          </a>
+          <button 
+            onClick={handleLogout}
+            className="group flex items-center justify-center gap-2 text-slate-500 hover:text-white text-sm font-bold transition-all py-2"
+          >
+            <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            TENTAR OUTRA CONTA
+          </button>
+        </div>
+      </div>
+    )
+  ) : (
+    <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
+      <div className="bg-brand-muted/20 p-10 rounded-3xl mb-10 border border-brand-border shadow-inner relative overflow-hidden group">
+        <div className="absolute inset-0 bg-brand-primary/5 group-hover:bg-brand-primary/10 transition-colors"></div>
+        <Lock className="w-20 h-20 text-brand-primary lg:w-24 lg:h-24 relative z-10 animate-in slide-in-from-bottom-4 duration-700" />
+      </div>
+      <h2 className="text-4xl lg:text-5xl font-black text-white mb-4 uppercase tracking-tighter italic">
+        NIVOR <span className="text-brand-primary">SECURE</span>
+      </h2>
+      <p className="text-slate-400 max-w-sm mb-12 leading-relaxed text-sm lg:text-base">
+        Precificação estratégica com inteligência tributária. Acesse sua conta para começar.
+      </p>
+      <button 
+        onClick={handleLogin}
+        className="flex items-center gap-4 bg-brand-primary hover:bg-brand-primary-hover text-brand-black px-12 py-5 rounded-2xl text-xl font-black transition-all shadow-2xl shadow-brand-primary/10 active:scale-95 group"
+      >
+        <LogIn className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+        <span>ENTRAR NO SISTEMA</span>
+      </button>
+    </div>
+  )}
+
+  {/* Modals and Toast UI below */}
+        </div>
       </div>
     </div>
   </ErrorBoundary>

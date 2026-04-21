@@ -58,5 +58,23 @@
     "title": "Aviso de Assinatura (PRO)",
     "description": "Usuários PRO recebem um aviso discreto ao acessar o sistema informando quantos dias faltam para o vencimento da assinatura, facilitando o planejamento da renovação.",
     "icon": "Calendar"
+  },
+  {
+    "id": "regime-fornecedor",
+    "title": "Regime do Fornecedor",
+    "description": "Selecione o regime tributário do seu fornecedor (Simples, Presumido ou Real) na seção de 'Dados de Compra'. O sistema calculará automaticamente os créditos de impostos (ICMS, PIS/COFINS) permitidos para o seu regime com base nesta seleção.",
+    "icon": "Settings"
+  },
+  {
+    "id": "config-aliquotas",
+    "title": "Configuração de Suas Alíquotas",
+    "description": "No bloco 'Dados de Venda', defina o seu próprio regime tributário para que o sistema aplique os impostos de venda corretos (como o Simples Nacional ou ICMS/PIS/COFINS de saída).",
+    "icon": "Percent"
+  },
+  {
+    "id": "glossario-campos",
+    "title": "Glossário de Campos",
+    "description": "IPI: Imposto Federal sobre indústria. ICMS: Imposto Estadual sobre circulação. PIS/COFINS: Contribuições Sociais sobre o faturamento.",
+    "icon": "BookOpen"
   }
 ]
