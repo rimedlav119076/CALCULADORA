@@ -2446,7 +2446,7 @@ export default function App() {
                   {isAdmin && (
                     <button 
                       onClick={() => setIsAdminMenuOpen(true)}
-                      className="flex items-center gap-1.5 bg-red-600 hover:bg-red-500 text-white px-2.5 py-1 rounded-md text-[11px] font-black transition-all active:scale-95 border border-red-700"
+                      className="flex items-center gap-1.5 bg-red-600 hover:bg-red-500 text-white px-2.5 py-1 rounded-md text-[11px] font-black transition-all active:scale-95 border border-red-700 shadow-lg shadow-red-900/20"
                       title="Painel Administrativo"
                     >
                       <Settings className="w-3 h-3 text-white" />
@@ -2490,42 +2490,42 @@ export default function App() {
                 <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 justify-center sm:justify-end w-full px-4 md:px-6 py-4 bg-brand-muted/10 border-b border-brand-border">
               <button 
                 onClick={() => requirePro(() => setIsDashboardOpen(!isDashboardOpen))}
-                className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[11px] md:text-sm font-bold transition-all border active:scale-95 w-full sm:w-auto whitespace-nowrap ${isDashboardOpen ? 'bg-brand-primary border-brand-primary text-brand-black shadow-lg shadow-brand-primary/20' : 'bg-brand-muted border-brand-border text-white hover:bg-brand-muted/80'}`}
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[11px] md:text-sm font-bold transition-all border active:scale-95 w-full sm:w-auto whitespace-nowrap ${isDashboardOpen ? 'bg-brand-primary border-brand-primary text-brand-black shadow-lg shadow-brand-primary/20' : isPro ? 'bg-brand-muted border-brand-border text-white hover:bg-brand-muted/80' : 'bg-brand-muted/50 border-brand-border/30 text-slate-500 cursor-not-allowed hover:bg-brand-muted/60'}`}
                 title={isDashboardOpen ? "Voltar para Calculadora" : "Ver Dashboard"}
               >
                 {isDashboardOpen ? <Calculator className="w-3.5 h-3.5 md:w-4 md:h-4" /> : <LayoutDashboard className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary" />}
                 <span>{isDashboardOpen ? "Calculadora" : "Dashboard"}</span>
-                {!isPro && <span className="ml-1 bg-brand-primary text-brand-black px-1 rounded-[4px] text-[8px]">PRO</span>}
+                {!isPro && <Lock className="w-3 h-3 ml-1 text-slate-500" />}
               </button>
 
               <button 
                 onClick={() => requirePro(() => setIsSettingsModalOpen(true))}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[11px] md:text-sm font-bold transition-colors border border-brand-border active:scale-95 w-full sm:w-auto whitespace-nowrap"
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[11px] md:text-sm font-bold transition-colors border active:scale-95 w-full sm:w-auto whitespace-nowrap ${isPro ? 'bg-brand-muted border-brand-border text-white hover:bg-brand-muted/80' : 'bg-brand-muted/50 border-brand-border/30 text-slate-500 cursor-not-allowed hover:bg-brand-muted/60'}`}
                 title="Configurações Padrão"
               >
                 <Settings className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary" />
                 <span>Config</span>
-                {!isPro && <span className="ml-1 bg-brand-primary text-brand-black px-1 rounded-[4px] text-[8px]">PRO</span>}
+                {!isPro && <Lock className="w-3 h-3 ml-1 text-slate-500" />}
               </button>
 
               <button 
                 onClick={() => requirePro(() => setIsProductsModalOpen(true))}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[11px] md:text-sm font-bold transition-colors border border-brand-border active:scale-95 w-full sm:w-auto whitespace-nowrap"
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[11px] md:text-sm font-bold transition-colors border active:scale-95 w-full sm:w-auto whitespace-nowrap ${isPro ? 'bg-brand-muted border-brand-border text-white hover:bg-brand-muted/80' : 'bg-brand-muted/50 border-brand-border/30 text-slate-500 cursor-not-allowed hover:bg-brand-muted/60'}`}
                 title="Gerenciar Produtos"
               >
                 <Package className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary" />
                 <span>Produtos</span>
-                {!isPro && <span className="ml-1 bg-brand-primary text-brand-black px-1 rounded-[4px] text-[8px]">PRO</span>}
+                {!isPro && <Lock className="w-3 h-3 ml-1 text-slate-500" />}
               </button>
 
               <button 
                 onClick={() => requirePro(() => setIsHistoryModalOpen(true))}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[11px] md:text-sm font-bold transition-colors border border-brand-border active:scale-95 w-full sm:w-auto whitespace-nowrap"
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[11px] md:text-sm font-bold transition-colors border active:scale-95 w-full sm:w-auto whitespace-nowrap ${isPro ? 'bg-brand-muted border-brand-border text-white hover:bg-brand-muted/80' : 'bg-brand-muted/50 border-brand-border/30 text-slate-500 cursor-not-allowed hover:bg-brand-muted/60'}`}
                 title="Ver Histórico"
               >
                 <History className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary" />
                 <span>Histórico</span>
-                {!isPro && <span className="ml-1 bg-brand-primary text-brand-black px-1 rounded-[4px] text-[8px]">PRO</span>}
+                {!isPro && <Lock className="w-3 h-3 ml-1 text-slate-500" />}
               </button>
 
               <button 
@@ -2548,22 +2548,22 @@ export default function App() {
 
               <button 
                 onClick={() => requirePro(handleExportPDF)}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-brand-border active:scale-95 w-full sm:w-auto whitespace-nowrap"
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border active:scale-95 w-full sm:w-auto whitespace-nowrap ${isPro ? 'bg-brand-muted border-brand-border text-white hover:bg-brand-muted/80' : 'bg-brand-muted/50 border-brand-border/30 text-slate-500 cursor-not-allowed hover:bg-brand-muted/60'}`}
                 title="Exportar PDF"
               >
                 <Download className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary" />
                 <span>PDF</span>
-                {!isPro && <span className="ml-1 bg-brand-primary text-brand-black px-1 rounded-[4px] text-[8px]">PRO</span>}
+                {!isPro && <Lock className="w-3 h-3 ml-1 text-slate-500 font-mono" />}
               </button>
 
               <button 
                 onClick={() => requirePro(handleExportExcel)}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 bg-brand-muted hover:bg-brand-muted/80 text-white px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-brand-border active:scale-95 w-full sm:w-auto whitespace-nowrap"
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-2 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors border active:scale-95 w-full sm:w-auto whitespace-nowrap ${isPro ? 'bg-brand-muted border-brand-border text-white hover:bg-brand-muted/80' : 'bg-brand-muted/50 border-brand-border/30 text-slate-500 cursor-not-allowed hover:bg-brand-muted/60'}`}
                 title="Exportar Excel"
               >
                 <Download className="w-3.5 h-3.5 md:w-4 md:h-4 text-brand-primary" />
                 <span>EXCEL</span>
-                {!isPro && <span className="ml-1 bg-brand-primary text-brand-black px-1 rounded-[4px] text-[8px]">PRO</span>}
+                {!isPro && <Lock className="w-3 h-3 ml-1 text-slate-500 font-mono" />}
               </button>
             </div>
 
