@@ -821,15 +821,14 @@ export default function App() {
   const isPro = useMemo(() => userPlan === 'PRO', [userPlan]);
   const AUTHORIZED_EMAILS = useMemo(() => [
     'adm.valdemir@gmail.com', 
-    'nivor@nivorconsultoria.com.br',
+    'contabil@mgvcontabilidade.com.br',
+    'elisangela@contabens.cnt.br',
     // Adicione aqui os e-mails das pessoas que participarão dos testes controlados
   ], []);
 
   const isAdmin = useMemo(() => {
-    return user?.email === 'adm.valdemir@gmail.com' || 
-           user?.email === 'contabil@mgvcontabilidade.com.br' ||
-           user?.email === 'elisangela@contabens.cnt.br';
-  }, [user]);
+    return user?.email === 'adm.valdemir@gmail.com';
+     }, [user]);
   
   const isAuthorized = useMemo(() => {
     if (!user) return false;
