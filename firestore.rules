@@ -157,6 +157,11 @@ service cloud.firestore {
       allow write: if isOwner(userId);
     }
 
+    match /legal/{contentId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /config/manual {
       allow read: if isAuthenticated();
       allow write: if isAdmin();

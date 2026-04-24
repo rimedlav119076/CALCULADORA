@@ -98,6 +98,17 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId"]
+    },
+    "legal": {
+      "title": "Legal Content",
+      "description": "Legal texts like Privacy Policy and Terms of Use.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "content"]
     }
   },
   "firestore": {
@@ -116,6 +127,10 @@
     "/settings/{userId}": {
       "schema": "settings",
       "description": "Stores user global settings."
+    },
+    "/legal/{contentId}": {
+      "schema": "legal",
+      "description": "Stores legal contents (privacy, terms)."
     }
   }
 }

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { Calculator, DollarSign, Percent, RefreshCw, Info, Download, RotateCcw, LogIn, LogOut, Save, History, CheckCircle2, AlertCircle, Trash2, Calendar, User as UserIcon, Package, Plus, Edit2, Settings, LayoutDashboard, FileUp, X, HelpCircle, Mail, ExternalLink, Search, ShieldAlert, Lock, BookOpen, ChevronDown } from 'lucide-react';
+import { Calculator, DollarSign, Percent, RefreshCw, Info, Download, RotateCcw, LogIn, LogOut, Save, History, CheckCircle2, AlertCircle, Trash2, Calendar, User as UserIcon, Package, Plus, Edit2, Settings, LayoutDashboard, FileUp, X, HelpCircle, Mail, ExternalLink, Search, ShieldAlert, Lock, BookOpen, ChevronDown, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import manualData from './data/manual.json';
 import jsPDF from 'jspdf';
@@ -923,6 +923,17 @@ export default function App() {
   const [showPurchaseMemo, setShowPurchaseMemo] = useState(false);
   const [showSalesMemo, setShowSalesMemo] = useState(false);
 
+  // Legal Content State
+  const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
+  const [isLegalAdminModalOpen, setIsLegalAdminModalOpen] = useState(false);
+  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
+  const [selectedLegalTab, setSelectedLegalTab] = useState<'privacy' | 'terms'>('privacy');
+  const [legalConfigs, setLegalConfigs] = useState<Record<string, any>>({
+    privacy: { title: 'Política de Privacidade', content: 'Carregando...' },
+    terms: { title: 'Termos de Uso', content: 'Carregando...' }
+  });
+  const [isSavingLegal, setIsSavingLegal] = useState(false);
+
   // Refs
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -1129,6 +1140,52 @@ export default function App() {
 
     return () => unsubscribe();
   }, [user]);
+
+  // Fetch Legal Content
+  useEffect(() => {
+    const fetchLegal = async () => {
+      const docs = ['privacy', 'terms'];
+      const configs: any = {};
+      
+      for (const id of docs) {
+        const docRef = doc(db, 'legal', id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          configs[id] = docSnap.data();
+        } else {
+          // Defaults if not exists
+          configs[id] = {
+            title: id === 'privacy' ? 'Política de Privacidade' : 'Termos de Uso',
+            content: 'O conteúdo será enviado em breve pelo administrador.',
+            updatedAt: Timestamp.now()
+          };
+          if (isAdmin) {
+            await setDoc(docRef, configs[id]);
+          }
+        }
+      }
+      setLegalConfigs(prev => ({ ...prev, ...configs }));
+    };
+
+    fetchLegal();
+  }, [isAdmin]);
+
+  const handleSaveLegal = useCallback(async (type: string, data: any) => {
+    setIsSavingLegal(true);
+    try {
+      const docRef = doc(db, 'legal', type);
+      await setDoc(docRef, {
+        ...data,
+        updatedAt: Timestamp.now()
+      });
+      setLegalConfigs(prev => ({ ...prev, [type]: data }));
+      showToast("Conteúdo legal atualizado com sucesso!", "success");
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, `legal/${type}`);
+    } finally {
+      setIsSavingLegal(false);
+    }
+  }, [showToast]);
 
   // Handle Product Name Change with suggestions
   const handleProductNameChange = useCallback((name: string) => {
@@ -2388,7 +2445,7 @@ export default function App() {
 
                   {isAdmin && (
                     <button 
-                      onClick={() => setIsManualAdminModalOpen(true)}
+                      onClick={() => setIsAdminMenuOpen(true)}
                       className="flex items-center gap-1.5 bg-red-600 hover:bg-red-500 text-white px-2.5 py-1 rounded-md text-[11px] font-black transition-all active:scale-95 border border-red-700"
                       title="Painel Administrativo"
                     >
@@ -3073,6 +3130,40 @@ export default function App() {
         </div>
       )}
 
+      {/* Footer with Legal Links */}
+      <footer className="mt-12 py-8 border-t border-brand-border flex flex-col md:flex-row items-center justify-between gap-6 px-6">
+        <div className="flex flex-col gap-1.5 items-center md:items-start text-center md:text-left">
+          <h4 className="text-white font-black text-xs uppercase tracking-tighter italic">
+            NIVOR <span className="text-brand-primary">SOLUTION</span>
+          </h4>
+          <p className="text-slate-500 text-[10px] font-medium uppercase tracking-widest">
+            © {new Date().getFullYear()} NIVOR CONSULTORIA EM CONTROLES E PROCESSOS
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-6">
+          <button 
+            onClick={() => {
+              setSelectedLegalTab('privacy');
+              setIsLegalModalOpen(true);
+            }}
+            className="text-[10px] font-bold text-slate-400 hover:text-brand-primary uppercase tracking-widest transition-colors"
+          >
+            POLÍTICA DE PRIVACIDADE
+          </button>
+          <div className="w-1 h-1 bg-brand-border rounded-full"></div>
+          <button 
+            onClick={() => {
+              setSelectedLegalTab('terms');
+              setIsLegalModalOpen(true);
+            }}
+            className="text-[10px] font-bold text-slate-400 hover:text-brand-primary uppercase tracking-widest transition-colors"
+          >
+            TERMOS DE USO
+          </button>
+        </div>
+      </footer>
+
       {/* XML Item Selection Modal */}
       {isXmlSelectModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[100] animate-in fade-in duration-300">
@@ -3228,6 +3319,200 @@ export default function App() {
                     </button>
                   </div>
                 </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Legal Modal */}
+      {isLegalModalOpen && (
+        <div className="fixed inset-0 bg-brand-black/90 backdrop-blur-md flex items-center justify-center p-4 z-[120] animate-in fade-in duration-300">
+          <div className="bg-brand-card rounded-3xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden border border-brand-border flex flex-col">
+            <div className="bg-brand-black p-6 text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="bg-brand-primary p-2 rounded-xl">
+                  <Shield className="w-6 h-6 text-brand-black" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold uppercase tracking-tighter">{legalConfigs[selectedLegalTab].title}</h3>
+                  <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Calculadora NIVOR • Informações Legais</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsLegalModalOpen(false)}
+                className="text-slate-500 hover:text-white transition-colors p-2"
+              >
+                <RotateCcw className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-8 prose prose-invert max-w-none prose-p:text-slate-300 prose-p:text-sm prose-p:leading-relaxed prose-headings:text-brand-primary prose-headings:uppercase prose-headings:tracking-tighter prose-strong:text-white prose-li:text-slate-300 prose-li:text-sm">
+              <div className="whitespace-pre-wrap font-sans text-slate-300 leading-relaxed">
+                {legalConfigs[selectedLegalTab].content}
+              </div>
+            </div>
+
+            <div className="p-6 bg-brand-black/50 border-t border-brand-border flex justify-between items-center">
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">
+                Última atualização: {legalConfigs[selectedLegalTab].updatedAt?.toDate ? new Date(legalConfigs[selectedLegalTab].updatedAt.toDate()).toLocaleDateString('pt-BR') : 'Recentemente'}
+              </span>
+              <button 
+                onClick={() => setIsLegalModalOpen(false)}
+                className="bg-brand-primary hover:bg-brand-primary-hover text-brand-black px-8 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95"
+              >
+                FECHAR
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Legal Admin Modal */}
+      {isLegalAdminModalOpen && isAdmin && (
+        <div className="fixed inset-0 bg-brand-black/90 backdrop-blur-md flex items-center justify-center p-4 z-[130] animate-in fade-in duration-300">
+          <div className="bg-brand-card rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-brand-border flex flex-col">
+            <div className="bg-brand-black p-6 text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="bg-brand-primary p-2 rounded-xl">
+                  <Settings className="w-6 h-6 text-brand-black" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold uppercase tracking-tighter italic">Painel Administrativo Legal</h3>
+                  <p className="text-brand-primary text-[10px] font-bold uppercase tracking-widest">Gestão de Textos Jurídicos</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsLegalAdminModalOpen(false)}
+                className="text-slate-500 hover:text-white transition-colors p-2"
+              >
+                <RotateCcw className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <div className="flex border-b border-brand-border bg-brand-black/30">
+                <button 
+                  onClick={() => setSelectedLegalTab('privacy')}
+                  className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all ${selectedLegalTab === 'privacy' ? 'text-brand-primary border-b-2 border-brand-primary bg-brand-primary/5' : 'text-slate-500 hover:text-slate-300'}`}
+                >
+                  Política de Privacidade
+                </button>
+                <button 
+                  onClick={() => setSelectedLegalTab('terms')}
+                  className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all ${selectedLegalTab === 'terms' ? 'text-brand-primary border-b-2 border-brand-primary bg-brand-primary/5' : 'text-slate-500 hover:text-slate-300'}`}
+                >
+                  Termos de Uso
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-8 space-y-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Título do Documento</label>
+                    <input 
+                      type="text"
+                      value={legalConfigs[selectedLegalTab].title}
+                      onChange={(e) => setLegalConfigs({
+                        ...legalConfigs,
+                        [selectedLegalTab]: { ...legalConfigs[selectedLegalTab], title: e.target.value }
+                      })}
+                      className="w-full bg-brand-black border border-brand-border rounded-xl py-3 px-4 text-sm text-white focus:ring-2 focus:ring-brand-primary outline-none transition-all"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Conteúdo do Documento (Markdown/Texto)</label>
+                     <textarea 
+                      value={legalConfigs[selectedLegalTab].content}
+                      onChange={(e) => setLegalConfigs({
+                        ...legalConfigs,
+                        [selectedLegalTab]: { ...legalConfigs[selectedLegalTab], content: e.target.value }
+                      })}
+                      rows={15}
+                      className="w-full bg-brand-black border border-brand-border rounded-xl py-3 px-4 text-sm text-white focus:ring-2 focus:ring-brand-primary outline-none transition-all resize-none font-sans leading-relaxed"
+                     />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 bg-brand-black border-t border-brand-border flex justify-end gap-4">
+              <button 
+                onClick={() => setIsLegalAdminModalOpen(false)}
+                className="px-8 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-300 transition-colors uppercase tracking-widest"
+              >
+                CANCELAR
+              </button>
+              <button 
+                onClick={() => handleSaveLegal(selectedLegalTab, legalConfigs[selectedLegalTab])}
+                disabled={isSavingLegal}
+                className="bg-brand-primary hover:bg-brand-primary-hover text-brand-black px-10 py-3 rounded-xl font-black text-xs transition-all active:scale-95 shadow-xl shadow-brand-primary/20 flex items-center gap-2 uppercase tracking-widest disabled:opacity-50"
+              >
+                {isSavingLegal ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                SALVAR DOCUMENTO
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Administrative Menu Modal */}
+      {isAdminMenuOpen && isAdmin && (
+        <div className="fixed inset-0 bg-brand-black/90 backdrop-blur-md flex items-center justify-center p-4 z-[200] animate-in fade-in duration-300">
+          <div className="bg-brand-card rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden border border-brand-border flex flex-col">
+            <div className="bg-brand-black p-6 text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-brand-primary p-2 rounded-xl">
+                  <Settings className="w-6 h-6 text-brand-black" />
+                </div>
+                <h3 className="text-xl font-bold uppercase tracking-tighter italic">Painel Admin</h3>
+              </div>
+              <button 
+                onClick={() => setIsAdminMenuOpen(false)}
+                className="text-slate-500 hover:text-white transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <button 
+                onClick={() => {
+                  setIsAdminMenuOpen(false);
+                  setIsManualAdminModalOpen(true);
+                }}
+                className="w-full flex items-center gap-4 bg-brand-muted hover:bg-brand-muted/80 p-4 rounded-2xl border border-brand-border transition-all group"
+              >
+                <div className="bg-brand-primary/10 p-3 rounded-xl text-brand-primary group-hover:bg-brand-primary group-hover:text-brand-black transition-colors">
+                  <BookOpen className="w-6 h-6" />
+                </div>
+                <div className="text-left">
+                  <div className="text-white font-bold text-sm uppercase tracking-tight">Manual do Usuário</div>
+                  <div className="text-slate-500 text-[10px] font-medium uppercase tracking-widest">Editar introdução e itens</div>
+                </div>
+              </button>
+
+              <button 
+                onClick={() => {
+                  setIsAdminMenuOpen(false);
+                  setIsLegalAdminModalOpen(true);
+                }}
+                className="w-full flex items-center gap-4 bg-brand-muted hover:bg-brand-muted/80 p-4 rounded-2xl border border-brand-border transition-all group"
+              >
+                <div className="bg-brand-primary/10 p-3 rounded-xl text-brand-primary group-hover:bg-brand-primary group-hover:text-brand-black transition-colors">
+                  <Shield className="w-6 h-6" />
+                </div>
+                <div className="text-left">
+                  <div className="text-white font-bold text-sm uppercase tracking-tight">Jurídico & Legal</div>
+                  <div className="text-slate-500 text-[10px] font-medium uppercase tracking-widest">Privacidade e Termos</div>
+                </div>
+              </button>
+            </div>
+            <div className="p-6 bg-brand-black/50 border-t border-brand-border">
+              <button 
+                onClick={() => setIsAdminMenuOpen(false)}
+                className="w-full bg-brand-muted hover:bg-brand-muted/80 text-white py-3 rounded-xl font-bold text-xs transition-all border border-brand-border uppercase tracking-widest"
+              >
+                Fechar
+              </button>
             </div>
           </div>
         </div>
