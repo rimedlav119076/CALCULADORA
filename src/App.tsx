@@ -827,7 +827,7 @@ export default function App() {
 
   const isAdmin = useMemo(() => {
     return user?.email === 'adm.valdemir@gmail.com' || 
-           user?.email === 'nivor@nivorconsultoria.com.br' ||
+           user?.email === 'contabil@mgvcontabilidade.com.br' ||
            user?.email === 'elisangela@contabens.cnt.br';
   }, [user]);
   
