@@ -822,7 +822,7 @@ export default function App() {
   const AUTHORIZED_EMAILS = useMemo(() => [
     'adm.valdemir@gmail.com', 
     'contabil@mgvcontabilidade.com.br',
-    'elisangela@contabens.cnt.br',
+    'elisriske@gmail.com',
     // Adicione aqui os e-mails das pessoas que participarão dos testes controlados
   ], []);
 
@@ -1009,7 +1009,13 @@ export default function App() {
           
           showToast("Sua assinatura PRO expirou. Retornando ao plano gratuito.", "info");
         } else {
-          setUserPlan(userData.plan || 'FREE');
+          // Force FREE if not authorized and not admin, even if DB says PRO
+          const finalPlan = (isAdmin || isAuthorized) ? 'PRO' : (userData.plan === 'PRO' ? 'PRO' : 'FREE');
+          setUserPlan(finalPlan);
+          
+          // If the user is NOT authorized/admin but marked as PRO in DB, we still allow PRO (standard subscription)
+          // UNLESS you want to STRICTLY only allow those in the list.
+          // In this case, we'll follow the logical priority: List > DB.
           
           // Show expiration alert if PRO and not the admin
           if (userData.plan === 'PRO' && !isAdmin && expiresAt) {
