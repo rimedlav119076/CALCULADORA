@@ -2415,7 +2415,7 @@ export default function App() {
               </div>
               
               <div className="flex items-center gap-3">
-                {user && isAuthorized && (
+                {user && (
                   <button 
                     onClick={() => setIsManualModalOpen(true)}
                     className="flex items-center gap-1.5 bg-brand-muted hover:bg-brand-muted/80 text-white px-3 py-2 rounded-lg text-[11px] font-black transition-all active:scale-95 border border-brand-border"
@@ -2485,9 +2485,8 @@ export default function App() {
           </div>
 
           {user ? (
-            isAuthorized ? (
-              <>
-                {/* Bottom Row: Navigation Actions */}
+            <>
+              {/* Bottom Row: Navigation Actions */}
                 <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 justify-center sm:justify-end w-full px-4 md:px-6 py-4 bg-brand-muted/10 border-b border-brand-border">
               <button 
                 onClick={() => requirePro(() => setIsDashboardOpen(!isDashboardOpen))}
@@ -4467,35 +4466,6 @@ export default function App() {
         )}
       </>
     ) : (
-      <div className="flex flex-col items-center justify-center py-24 px-6 text-center animate-in fade-in zoom-in-95 duration-500">
-        <div className="bg-brand-muted/30 p-8 rounded-full mb-8 border border-brand-border shadow-2xl relative">
-          <ShieldAlert className="w-16 h-16 text-red-500 animate-pulse" />
-          <div className="absolute inset-0 bg-red-500/10 rounded-full blur-2xl animate-pulse"></div>
-        </div>
-        <h2 className="text-3xl font-black text-white mb-3 uppercase tracking-tight">Acesso Restrito</h2>
-        <div className="w-12 h-1.5 bg-red-600 rounded-full mb-6"></div>
-        <p className="text-slate-400 max-w-sm mb-10 leading-relaxed text-sm md:text-base">
-          Olá <span className="text-brand-primary font-bold">{user.displayName}</span>.<br /> 
-          Este ambiente é exclusivo para testes controlados. O e-mail <span className="text-slate-200 font-mono text-xs">{user.email}</span> não está na lista de autorização.
-        </p>
-        <div className="flex flex-col gap-4 w-full max-w-xs">
-          <a 
-            href={`mailto:suporte@nivorconsultoria.com.br?subject=Solicitação de Acesso - Calculadora NIVOR&body=Olá Equipe Nivor, solicito liberação de acesso para o e-mail: ${user.email}`}
-            className="bg-brand-primary hover:bg-brand-primary-hover text-brand-black font-black py-4 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 shadow-xl shadow-brand-primary/20"
-          >
-            SOLICITAR LIBERAÇÃO
-          </a>
-          <button 
-            onClick={handleLogout}
-            className="group flex items-center justify-center gap-2 text-slate-500 hover:text-white text-sm font-bold transition-all py-2"
-          >
-            <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            TENTAR OUTRA CONTA
-          </button>
-        </div>
-      </div>
-    )
-  ) : (
     <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
       <div className="bg-brand-muted/20 p-10 rounded-3xl mb-10 border border-brand-border shadow-inner relative overflow-hidden group">
         <div className="absolute inset-0 bg-brand-primary/5 group-hover:bg-brand-primary/10 transition-colors"></div>
