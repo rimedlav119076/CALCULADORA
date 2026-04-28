@@ -1508,113 +1508,33 @@ export default function App() {
       return price;
     };
 
-    // Case 1: Target Price is LOWER or EQUAL to current calculated price
-    // Focus: Negotiation with supplier (Calculate Ideal Purchase Price)
-    if (targetSalesPrice <= salesPrice) {
-      // Iterative search for the ideal purchase price
-      let low = 0;
-      let high = targetSalesPrice * 2;
-      let idealPurchasePrice = 0;
+    // Calculate Adequate Purchase Price based on Target Sales Price
+    // Focus: Negotiation with supplier to maintain the informed profit margin
 
-      for (let i = 0; i < 100; i++) {
+    // Iterative search for the purchase price that results in targetSalesPrice
+    let low = 0;
+    let high = targetSalesPrice * 1.5; // Reasonable upper bound for search
+    let adequatePurchasePrice = 0;
+
+    for (let i = 0; i < 100; i++) {
         const mid = (low + high) / 2;
         const currentSalesPrice = calculateSalesPriceForPurchase(mid);
         
         if (currentSalesPrice < targetSalesPrice) {
-          low = mid;
-          idealPurchasePrice = mid;
+            low = mid;
+            adequatePurchasePrice = mid;
         } else {
-          high = mid;
+            high = mid;
         }
         
         if (Math.abs(currentSalesPrice - targetSalesPrice) < 0.0001) break;
-      }
-      
-      return {
-        type: 'purchase',
-        label: 'Preço de Compra Ideal',
-        value: idealPurchasePrice
-      };
-    } 
-    
-    // Case 2: Target Price is GREATER than current calculated price
-    // Focus: Profit Optimization (Calculate Suggested Profit Margin)
-    else {
-      const totalBaseCost = realCost;
-      
-      // For profit margin, we can still use a simplified approach or iterative
-      // Given the complexity of Lucro Real, let's use iterative for margin too
-      let low = 0;
-      let high = 100;
-      let suggestedMargin = 0;
-
-      const calculateSalesPriceForMargin = (margin: number) => {
-        const rCost = realCost;
-        let price = 0;
-        if (regimeVenda === 'Simples') {
-          const totalRates = (simplesNacionalRate + saleExpensesRate + commissionRate + margin) / 100;
-          if (totalRates < 1) price = rCost / (1 - totalRates);
-        } else if (regimeVenda === 'Presumido') {
-          const i = icmsSaleRate / 100;
-          const p = pisSaleRate / 100;
-          const c = cofinsSaleRate / 100;
-          const r = irpjRate / 100;
-          const s = csllRate / 100;
-          const d = (saleExpensesRate + commissionRate) / 100;
-          const m = margin / 100;
-          const denominator = 1 - (i + (1 - i) * (p + c) + r + s + d + m);
-          if (denominator > 0) price = rCost / denominator;
-        } else if (regimeVenda === 'Real') {
-          const iRate = icmsSaleRate / 100;
-          const pRate = pisSaleRate / 100;
-          const cRate = cofinsSaleRate / 100;
-          const dRate = (saleExpensesRate + commissionRate) / 100;
-          const mRate = margin / 100;
-          const irRate = irpjRate / 100;
-          const csRate = csllRate / 100;
-          let pv = rCost * (1 + dRate + mRate);
-          for (let i = 0; i < 50; i++) {
-            const ICMS = pv * iRate;
-            const PIS = (pv * (1 - iRate)) * pRate;
-            const COFINS = (pv * (1 - iRate)) * cRate;
-            const receita_liquida = pv - ICMS;
-            const despesas_valor = pv * dRate;
-            const lucro_antes_ir = receita_liquida - rCost - despesas_valor - PIS - COFINS;
-            const base_ir = Math.max(lucro_antes_ir, 0);
-            const IRPJ = base_ir * irRate;
-            const CSLL = base_ir * csRate;
-            const lucro_liquido = lucro_antes_ir - IRPJ - CSLL;
-            const margem_atual = pv > 0 ? lucro_liquido / pv : 0;
-            const erro = mRate - margem_atual;
-            const pv_novo = pv * (1 + erro);
-            if (Math.abs(erro) < 0.0001) { pv = pv_novo; break; }
-            pv = pv_novo;
-          }
-          price = pv;
-        }
-        return price;
-      };
-
-      for (let i = 0; i < 50; i++) {
-        const mid = (low + high) / 2;
-        const currentSalesPrice = calculateSalesPriceForMargin(mid);
-        
-        if (currentSalesPrice < targetSalesPrice) {
-          low = mid;
-          suggestedMargin = mid;
-        } else {
-          high = mid;
-        }
-        
-        if (Math.abs(currentSalesPrice - targetSalesPrice) < 0.01) break;
-      }
-
-      return {
-        type: 'margin',
-        label: 'Margem de Lucro Sugerida',
-        value: suggestedMargin
-      };
     }
+    
+    return {
+        type: 'purchase',
+        label: 'Preço de Compra Adequado',
+        value: adequatePurchasePrice
+    };
   }, [targetSalesPrice, salesPrice, realCost, freight, otherExpenses, ipi, ipiRate, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate, icmsSaleRate, pisSaleRate, cofinsSaleRate, saleExpensesRate, commissionRate, profitMargin, regimeCompra, regimeVenda, simplesNacionalRate, irpjRate, csllRate]);
 
   const handleSaleExpensesRateChange = useCallback((newRate: number) => {
@@ -3168,7 +3088,7 @@ export default function App() {
                 
                 <div className="space-y-4">
                   <p className="text-xs text-zinc-400 leading-relaxed">
-                    Informe o preço de venda desejado pelo mercado. O sistema mostrará o preço de compra ideal para manter suas margens.
+                    Informe o preço de venda aceito pelo mercado. O sistema calculará o <strong>Preço de Compra Adequado</strong> junto ao fornecedor para que você mantenha sua margem de lucro informada.
                   </p>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -3183,14 +3103,11 @@ export default function App() {
                     </div>
                     <div className="w-full">
                       <div className="flex flex-col gap-1 bg-zinc-800 rounded-lg p-1">
-                        <label className="text-[9px] font-bold text-slate-300 uppercase tracking-wide px-1">
-                          {negotiationResults?.label || "Resultado Sugerido"}
+                        <label className="text-[9px] font-bold text-amber-500 uppercase tracking-wide px-1">
+                          {negotiationResults?.label || "Preço Compra Adequado"}
                         </label>
                         <div className="py-2 px-3 text-right font-mono text-amber-400 font-bold text-lg">
-                          {negotiationResults?.type === 'margin' 
-                            ? `${negotiationResults.value.toFixed(2)}%`
-                            : formatCurrency(negotiationResults?.value || 0)
-                          }
+                          {formatCurrency(negotiationResults?.value || 0)}
                         </div>
                       </div>
                     </div>
