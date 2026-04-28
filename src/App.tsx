@@ -1651,6 +1651,29 @@ export default function App() {
     }
   }, [purchasePrice]);
 
+  const handleRegimeCompraChange = useCallback((regime: 'Simples' | 'Presumido' | 'Real') => {
+    setRegimeCompra(regime);
+    
+    if (regime === 'Simples') {
+      // Fornecedores no Simples Nacional não geram créditos de ICMS, PIS e COFINS
+      setIcmsPurchaseRate(0);
+      setIcmsFreightRate(0);
+      setPisPurchaseRate(0);
+      setCofinsPurchaseRate(0);
+      // IPI geralmente também não é recuperável em compras de fornecedores Simples
+      setIpiRate(0);
+    } else {
+      // Restaura os padrões se estiver saindo do Simples
+      if (userSettings) {
+        setIcmsPurchaseRate(userSettings.defaultIcmsPurchaseRate || 0);
+        setIcmsFreightRate(userSettings.defaultIcmsFreightRate || 0);
+        setPisPurchaseRate(userSettings.defaultPisPurchaseRate || 0);
+        setCofinsPurchaseRate(userSettings.defaultCofinsPurchaseRate || 0);
+        setIpiRate(userSettings.defaultIpi || 0);
+      }
+    }
+  }, [userSettings]);
+
   const handleProfitMarginValueChange = useCallback((val: number) => {
     if (salesPrice > 0) {
       let otherRates = 0;
@@ -1677,13 +1700,29 @@ export default function App() {
     setPurchasePrice(0);
     setFreight(0);
     setIpi(0);
-    setIpiRate(userSettings?.defaultIpi || 0);
     setOtherExpenses(0);
     setOtherExpensesRate(0);
-    setIcmsPurchaseRate(userSettings?.defaultIcmsPurchaseRate || 0);
-    setIcmsFreightRate(userSettings?.defaultIcmsFreightRate || 0);
-    setPisPurchaseRate(userSettings?.defaultPisPurchaseRate || 0);
-    setCofinsPurchaseRate(userSettings?.defaultCofinsPurchaseRate || 0);
+    setProductName('');
+    setRepresentativeName('');
+    setSelectedProductId(null);
+    setTargetSalesPrice(0);
+    setSaleExpensesValue(0);
+
+    // Se o regime de compra for Simples, mantém os impostos de compra zerados
+    if (regimeCompra === 'Simples') {
+      setIcmsPurchaseRate(0);
+      setIcmsFreightRate(0);
+      setPisPurchaseRate(0);
+      setCofinsPurchaseRate(0);
+      setIpiRate(0);
+    } else {
+      setIpiRate(userSettings?.defaultIpi || 0);
+      setIcmsPurchaseRate(userSettings?.defaultIcmsPurchaseRate || 0);
+      setIcmsFreightRate(userSettings?.defaultIcmsFreightRate || 0);
+      setPisPurchaseRate(userSettings?.defaultPisPurchaseRate || 0);
+      setCofinsPurchaseRate(userSettings?.defaultCofinsPurchaseRate || 0);
+    }
+
     setSimplesNacionalRate(userSettings?.defaultSimplesNacionalRate || 0);
     setIcmsSaleRate(userSettings?.defaultIcmsSaleRate || 0);
     setPisSaleRate(userSettings?.defaultPisSaleRate || 1.65);
@@ -1691,11 +1730,9 @@ export default function App() {
     setIrpjRate(userSettings?.defaultIrpjRate || 1.2);
     setCsllRate(userSettings?.defaultCsllRate || 1.08);
     setSaleExpensesRate(userSettings?.defaultSaleExpensesRate || 0);
-    setSaleExpensesValue(0);
     setCommissionRate(userSettings?.defaultCommissionRate || 0);
     setProfitMargin(userSettings?.defaultProfitMargin || 0);
-    setTargetSalesPrice(0);
-  }, [userSettings]);
+  }, [userSettings, regimeCompra]);
 
   const handleExportPDF = useCallback(() => {
     const doc = new jsPDF();
@@ -2652,7 +2689,7 @@ export default function App() {
                     {(['Simples', 'Presumido', 'Real'] as const).map((regime) => (
                       <button
                         key={regime}
-                        onClick={() => setRegimeCompra(regime)}
+                        onClick={() => handleRegimeCompraChange(regime)}
                         className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
                           regimeCompra === regime 
                             ? 'bg-brand-primary text-brand-black' 
