@@ -882,6 +882,7 @@ export default function App() {
   const [ipi, setIpi] = useState(0);
   const [ipiRate, setIpiRate] = useState(0);
   const [otherExpenses, setOtherExpenses] = useState(0);
+  const [otherExpensesRate, setOtherExpensesRate] = useState(0);
   
   // State - Tax Credits (Purchase)
   const [icmsPurchaseRate, setIcmsPurchaseRate] = useState(0); // %
@@ -1418,6 +1419,11 @@ export default function App() {
     setIpi(purchasePrice * (ipiRate / 100));
   }, [purchasePrice, ipiRate]);
 
+  // Sync otherExpenses value when purchasePrice or otherExpensesRate changes
+  useEffect(() => {
+    setOtherExpenses(purchasePrice * (otherExpensesRate / 100));
+  }, [purchasePrice, otherExpensesRate]);
+
   const expensesRate = saleExpensesRate;
 
   // Suggested Values for Negotiation
@@ -1630,6 +1636,18 @@ export default function App() {
     }
   }, [purchasePrice]);
 
+  const handleOtherExpensesRateChange = useCallback((rate: number) => {
+    setOtherExpensesRate(rate);
+  }, []);
+
+  const handleOtherExpensesValueChange = useCallback((val: number) => {
+    if (purchasePrice > 0) {
+      setOtherExpensesRate((val / purchasePrice) * 100);
+    } else {
+      setOtherExpenses(val);
+    }
+  }, [purchasePrice]);
+
   const handleProfitMarginValueChange = useCallback((val: number) => {
     if (salesPrice > 0) {
       let otherRates = 0;
@@ -1658,6 +1676,7 @@ export default function App() {
     setIpi(0);
     setIpiRate(userSettings?.defaultIpi || 0);
     setOtherExpenses(0);
+    setOtherExpensesRate(0);
     setIcmsPurchaseRate(userSettings?.defaultIcmsPurchaseRate || 0);
     setIcmsFreightRate(userSettings?.defaultIcmsFreightRate || 0);
     setPisPurchaseRate(userSettings?.defaultPisPurchaseRate || 0);
@@ -2205,6 +2224,7 @@ export default function App() {
         ipi,
         ipiRate,
         otherExpenses,
+        otherExpensesRate,
         icmsPurchaseRate,
         icmsFreightRate,
         pisPurchaseRate,
@@ -2242,7 +2262,7 @@ export default function App() {
     } finally {
       setIsSaving(false);
     }
-  }, [user, productName, selectedProductId, products, representativeName, purchasePrice, freight, otherExpenses, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate, icmsSaleRate, saleExpensesRate, saleExpensesValue, commissionRate, profitMargin, salesPrice, realCost, totalCost, totalCreditValue, regimeCompra, regimeVenda, simplesNacionalRate, pisSaleRate, cofinsSaleRate, irpjRate, csllRate, ipi, handleReset]);
+  }, [user, productName, selectedProductId, products, representativeName, purchasePrice, freight, otherExpenses, otherExpensesRate, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate, icmsSaleRate, saleExpensesRate, saleExpensesValue, commissionRate, profitMargin, salesPrice, realCost, totalCost, totalCreditValue, regimeCompra, regimeVenda, simplesNacionalRate, pisSaleRate, cofinsSaleRate, irpjRate, csllRate, ipi, handleReset]);
 
   const filteredCalculations = useMemo(() => {
     if (!historySearch) return savedCalculations;
@@ -2262,6 +2282,7 @@ export default function App() {
     setIpi(calc.ipi || 0);
     setIpiRate(calc.ipiRate || (calc.purchasePrice > 0 ? (calc.ipi / calc.purchasePrice) * 100 : 0));
     setOtherExpenses(calc.otherExpenses || 0);
+    setOtherExpensesRate(calc.otherExpensesRate || (calc.purchasePrice > 0 ? (calc.otherExpenses / calc.purchasePrice) * 100 : 0));
     setIcmsPurchaseRate(calc.icmsPurchaseRate || 0);
     setIcmsFreightRate(calc.icmsFreightRate || 0);
     setPisPurchaseRate(calc.pisPurchaseRate || 0);
@@ -2689,11 +2710,13 @@ export default function App() {
                       className="sm:col-span-2"
                     />
                   )}
-                  <div className={regimeCompra === 'Simples' ? "sm:col-span-1" : "sm:col-span-2"}>
-                    <NumberInput 
+                  <div className="sm:col-span-2">
+                    <PercentInputRow 
                       label="(+) Outras Despesas" 
-                      value={otherExpenses} 
-                      onChange={setOtherExpenses} 
+                      percent={otherExpensesRate} 
+                      onChange={handleOtherExpensesRateChange} 
+                      baseValue={purchasePrice}
+                      onValueChange={handleOtherExpensesValueChange}
                     />
                   </div>
                 </div>
