@@ -926,6 +926,7 @@ export default function App() {
   // Legal Content State
   const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
   const [isLegalAdminModalOpen, setIsLegalAdminModalOpen] = useState(false);
+  const [isExampleModalOpen, setIsExampleModalOpen] = useState(false);
   const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
   const [selectedLegalTab, setSelectedLegalTab] = useState<'privacy' | 'terms'>('privacy');
   const [legalConfigs, setLegalConfigs] = useState<Record<string, any>>({
@@ -1394,6 +1395,8 @@ export default function App() {
 
   // Base for IRPJ/CSLL depends on regime
   const irpjCsllBase = regimeVenda === 'Real' ? lairValue : salesPrice;
+  const irpjValue = irpjCsllBase * (irpjRate / 100);
+  const csllValue = irpjCsllBase * (csllRate / 100);
 
   const totalDeductionsValue = useMemo(() => {
     if (regimeVenda === 'Simples') {
@@ -2989,22 +2992,37 @@ export default function App() {
                         </div>
                       )}
 
-                      <PercentInputRow 
-                        label="IRPJ (%)" 
-                        percent={irpjRate} 
-                        onChange={setIrpjRate} 
-                        baseValue={irpjCsllBase}
-                        className="sm:col-span-2"
-                        disabled={true}
-                      />
-                      <PercentInputRow 
-                        label="CSLL (%)" 
-                        percent={csllRate} 
-                        onChange={setCsllRate} 
-                        baseValue={irpjCsllBase}
-                        className="sm:col-span-2"
-                        disabled={true}
-                      />
+                      <div className="sm:col-span-2 space-y-1">
+                        <PercentInputRow 
+                          label="IRPJ (%)" 
+                          percent={irpjRate} 
+                          onChange={setIrpjRate} 
+                          baseValue={irpjCsllBase}
+                        />
+                        {salesPrice > 0 && irpjValue > 0 && (
+                          <div className="flex justify-end px-1">
+                            <span className="text-[9px] text-slate-100 uppercase tracking-tighter bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
+                              Impacto Real: {((irpjValue / salesPrice) * 100).toFixed(2)}% sobre a venda
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="sm:col-span-2 space-y-1">
+                        <PercentInputRow 
+                          label="CSLL (%)" 
+                          percent={csllRate} 
+                          onChange={setCsllRate} 
+                          baseValue={irpjCsllBase}
+                        />
+                        {salesPrice > 0 && csllValue > 0 && (
+                          <div className="flex justify-end px-1">
+                            <span className="text-[9px] text-slate-100 uppercase tracking-tighter bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
+                              Impacto Real: {((csllValue / salesPrice) * 100).toFixed(2)}% sobre a venda
+                            </span>
+                          </div>
+                        )}
+                      </div>
                       <PercentInputRow 
                         label="Margem de Lucro (%)" 
                         percent={profitMargin} 
@@ -3077,7 +3095,7 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="mt-4">
+                <div className="mt-4 flex flex-col gap-2">
                   <button
                     onClick={handleSaveCalculation}
                     disabled={isSaving}
@@ -3545,11 +3563,190 @@ export default function App() {
         </div>
       )}
 
+      {/* Calculation Example Memorial Modal */}
+      {isExampleModalOpen && (
+        <div className="fixed inset-0 bg-brand-black/95 backdrop-blur-xl flex items-center justify-center sm:p-4 z-[120] animate-in fade-in duration-300">
+          <div className="bg-brand-card sm:rounded-3xl shadow-2xl w-full h-full sm:h-auto sm:max-w-4xl sm:max-h-[90vh] overflow-hidden border-0 sm:border border-brand-border flex flex-col">
+            <div className="bg-brand-black p-4 sm:p-6 text-white flex items-center justify-between shrink-0 border-b border-brand-border">
+              <div className="flex items-center gap-3">
+                <div className="bg-brand-primary p-2 rounded-xl text-brand-black">
+                  <Calculator className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black uppercase tracking-tighter">Memorial de Prática de Cálculos</h3>
+                  <p className="text-brand-primary text-[10px] font-bold uppercase tracking-widest italic">Exemplo Educativo: Validação Passo a Passo</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsExampleModalOpen(false)}
+                className="text-slate-500 hover:text-white transition-colors p-2 hover:bg-brand-muted rounded-full"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 bg-slate-900/50">
+              <div className="bg-brand-primary/5 border border-brand-primary/20 p-4 rounded-xl text-slate-300 text-xs leading-relaxed">
+                Este memorial serve para validar a lógica matemática do sistema. Abaixo, detalhamos cada etapa do cálculo utilizando valores fixos para facilitar o entendimento do Lucro Antes do IR (LAIR) e a formação do Markup.
+              </div>
+
+              {/* Step 1 & 2: Acquisition and Credits */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h4 className="text-sm font-bold text-brand-primary uppercase tracking-widest flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-brand-primary text-brand-black flex items-center justify-center text-[10px]">1</span>
+                    Entrada e Custos
+                  </h4>
+                  <div className="bg-brand-black/40 rounded-xl border border-brand-border overflow-hidden">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-brand-muted text-slate-400">
+                          <th className="px-4 py-2 text-left font-bold uppercase tracking-tighter">Descrição</th>
+                          <th className="px-4 py-2 text-right font-bold uppercase tracking-tighter">Valor</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-brand-border">
+                        <tr>
+                          <td className="px-4 py-3 text-slate-300">Preço do Produto</td>
+                          <td className="px-4 py-3 text-right font-mono font-bold text-white">R$ 1.000,00</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-3 text-slate-300">Frete / IPI / Outras Desp.</td>
+                          <td className="px-4 py-3 text-right font-mono text-slate-400">R$ 0,00</td>
+                        </tr>
+                        <tr className="bg-brand-primary/5">
+                          <td className="px-4 py-3 font-bold text-brand-primary">TOTAL NF COMPRA</td>
+                          <td className="px-4 py-3 text-right font-mono font-bold text-brand-primary">R$ 1.000,00</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="text-sm font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-emerald-500 text-emerald-950 flex items-center justify-center text-[10px]">2</span>
+                    Créditos e Custo Real
+                  </h4>
+                  <div className="bg-brand-black/40 rounded-xl border border-brand-border overflow-hidden">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-brand-muted text-slate-400">
+                          <th className="px-4 py-2 text-left font-bold uppercase tracking-tighter">Imposto Recuperável</th>
+                          <th className="px-4 py-2 text-right font-bold uppercase tracking-tighter">Crédito</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-brand-border">
+                        <tr>
+                          <td className="px-4 py-3 text-slate-300">ICMS Compra (12%)</td>
+                          <td className="px-4 py-3 text-right font-mono text-emerald-400">R$ 120,00</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-3 text-slate-300">PIS Compra (1,65%)</td>
+                          <td className="px-4 py-3 text-right font-mono text-emerald-400">R$ 16,50</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-3 text-slate-300">COFINS Compra (7,6%)</td>
+                          <td className="px-4 py-3 text-right font-mono text-emerald-400">R$ 76,00</td>
+                        </tr>
+                        <tr className="bg-emerald-500/10">
+                          <td className="px-4 py-3 font-bold text-emerald-400">CUSTO REAL LÍQUIDO</td>
+                          <td className="px-4 py-3 text-right font-mono font-bold text-emerald-400 underline decoration-double">R$ 787,50</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 3: Sales Formation */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-bold text-amber-400 uppercase tracking-widest flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-amber-500 text-amber-950 flex items-center justify-center text-[10px]">3</span>
+                  Formação do Preço e Resultados (Lucro Real)
+                </h4>
+                <div className="bg-brand-black/40 rounded-2xl border border-brand-border overflow-hidden shadow-2xl">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-brand-muted text-slate-300">
+                        <th className="px-6 py-4 text-left font-bold uppercase tracking-wider">Item do Cálculo</th>
+                        <th className="px-6 py-4 text-center font-bold uppercase tracking-wider">%</th>
+                        <th className="px-6 py-4 text-right font-bold uppercase tracking-wider">Valor R$</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-brand-border">
+                      <tr className="bg-brand-primary/5">
+                        <td className="px-6 py-4 font-bold text-brand-primary uppercase">PREÇO DE VENDA (100%)</td>
+                        <td className="px-6 py-4 text-center font-mono text-brand-primary">100,00%</td>
+                        <td className="px-6 py-4 text-right font-mono font-bold text-brand-primary text-lg">R$ 1.381,26</td>
+                      </tr>
+                      <tr>
+                        <td className="px-6 py-4 text-slate-300">(-) Custo Real do Produto</td>
+                        <td className="px-6 py-4 text-center font-mono text-slate-500">57,01%</td>
+                        <td className="px-6 py-4 text-right font-mono text-red-400">R$ 787,50</td>
+                      </tr>
+                      <tr>
+                        <td className="px-6 py-4 text-slate-300">(-) ICMS Venda</td>
+                        <td className="px-6 py-4 text-center font-mono text-slate-500">12,00%</td>
+                        <td className="px-6 py-4 text-right font-mono text-red-500">R$ 165,75</td>
+                      </tr>
+                      <tr>
+                        <td className="px-6 py-4 text-slate-300">(-) PIS / COFINS Venda</td>
+                        <td className="px-6 py-4 text-center font-mono text-slate-500">9,25%</td>
+                        <td className="px-6 py-4 text-right font-mono text-red-500">R$ 127,77</td>
+                      </tr>
+                      <tr>
+                        <td className="px-6 py-4 text-slate-300">(-) Comissão Venda</td>
+                        <td className="px-6 py-4 text-center font-mono text-slate-500">2,00%</td>
+                        <td className="px-6 py-4 text-right font-mono text-red-500">R$ 27,63</td>
+                      </tr>
+                      <tr className="bg-brand-muted/30">
+                        <td className="px-6 py-4 font-bold text-amber-500 underline uppercase italic">(=) LUCRO ANTES IR/CSLL (LAIR)</td>
+                        <td className="px-6 py-4 text-center font-mono text-amber-500 font-bold">19,74%</td>
+                        <td className="px-6 py-4 text-right font-mono font-bold text-amber-500">R$ 272,61</td>
+                      </tr>
+                      <tr>
+                        <td className="px-6 py-4 text-slate-400 pl-8 italic">(-) IRPJ sobre Lucro (15%)</td>
+                        <td className="px-6 py-4 text-center font-mono text-slate-600">2,96%</td>
+                        <td className="px-6 py-4 text-right font-mono text-red-500/70">R$ 40,89</td>
+                      </tr>
+                      <tr>
+                        <td className="px-6 py-4 text-slate-400 pl-8 italic">(-) CSLL sobre Lucro (9%)</td>
+                        <td className="px-6 py-4 text-center font-mono text-slate-600">1,78%</td>
+                        <td className="px-6 py-4 text-right font-mono text-red-500/70">R$ 24,53</td>
+                      </tr>
+                      <tr className="bg-emerald-500/20">
+                        <td className="px-6 py-5 font-black text-emerald-400 uppercase tracking-widest">(=) LUCRO LÍQUIDO FINAL</td>
+                        <td className="px-6 py-5 text-center font-mono font-black text-emerald-400">15,00%</td>
+                        <td className="px-6 py-5 text-right font-mono font-black text-emerald-400 text-xl border-t-2 border-emerald-500">R$ 207,19</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="bg-brand-black p-4 rounded-xl border border-brand-border text-[9px] text-slate-500 uppercase tracking-widest text-center">
+                Nota: O cálculo acima utiliza a metodologia de Markup Divisor para garantir a margem líquida exata após todos os impostos variáveis e impostos sobre o lucro (Lucro Real).
+              </div>
+            </div>
+
+            <div className="p-6 bg-brand-black border-t border-brand-border flex justify-end gap-4 shrink-0">
+              <button 
+                onClick={() => setIsExampleModalOpen(false)}
+                className="bg-brand-primary text-brand-black px-8 py-3 rounded-xl font-black text-xs transition-all border border-brand-primary uppercase tracking-widest hover:bg-brand-primary-hover shadow-[0_0_20px_rgba(0,240,255,0.2)]"
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Manual Modal */}
       {isManualModalOpen && (
-        <div className="fixed inset-0 bg-brand-black/80 backdrop-blur-md flex items-center justify-center p-4 z-[110] animate-in fade-in duration-300">
-          <div className="bg-brand-card rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden border border-brand-border flex flex-col">
-            <div className="bg-brand-black p-6 text-white flex items-center justify-between shrink-0">
+        <div className="fixed inset-0 bg-brand-black/95 backdrop-blur-xl flex items-center justify-center sm:p-4 z-[110] animate-in fade-in duration-300">
+          <div className="bg-brand-card sm:rounded-3xl shadow-2xl w-full h-full sm:h-auto sm:max-w-4xl sm:max-h-[90vh] overflow-hidden border-0 sm:border border-brand-border flex flex-col">
+            <div className="bg-brand-black p-4 sm:p-6 text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="bg-brand-primary p-2 rounded-xl">
                   <HelpCircle className="w-6 h-6 text-brand-black" />
@@ -3621,24 +3818,34 @@ export default function App() {
               </div>
             </div>
 
-            <div className="p-6 bg-zinc-50 border-t border-zinc-200 flex justify-end gap-3">
+            <div className="p-6 bg-zinc-50 border-t border-zinc-200 flex flex-col sm:flex-row justify-end gap-3">
+              <button
+                onClick={() => {
+                  setIsManualModalOpen(false);
+                  setIsExampleModalOpen(true);
+                }}
+                className="bg-brand-primary text-brand-black px-6 py-2.5 rounded-xl font-black text-[10px] transition-all active:scale-95 flex items-center justify-center gap-2 border border-brand-primary uppercase tracking-widest hover:bg-brand-primary-hover shadow-lg"
+              >
+                <BookOpen className="w-4 h-4" />
+                VER MEMORIAL DE PRÁTICA (EXEMPLO)
+              </button>
               {isAdmin && (
                 <button 
                   onClick={() => {
                     setIsManualModalOpen(false);
                     setIsManualAdminModalOpen(true);
                   }}
-                  className="bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 flex items-center gap-2"
+                  className="bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-xl font-bold text-[10px] transition-all active:scale-95 flex items-center justify-center gap-2 uppercase tracking-widest"
                 >
                   <Edit2 className="w-4 h-4" />
-                  EDITAR CONTEÚDO
+                  EDITAR MANUAL
                 </button>
               )}
               <button 
                 onClick={() => setIsManualModalOpen(false)}
-                className="bg-zinc-950 hover:bg-zinc-800 text-white px-8 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95"
+                className="bg-zinc-950 hover:bg-zinc-800 text-white px-8 py-2.5 rounded-xl font-bold text-[10px] transition-all active:scale-95 uppercase tracking-widest"
               >
-                ENTENDI
+                FECHAR
               </button>
             </div>
           </div>
