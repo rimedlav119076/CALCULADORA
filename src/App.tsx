@@ -822,7 +822,7 @@ export default function App() {
   const AUTHORIZED_EMAILS = useMemo(() => [
     'adm.valdemir@gmail.com', 
     'contabil@mgvcontabilidade.com.br',
-    'elisriske@gmail.com',
+    'gerencia.idealcnt@gmail.com',
     // Adicione aqui os e-mails das pessoas que participarão dos testes controlados
   ], []);
 
