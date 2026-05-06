@@ -1661,17 +1661,17 @@ export default function App() {
 
     // Header
     doc.setFillColor(24, 24, 27); // zinc-950
-    doc.rect(0, 0, 210, 40, 'F');
+    doc.rect(0, 0, 210, 35, 'F');
     
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(20);
-    doc.text('NIVOR CONSULTORIA', 14, 20);
+    doc.text('NIVOR CONSULTORIA', 14, 18);
     doc.setFontSize(10);
-    doc.text('Análise de Formação de Preço e Rentabilidade', 14, 28);
-    doc.text(`Gerado em: ${dateStr} às ${timeStr}`, 140, 28);
+    doc.text('Análise de Formação de Preço e Rentabilidade', 14, 26);
+    doc.text(`Gerado em: ${dateStr} às ${timeStr}`, 135, 26);
 
     // Section 1: Identificação (if available)
-    let currentY = 50;
+    let currentY = 45;
     if (productName || representativeName) {
       doc.setTextColor(24, 24, 27);
       doc.setFontSize(12);
@@ -1719,16 +1719,17 @@ export default function App() {
       startY: currentY,
       body: acquisitionData,
       theme: 'grid',
-      styles: { fontSize: 9 },
+      styles: { fontSize: 9, cellPadding: 1.5 },
       columnStyles: {
         0: { cellWidth: 90 },
         1: { cellWidth: 45, halign: 'right' },
         2: { cellWidth: 45, halign: 'right', fontStyle: 'bold' },
       },
       headStyles: { fillColor: [24, 24, 27] },
+      margin: { top: 10, bottom: 10 },
     });
 
-    currentY = (doc as any).lastAutoTable.finalY + 15;
+    currentY = (doc as any).lastAutoTable.finalY + 10;
 
     // Section 3: Formação de Preço de Venda
     doc.setFontSize(12);
@@ -1741,10 +1742,10 @@ export default function App() {
         ['Simples Nacional (%)', `${simplesNacionalRate.toFixed(2)}%`, formatCurrency(salesPrice * (simplesNacionalRate / 100))]
       ] : [
         ['ICMS sobre Venda (%)', `${icmsSaleRate.toFixed(2)}%`, formatCurrency(salesPrice * (icmsSaleRate / 100))],
-        ['PIS sobre Venda (%)', `${pisSaleRate.toFixed(3)}%`, formatCurrency(salesPrice * (pisSaleRate / 100))],
-        ['COFINS sobre Venda (%)', `${cofinsSaleRate.toFixed(3)}%`, formatCurrency(salesPrice * (cofinsSaleRate / 100))],
-        ['IRPJ (%)', `${irpjRate.toFixed(3)}%`, formatCurrency(salesPrice * (irpjRate / 100))],
-        ['CSLL (%)', `${csllRate.toFixed(3)}%`, formatCurrency(salesPrice * (csllRate / 100))],
+        ['PIS sobre Venda (%)', `${pisSaleRate.toFixed(3)}%`, formatCurrency(pisCofinsBase * (pisSaleRate / 100))],
+        ['COFINS sobre Venda (%)', `${cofinsSaleRate.toFixed(3)}%`, formatCurrency(pisCofinsBase * (cofinsSaleRate / 100))],
+        ['IRPJ (%)', `${irpjRate.toFixed(3)}%`, formatCurrency(irpjValue)],
+        ['CSLL (%)', `${csllRate.toFixed(3)}%`, formatCurrency(csllValue)],
       ]),
       ['Outras Despesas (%)', `${expensesRate.toFixed(2)}%`, formatCurrency(saleExpensesValue)],
       ['Comissão de Venda (%)', `${commissionRate.toFixed(2)}%`, formatCurrency(salesPrice * (commissionRate / 100))],
@@ -1757,16 +1758,17 @@ export default function App() {
       startY: currentY,
       body: salesData,
       theme: 'grid',
-      styles: { fontSize: 9 },
+      styles: { fontSize: 9, cellPadding: 1.5 },
       columnStyles: {
         0: { cellWidth: 90 },
         1: { cellWidth: 45, halign: 'right' },
         2: { cellWidth: 45, halign: 'right', fontStyle: 'bold' },
       },
       headStyles: { fillColor: [217, 119, 6] },
+      margin: { top: 10, bottom: 10 },
     });
 
-    currentY = (doc as any).lastAutoTable.finalY + 15;
+    currentY = (doc as any).lastAutoTable.finalY + 10;
 
     // Section 4: Resumo da Operação
     doc.setFontSize(12);
@@ -1775,12 +1777,17 @@ export default function App() {
     currentY += 5;
 
     const summaryData = [
-      ['Faturamento Bruto', '', formatCurrency(salesPrice)],
+      ['Preço Venda', '', formatCurrency(salesPrice)],
       ['(-) Custo Real da Mercadoria', '', `-${formatCurrency(realCost)}`],
       ['(-) Impostos e Comissões', '', `-${formatCurrency(
         regimeVenda === 'Simples'
           ? salesPrice * ((simplesNacionalRate + saleExpensesRate + commissionRate) / 100)
-          : salesPrice * ((icmsSaleRate + pisSaleRate + cofinsSaleRate + irpjRate + csllRate + saleExpensesRate + commissionRate) / 100)
+          : (salesPrice * (icmsSaleRate / 100)) + 
+            (pisCofinsBase * (pisSaleRate / 100)) + 
+            (pisCofinsBase * (cofinsSaleRate / 100)) + 
+            irpjValue + csllValue + 
+            saleExpensesValue + 
+            (salesPrice * (commissionRate / 100))
       )}`],
       ['(=) LUCRO LÍQUIDO FINAL', '', formatCurrency(salesPrice * (profitMargin / 100))],
     ];
@@ -1789,7 +1796,7 @@ export default function App() {
       startY: currentY,
       body: summaryData,
       theme: 'striped',
-      styles: { fontSize: 10 },
+      styles: { fontSize: 10, cellPadding: 2 },
       columnStyles: {
         0: { cellWidth: 90 },
         1: { cellWidth: 45, halign: 'right' },
@@ -1798,7 +1805,7 @@ export default function App() {
     });
 
     doc.save(`analise-${productName || 'calculo'}-${dateStr.replace(/\//g, '-')}.pdf`);
-  }, [salesPrice, realCost, icmsSaleRate, pisSaleRate, cofinsSaleRate, commissionRate, saleExpensesValue, profitMargin, purchasePrice, freight, otherExpenses, totalCreditValue, markupMultiplier, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate, expensesRate, productName, representativeName, regimeCompra, regimeVenda, simplesNacionalRate, irpjRate, csllRate, saleExpensesRate, ipi]);
+  }, [salesPrice, realCost, icmsSaleRate, pisSaleRate, cofinsSaleRate, commissionRate, saleExpensesValue, profitMargin, purchasePrice, freight, otherExpenses, totalCreditValue, markupMultiplier, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate, expensesRate, productName, representativeName, regimeCompra, regimeVenda, simplesNacionalRate, irpjRate, csllRate, saleExpensesRate, ipi, pisCofinsBase, irpjValue, csllValue]);
 
   const handleExportExcel = useCallback(() => {
     const dateStr = new Date().toLocaleDateString('pt-BR');
@@ -1832,10 +1839,10 @@ export default function App() {
         ['Simples Nacional (%)', `${simplesNacionalRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, salesPrice * (simplesNacionalRate / 100)]
       ] : [
         ['ICMS sobre Venda (%)', `${icmsSaleRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, salesPrice * (icmsSaleRate / 100)],
-        ['PIS sobre Venda (%)', `${pisSaleRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, salesPrice * (pisSaleRate / 100)],
-        ['COFINS sobre Venda (%)', `${cofinsSaleRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, salesPrice * (cofinsSaleRate / 100)],
-        ['IRPJ (%)', `${irpjRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, salesPrice * (irpjRate / 100)],
-        ['CSLL (%)', `${csllRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, salesPrice * (csllRate / 100)],
+        ['PIS sobre Venda (%)', `${pisSaleRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, pisCofinsBase * (pisSaleRate / 100)],
+        ['COFINS sobre Venda (%)', `${cofinsSaleRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, pisCofinsBase * (cofinsSaleRate / 100)],
+        ['IRPJ (%)', `${irpjRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, irpjValue],
+        ['CSLL (%)', `${csllRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, csllValue],
       ]),
       ['Outras Despesas (%)', `${expensesRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, saleExpensesValue],
       ['Comissão de Venda (%)', `${commissionRate.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}%`, salesPrice * (commissionRate / 100)],
@@ -1844,12 +1851,17 @@ export default function App() {
       ['PREÇO DE VENDA CALCULADO', '', salesPrice],
       [''],
       ['3. RESUMO FINANCEIRO', '', 'Valor (R$)'],
-      ['Faturamento Bruto', '', salesPrice],
+      ['Preço Venda', '', salesPrice],
       ['Custo Real Mercadoria', '', realCost],
       ['Impostos e Comissões', '', (
         regimeVenda === 'Simples'
           ? salesPrice * ((simplesNacionalRate + saleExpensesRate + commissionRate) / 100)
-          : salesPrice * ((icmsSaleRate + pisSaleRate + cofinsSaleRate + irpjRate + csllRate + saleExpensesRate + commissionRate) / 100)
+          : (salesPrice * (icmsSaleRate / 100)) + 
+            (pisCofinsBase * (pisSaleRate / 100)) + 
+            (pisCofinsBase * (cofinsSaleRate / 100)) + 
+            irpjValue + csllValue + 
+            saleExpensesValue + 
+            (salesPrice * (commissionRate / 100))
       )],
       ['LUCRO LÍQUIDO', '', (salesPrice * (profitMargin / 100))],
     ];
@@ -1873,7 +1885,7 @@ export default function App() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Análise");
     XLSX.writeFile(wb, `analise-${productName || 'calculo'}.xlsx`);
-  }, [productName, representativeName, purchasePrice, freight, otherExpenses, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate, totalCreditValue, realCost, icmsSaleRate, pisSaleRate, cofinsSaleRate, expensesRate, commissionRate, profitMargin, markupMultiplier, salesPrice, saleExpensesValue, regimeCompra, regimeVenda, simplesNacionalRate, irpjRate, csllRate, saleExpensesRate, ipi]);
+  }, [productName, representativeName, purchasePrice, freight, otherExpenses, icmsPurchaseRate, icmsFreightRate, pisPurchaseRate, cofinsPurchaseRate, totalCreditValue, realCost, icmsSaleRate, pisSaleRate, cofinsSaleRate, expensesRate, commissionRate, profitMargin, markupMultiplier, salesPrice, saleExpensesValue, regimeCompra, regimeVenda, simplesNacionalRate, irpjRate, csllRate, saleExpensesRate, ipi, pisCofinsBase, irpjValue, csllValue]);
 
   const handleApplyNegotiation = useCallback(() => {
     if (!negotiationResults || targetSalesPrice <= 0) return;
